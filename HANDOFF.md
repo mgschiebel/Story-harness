@@ -1,6 +1,6 @@
-# Skaldsaga: Planning Handoff (v8)
+# Skaldsaga: Planning Handoff (v9)
 
-*Planning session summary, October 18, 2026 (night). Supersedes v7 (October 18, evening). Status: design phase, nothing built yet. Companion file: `ARCHITECTURE.md` (one-page sketch, reviewed in the v6 session). The project was called Story Harness until the v6 session; the GitHub repo has been renamed to Skaldsaga.*
+*Planning session summary, October 18, 2026 (late night). Supersedes v8 (October 18, night). Status: design phase, nothing built yet. Companion file: `ARCHITECTURE.md` (one-page sketch, reviewed in the v6 session). The project was called Story Harness until the v6 session; the GitHub repo has been renamed to Skaldsaga.*
 
 ## How to use this document
 
@@ -12,7 +12,23 @@ Labels used below:
 - **Proposed**: suggested in discussion, not yet explicitly confirmed.
 - **Research**: from web searches or documentation; verify before relying on it. Items marked *unverified* have not been checked at all.
 
-## What changed since v7
+## What changed since v8
+
+A grilling session on the coverage-grid stages and the weaver and outliner (open items 4 and 5). All of the following are **Decided**; details are in "Coverage grid and movements" and "Weaver, outliner and frameworks."
+
+- **Fixed four-stage grid for every thread** (closes open item 4): **Setup, Complications, Crisis, Resolution.** The grid stays framework-agnostic; frameworks layer named beats on top, so switching frameworks never invalidates answers or changes what "no empty cells" means.
+- **Stages align across a storyform's threads by default**, giving the book four shared movements. Misalignment is a soft "possible pacing issue," explained once and respected.
+- **Subplots float independently** of the main storyform but keep four aligned stages internally. A subplot's minimum is its own dramatic question, stakes, and at least one thread with all four stages; other threads accept "keep it simple."
+- **Two tiers of beats, all soft:** a small set of universal **landmarks** owned by the grid (inciting incident, midpoint, low point, climax and others), and **framework beats** supplied by the chosen framework. Inferred and confirmed, never asked cold; missing ones become suggestions, never completeness blockers.
+- **Movement boundaries are derived from landmark scenes**, never stored, so `sequence.md` stays pure.
+- **The outline is layered:** a skeleton pass across the whole book, then deepening one movement at a time, starting with Setup. Layers set the work order, not a depth limit: detail the writer raises early is captured at whatever depth it arrives and becomes a pin the skeleton builds around.
+- **Framework choice:** inferred any time and confirmed when obvious; if the writer is unsure, it waits for the weaver's late recommendation. Four-part is the default, switching is free, and "no framework" is valid.
+- **The skeleton is sized by story need, not word counts.**
+- **Removed from phase 1: the suggested first edition and the length primitive** (supersedes the v7 decision). Phase 1 has no prose, so word counts would be guesses; word budgets belong to editions and move to a later phase, where the edition step teaches length during revision. Phase 1 keeps only relative pacing notes in scene counts.
+- **Fog subplots at weave time:** each is mapped, shelved, or folded into an existing thread, chosen by the writer.
+- **Promote to subplot** stays in phase 1: the reverse of fold-in, for any thread content, writer-started, using existing operations.
+
+## What changed in v8
 
 A short side session revisited the script language, which had been Node since v6. Details are in Architecture, Future phases, Research notes and open items 13 and 18.
 
@@ -39,7 +55,7 @@ This session worked through editions (open item 14) from the writer's day-to-day
 - **A retelling that changes canon is a new project,** forked by copying the facts with a note of where they came from (project and version), never synced back.
 - **Edition lifecycle:** not published → publishing in progress (serials and anything released in parts) → published. Published editions are frozen snapshots; canon may move on and republishing means a new edition. While in progress, a canon change that touches released groupings marks them "needs republishing" and Skaldsaga strongly recommends bringing them up to current canon.
 - **Review snapshots** (beta readers, editors, publishers) belong to not-published editions. Each is pinned to a canon version so feedback can be shown against the exact text the reviewer read. They never trigger republishing.
-- **Phase 1 ends with a suggested first edition** (closes the main question in open item 14): the outliner's last step proposes a not-published edition chosen from the writer's goal, clearly labeled as a suggestion, using a minimal edition file (breaks anchored by scene ID).
+- *Superseded in v9 (removed from phase 1):* **Phase 1 ends with a suggested first edition** (closes the main question in open item 14): the outliner's last step proposes a not-published edition chosen from the writer's goal, clearly labeled as a suggestion, using a minimal edition file (breaks anchored by scene ID).
 - **IDs are random instead of counting up** (see Spec and storage), for collision safety if facts later move between projects, and so shuffled scenes never look out of order.
 - **Story-shape naming started (open item 3):** a terminology ladder (craft term, then abbreviation, then names); "main character"/MC; "challenger"; MC and POV character taught as different ideas; threads named main plot, inner journey, challenger, relationship.
 - **Dramatic and thematic questions** are tracked on every storyform, inferred rather than asked cold, and block weaving and outlining until answered at least provisionally.
@@ -72,7 +88,7 @@ A set of Claude Code skills (a "harness") that helps a novice aspiring author tu
 
 - Runs in Claude Code. Building begins in future sessions.
 - Targets novel-length fiction in this phase, but the story model stays medium-agnostic (one scene sequence, with chapters, acts or serial updates as editions), so plays, serials and other forms can follow.
-- This phase delivers only a complete, detailed outline (spec, plot structure, and the scene sequence with beats).
+- This phase delivers only a complete, detailed outline (spec, plot structure, and the scene sequence with beats). Editions, word budgets and the length primitive are not part of phase 1 (v9).
 - Modeled on Matt Pocock's wayfinder skill concept: planning across many sessions where each decision reveals what to plan next.
 - **Long-term goal (later phases, out of scope now):** a fully automated novel-writing factory, with either assisted writing or automated scene writing for human review, producing publishable scenes and documents. Later phases include writer and review agent pairs and editor agents (pacing, flow, grammar, voice, and so on). The spec layout must be future-proofed for this (see Spec and storage, and Node format).
 
@@ -217,7 +233,7 @@ Note: the four Dramatica theme questions are now confirmed (see Research notes, 
 **Proposed**
 
 - The orchestrator recommends one default next step plus "something else."
-- Shared primitives: plain-language translation reference, impact lookup (related items via relationship facts, typed fields, the backlinks index, and rules), spec read/write with status, a harvest primitive for drafted material, the coherence checker, and the length primitive.
+- Shared primitives: plain-language translation reference, impact lookup (related items via relationship facts, typed fields, the backlinks index, and rules), spec read/write with status, a harvest primitive for drafted material, and the coherence checker. (The length primitive moved to a later phase in v9.)
 - The housekeeper never edits on its own. It raises plain-language heads-ups. Keep the original premise and taste anchors as a versioned baseline, and supersede decisions with dated notes rather than overwriting.
 - Even a single storyform needs weaving, to interleave its four threads across the book.
 - When weaving surfaces a possible new storyform, add it to the map as a fog item automatically and raise it with the user only when it is ready to explore.
@@ -292,7 +308,7 @@ Two separate concerns, kept distinct:
   - **The sequence** is stored in one file, `spec/sequence.md`: the scene IDs in reading order. Moving a scene is a one-line edit. The single committer serializes edits, so the shared file causes no conflicts, and any reorder correctly stales whatever checked reading order (reveals, knowledge). It is also the one file a writer might open to see the story's shape. Rejected: a sortable position key on each scene (no single place shows the whole story).
   - **Editions** are groupings laid over the same sequence: chapters (optionally inside parts) for a novel, acts for a play, updates with release days for a web serial. A project can hold several editions side by side, and publishing uses one.
   - **Flashbacks need no special structure:** a flashback is a scene whose in-world time is earlier than its place in the sequence (the two clocks above).
-  - **Word budgets** apply to stages (pacing) and to each edition's groupings (for example, serial updates of about 2,500 words).
+  - **Word budgets** apply to each edition's groupings (for example, serial updates of about 2,500 words), in the later phase that builds editions (v9). Phase 1 paces by scene counts per movement only.
   - *Proposed:* each edition file lives in `spec/editions/` and lists its breaks by scene ID plus labels. Groupings break only at scene boundaries.
 
 ### Editions (decided in v7)
@@ -310,7 +326,7 @@ Two separate concerns, kept distinct:
   3. **Published.** Finished and frozen: a historical snapshot. It is never re-checked; canon may move on, and Skaldsaga may note "differs from current canon" as information only. Republishing means starting a new edition.
 - **The writer marks an edition published deliberately** (for example when a serial ends). A published edition never reopens. A novel usually goes straight from not published to published in a single release.
 - **Review snapshots.** Copies handed out for comment (beta readers, an editor, a publisher, advance copies) belong to a not-published edition. Sharing a copy creates a snapshot pinned to its canon version (for example "Beta round 1, sent to 4 readers"). Feedback is filed in `reviews/` tied to that snapshot, so Skaldsaga can show what the reviewer actually read and translate the comment into a question about the current text. Snapshots never trigger republishing. *Proposed:* a soft, information-only heads-up when a change touches text in a late advance copy. Serial writers can use the same mechanism to beta-read an update before release.
-- **Phase 1 proposes a first edition.** The outliner's last step suggests one not-published edition chosen from the writer's goal (chapters for a novel, updates for a web serial), labeled as a suggestion the writer can change at any time.
+- *Superseded in v9:* ~~Phase 1 proposes a first edition.~~ Editions are not built in phase 1. The rules and minimal file format below stay decided for the phase that first needs editions (likely drafting or CD), where an edition step also runs the word-budget check and teaches length during revision.
 - **Reorders and breaks.** Canon cares only about scene order and the ripple effects of a move. Breaks are anchored by scene ID, with no rules about following or staying put: published editions and released groupings are pinned and unaffected (a move touching released groupings falls under "needs republishing"), and a not-published edition is marked as needing a fresh look, after which the edition flow checks it and proposes new breaks if needed.
 - **Phase 1 edition file (minimal):**
 
@@ -406,7 +422,8 @@ purpose: "Mara discovers Jonah lied"   # works for open slots too
 when: {after: s-0011, offset: "next morning"}
 beats: ["...", "..."]
 reads: [f-0031, f-0050]     # declared: facts this scene relies on
-status: outlined            # outlined | drafted | reviewed | approved
+landmarks: []               # Proposed (v9): e.g. [inciting_incident]; confirmed tags, see Coverage grid and movements
+status: outlined            # slot | outlined | drafted | reviewed | approved (slot Proposed in v9)
 ```
 
 Writes, hints, and reveals are not stored on the scene. They are generated into `scenes.json` from facts that point at it (`true_from: {in: ...}`, reader moments, character learns).
@@ -435,12 +452,14 @@ kind: personal          # personal | challenger | relationship | big_picture
 storyform: sf-0001      # one per map now; future-proofs subplots
 characters: [{who: p-0007, role: lead}]   # roles: lead, opposite, etc.
 decisions: [d-0001, d-0002]
-stages:
-  - {stage: starting_condition, summary: "Mara trusts no one", confidence: provisional}
-  - {stage: turning_point, summary: null}
+stages:               # always these four keys (v9)
+  - {stage: setup, summary: "Mara trusts no one", confidence: provisional}
+  - {stage: complications, summary: null}
+  - {stage: crisis, summary: null}
+  - {stage: resolution, summary: null}
 ```
 
-Coverage grid cell states (generated into `grid.json`): **empty** (no summary, no scene; becomes a frontier question), **planned** (summary, no scene), **covered** (scenes linked via their `coverage` field). The housekeeper can soft-flag scenes that drift from their cell's summary. Stage names are still open (see Open items).
+Coverage grid cell states (generated into `grid.json`): **empty** (no summary, no scene; becomes a frontier question), **planned** (summary, no scene), **covered** (scenes linked via their `coverage` field). The housekeeper can soft-flag scenes that drift from their cell's summary. Stage keys are settled in v9 (see Coverage grid and movements). A thread opted out with "keep it simple" has no counted cells.
 
 ### Viewpoint and style
 
@@ -462,7 +481,7 @@ Each scene's `pov` resolves its style rules. Voice samples, the flag-and-confirm
 ### Storyform
 
 ```yaml
-status: main            # main | fog | active
+status: main            # main | fog | active | shelved (shelved Proposed in v9: fog kept out of this outline)
 threads: [t-0001, t-0002, t-0003, t-0004]   # one per kind; empty while fog
 decisions: [d-0001, d-0002]                  # empty while fog
 premise:                # writer's own words, versioned for drift checks
@@ -470,6 +489,7 @@ premise:                # writer's own words, versioned for drift checks
   history: [{date: 2026-10-18, text: "..."}]
 dramatic_question: "Will Mara get the letters through?"  # plot: answered by the outcome
 thematic_question: "Is loyalty worth lying for?"         # theme: answered by how the ending feels
+framework: {value: hero_journey, confidence: provisional} # v9; value may be undecided or none
 characters: [p-0007, p-0002]   # fog only: who the subplot involves
 ```
 
@@ -531,25 +551,56 @@ Keyed by target ID. Each entry records how the target is referenced, which the d
 **Proposed**
 
 - *Superseded in v7:* plain labels for the four threads are now main plot, inner journey, challenger and relationship (see Story-shape layer).
-- A coverage grid: threads by stages, each cell with a plain requirement (starting condition, escalating conflict, turning point, resolution). Add an interlock check: the climax resolves more than one thread, and every thread bears on the central question.
+- *The coverage grid itself is Decided in v9* (see Coverage grid and movements). Still proposed: an interlock check that the climax resolves more than one thread and every thread bears on the thematic question.
 - Deterministic scripts for links, status, timelines, and a setup-and-payoff ledger. Rubric-guided model checks reported as "possible issues," not verdicts. A small argument-coherence rule set written in our own vocabulary, which tests the ending against the story-shape decisions.
 - Evals using stories with seeded plot holes to test the checker (the skill-creator skill supports evals).
 - Avoid reproducing Dramatica's proprietary terminology, dictionary, or matrices. Check the licensing page if borrowing anything specific. This is not legal advice.
 
-## Weaver, frameworks, and length
+## Coverage grid and movements (new in v9; all Decided unless marked)
+
+- **Four fixed stages for every thread**, whatever framework is used. Reasons: completeness means the same thing in every story, so the checker, evals and housekeeper never change with the framework; four stages is one idea a novice can hold; it mirrors Dramatica's four signposts per throughline in our own words.
+
+  | Stage (key) | Plain requirement, any thread |
+  |---|---|
+  | **Setup** (`setup`) | How things stand, and what disturbs them. |
+  | **Complications** (`complications`) | Pressure builds; first attempts fail or cost something. |
+  | **Crisis** (`crisis`) | A reversal or discovery changes the direction; ends at the lowest point. |
+  | **Resolution** (`resolution`) | The climax and its aftermath; the thread's question gets answered. |
+
+  "Crisis" was chosen over "turning point," which craft writing uses loosely (sometimes for the midpoint).
+- **Per-thread readings** of the four stages. Drafted: inner journey (the MC's belief and its cost; the belief is strained; it cracks or is doubled down on; the MC changes or holds firm, where the pivot belief ends or survives) and relationship (how the bond stands; it is tested; it reaches a breaking point; it deepens, breaks or stays unresolved). *Still to write:* main plot and challenger.
+- **Alignment within a storyform:** each thread's stage N falls in roughly the same part of the book, giving four shared **movements**, each advancing every thread. Soft guidance only: a thread running early or late gets one "possible pacing issue," then the writer's choice is respected. Lined-up resolutions support the proposed interlock check.
+- **Subplots float independently** of the main storyform (they may span the whole book or only part of it), but their own threads align with each other and they get their own four movements.
+- **Subplot minimum:** its own dramatic question, stakes, and at least one thread with all four stages. Other threads accept "keep it simple"; infer-and-confirm suggests which threads the subplot really has. Every thread that exists must have all four stages filled. A subplot can grow into a full storyform by adding threads.
+- **Cross-storyform soft checks:** a subplot resolving after the main climax gets a possible pacing issue; every subplot should touch the main storyform's thematic question.
+- **Two tiers of beats, all soft (never completeness blockers):**
+  - **Tier 1, landmarks (owned by the grid, every story):** Setup: show the normal world, the inciting incident, the MC commits (end of setup). Complications: rising stakes, the midpoint shift (end of complications). Crisis: things fall apart, the low point (end of crisis). Resolution: the climax, the new normal.
+  - **Tier 2, framework beats:** supplied only by the chosen framework (for example "theme stated," "refusal of the call") and slotted into the same four stages.
+  - **Behavior:** inferred from described scenes and confirmed ("That sounds like the moment that kicks off the story; is that right?"), which tags the scene and teaches the craft term. Missing ones become a suggestion, explained once, then respected. Attached to the main plot by default, except where a landmark plainly belongs to another thread. Subplots get landmarks too, more lightly. Beats tied to theme (such as "theme stated") are suggested only once the thematic question exists.
+- **Movement boundaries are derived, never stored:** end of Setup = the scene tagged "MC commits"; end of Complications = the midpoint scene; end of Crisis = the low-point scene; Resolution = everything after. Moving a landmark scene moves the boundary; `sequence.md` stays pure. Before landmarks exist, scenes fall back on their `coverage` stage and the skeleton's provisional placements. A generated index view shows the sequence split into movements. Subplots use the same rule with their own landmarks.
+- **Pacing in phase 1 uses scene counts only,** in plain words ("your middle may feel rushed"), as soft notes from the housekeeper or completeness rubric. Relative balance across movements is canon in any edition; word counts are not (see below).
+
+## Weaver, outliner and frameworks
 
 **Decided**
 
-- The weaver chooses a story framework (basic four-part novel, hero's journey, save the cat, and so on) based on the storyforms by asking the human questions, and teaches the tradeoffs.
-- Stage granularity per thread will be settled when designing the weaver.
-- A length primitive guides word-count goals from industry standards and is reusable by other skills.
+- **Framework choice** (refined in v9): the weaver chooses a framework (four-part, hero's journey, Save the Cat, and so on) with the writer and teaches the tradeoffs.
+  - **Inferred any time.** If the writer's scenes clearly follow a framework, Skaldsaga confirms ("this looks like the hero's journey; is that what you're going for?"). A confident yes is recorded as provisional; confusion or "not sure" parks it until weave time.
+  - **Recommended late,** at weave time, from taste anchors, genre and the writer's goal.
+  - **Four-part is the default** if nothing points elsewhere (it maps one-to-one onto the four stages). **Switchable any time** (only tier-2 beats re-map). **"No framework" is valid** (landmarks only).
+  - Stored on the storyform node (`framework`).
+- **Layered outline (v9):** a **skeleton pass** across the whole book creates scene slots described by purpose, each linked to a grid cell and any landmarks; then a **deepening pass, one movement at a time, starting with Setup,** adds beats, POV, location and reads. One movement per session fits the clear-and-recap rhythm, keeps sub-agent work bounded, and keeps hand-back questions topical. Later movements may send revisions back to earlier ones; the housekeeper catches the ripple.
+- **Layers set the work order, not a depth limit (v9).** Anything the writer raises early (a detailed climax in session two, say) is captured at whatever depth it arrives, provisional like any answer. It becomes a **pin**: the skeleton pass builds around existing detailed scenes rather than over them, and conflicts are flagged as usual. This is the outline-level version of allowing drafts before structure.
+- **The skeleton is sized by story need (v9):** at least one slot per grid cell, plus landmarks and framework beats, plus pinned scenes. No word targets.
+- **Fog subplots at weave time (v9):** before weaving, the writer chooses for each fog subplot: **map it now** (interview until it meets the subplot minimum, then weave it), **shelve it** (left out of this outline and kept for later), or **fold it in** (it is really part of an existing thread; its facts move there with `move_fact` and the fog node is deleted). The orchestrator raises these as weave time approaches, in plain words. Shelved subplots are not gaps.
+- **Promote to subplot (v9, phase 1):** the reverse of fold-in, for any thread content, including content folded in earlier. A new storyform node is created (or a shelved one revived), facts move with `move_fact` (IDs kept, so reads and links survive), and the interviewer asks about each reference as in a split. Emptied cells in the original thread are flagged by the grid; the new subplot must meet the subplot minimum before weaving. Writer-started; the only automatic part in phase 1 is a soft housekeeper note when a thread seems to carry two separate stories. Automatic promotion suggestions are deferred.
 - Authors may aim at traditional publishing, self-publishing, or just finishing a story. The skills ask the writer and adapt.
-- Version one includes a serial length profile. Full serial support (a parent map plus arc maps) is deferred and flagged as a near-term phase update.
+- **Length moves out of phase 1 (v9; supersedes the v1 serial length profile in phase 1).** Word budgets belong to editions (a novel's total, a serial's per-update target), and phase 1 has no prose, so counts would be guesses. A later phase's edition step compares real length with the edition's target and drives revisions that teach why length matters (too fast here, too slow there, over or under budget). Full serial support (a parent map plus arc maps) stays deferred.
 
 **Proposed**
 
-- Frameworks sit on top of the coverage grid. The grid stays framework-agnostic and the framework supplies named beats at typical positions. Name frameworks but write original descriptions, since some beat sheets are trademarked or book-specific.
-- A length data file with ranges by genre and publishing path, with sources and dates. It outputs a target length, a word budget per stage and per edition grouping (chapter, update, act), subplot-fit checks, pacing flags, and per-scene estimates. All of it is advice with reasons, never hard rules.
+- Name frameworks but write original descriptions, since some beat sheets are trademarked or book-specific.
+- For the later length phase: a length data file with ranges by genre and publishing path, with sources and dates, producing a target length, budgets per edition grouping, subplot-fit checks and per-scene estimates. All advice with reasons, never hard rules.
 
 ## Future phases (recorded ideas, not in scope now)
 
@@ -615,17 +666,17 @@ Keyed by target ID. Each entry records how the target is referenced, which the d
 1. *Closed:* `ARCHITECTURE.md` reviewed this session (see What changed since v5).
 2. *Closed:* sub-agents that need the writer use the hand-back pattern (see Architecture).
 3. *Mostly settled in v7* (see Story-shape layer): terminology ladder, MC and challenger names, MC versus POV character, thread names, the two big questions, the required core, and the "keep it simple" opt-out. Theme questions verified. Still open: final wording of every shape decision (including the challenger and relationship drafts), node fields for the adopted story points (open item 17), and how the theme layer's own-words answers relate to the thematic question.
-4. Settle the coverage-grid stages after the framework design.
-5. Design the weaver and outliner in detail: macro plan versus scene beats, open slots described by purpose, and outline deepened act by act.
+4. *Closed in v9:* four fixed stages (Setup, Complications, Crisis, Resolution), aligned within a storyform, with landmarks and framework beats on top (see Coverage grid and movements).
+5. *Mostly settled in v9* (see Weaver, outliner and frameworks): layered outline, skeleton sized by story need, pins, framework timing, fog subplot outcomes, promote to subplot. Still open: what the deepening pass adds to each scene beyond beats, POV, location and reads; how landmarks are stored on scenes (the Proposed `landmarks` field and `slot` status); the main plot and challenger stage readings; the weaver's output (where the woven plan lives, if anywhere beyond slots and coverage); and the scene-count pacing heuristics.
 6. Specify the housekeeper's rubric checks (what it actually looks for in a scoped pass) and the completeness-check rubric. Several soft checks are now named (unearned twist, dangling setup, uncorrected belief, fact ending with no cause, early pivot, scene drifting from its cell summary, similar attribute keys).
 7. Plan the evals with seeded plot holes, including a comparison of housekeeper models on scoped passes (to decide whether a cheaper default is safe). Also plan tests for the gating lanes, quarantine, version-checked commit, held-proposal flow, rolling passes, uniqueness rule (all three cardinalities), delete blocking, and merge.
-8. Research traditional and self-publishing length norms for the length data file.
+8. *Deferred in v9 (length left phase 1):* research traditional and self-publishing length norms for the length data file, when the edition phase begins.
 9. Read the wayfinder SKILL.md for patterns worth reusing.
 10. *Partly closed:* plugins cannot ship the main status line, so first-run setup writes it into the project's `.claude/settings.json` (see Research notes). Still unverified: hook access to context usage (no longer needed), and the SessionStart `initialUserMessage` field. Also: what happens when the writer already has a personal status line, since the project setting would replace it. Choose starting values for all settings: meter thresholds, rolling-pass interval (every N answers), and the reader cap that escalates to a full pass.
 11. Check the Dramatica licensing page before borrowing any specific term.
 12. Starter relation vocabulary for the attribute registry (family, place, bond, related) with each relation's symmetry and cardinality. Confirm the `add_item`/`remove_item` ops.
 13. *Reopened in v8 (scripts are now Rust):* how the compiled binaries reach the writer. Options: bundle every platform's binary inside the plugin (simple, but large and puts binaries in git); have CI publish a built distribution branch or separate marketplace repo that the plugin installs from (keeps main clean); or have first-run setup download the right binary from GitHub Releases and verify its checksum (smallest plugin, but needs a network and a download tool). Also: where the binaries live (not a top-level `bin/`), and what happens if a binary is missing or blocked by the operating system. Leave room for the later standalone app (see Future phases).
-14. *Closed in v7:* phase 1 proposes a first edition, using a minimal edition file (see Editions under Spec and storage). Later phases extend the format with cuts, alternative scenes, per-grouping release status and pins, and review snapshots.
+14. *Revised in v9:* phase 1 no longer proposes a first edition. The minimal edition file format and edition rules stay decided for the later phase that builds editions, which also extends the format with cuts, alternative scenes, per-grouping release status and pins, and review snapshots.
 15. How reviewer and reader feedback is stored in `reviews/` and turned into questions about the current text (mostly later phases; the snapshot link is decided).
 16. How forking a project for a retelling works in practice (later phase; the rule is decided).
 17. *Closed in v7:* extra story points adopted, in our own words, inferred and confirmed like everything else. **Stakes are required** (part of the required core); the rest are optional depth that accepts "keep it simple." Exact wording and node fields are still to be written with open item 3:
@@ -639,6 +690,6 @@ Keyed by target ID. Each entry records how the target is referenced, which the d
 
 ## Suggested next steps
 
-Start with the coverage-grid stages and the weaver and outliner design (items 4 and 5). Finish the remaining wording and node fields from item 3 alongside them, since the outliner is the main consumer of the adopted story points.
+Finish the remaining weaver and outliner questions (item 5): the deepening pass's scene fields, landmark storage, the main plot and challenger stage readings, and the weaver's output. Finish the wording and node fields from item 3 alongside them, since the outliner is the main consumer of the adopted story points.
 
 The Rust move (items 13 and 18) can run as a separate track: confirm the Proposed items, then build the session meter as the pilot once building starts.

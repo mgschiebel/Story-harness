@@ -19,8 +19,8 @@ Each sub-agent's model is a tunable default in `.harness/settings.json`: houseke
 |---|---|
 | **housekeeper** | Incremental pass at session start (changes since the last cleared pass); full pass (gate before weave and outline, on request) or scoped pass (touched nodes and facts plus their readers; rolling every N answers; immediately after a confirmed-decision change). Reads cleared state only. Never edits; returns flags. |
 | **harvester** | Reads drafts in `manuscript/`, proposes spec updates for new facts, flags drift against declared scene reads. |
-| **weaver** | Chooses a framework with the writer (via hand-back: returns questions, the interviewer asks them, the orchestrator re-dispatches), interleaves the storyforms' threads across the book, may surface a new fog storyform. |
-| **outliner** | Turns the woven plan into the scene sequence (reading order), scenes, and beats. Chapters and other groupings belong to editions (HANDOFF open item 14). |
+| **weaver** | Chooses a framework with the writer (via hand-back: returns questions, the interviewer asks them, the orchestrator re-dispatches), interleaves the storyforms' threads across the four movements (Setup, Complications, Crisis, Resolution), may surface a new fog storyform. Fog subplots are mapped, shelved or folded in first. |
+| **outliner** | Turns the woven plan into the scene sequence (reading order) in layers: a skeleton of purpose-described slots across the whole book, built around any pinned scenes, then deepened one movement at a time. Chapters and other groupings belong to editions, which are not built in phase 1 (HANDOFF open item 14). |
 | **completeness-rubric** | The deep, model-judged half of the completeness check. |
 
 ### Scripts (deterministic; written in Rust, compiled binaries ship with the plugin)
@@ -38,7 +38,7 @@ Each sub-agent's model is a tunable default in `.harness/settings.json`: houseke
 
 ### Shared primitives (reference files and helpers loaded by skills and sub-agents)
 
-Plain-language glossary (our names for every internal concept), consistency and impact lookup (via the backlinks index), spec read with pending-inbox overlay, proposal writer, length guide (data file plus rules), harvest rules.
+Plain-language glossary (our names for every internal concept), consistency and impact lookup (via the backlinks index), spec read with pending-inbox overlay, proposal writer, harvest rules. (The length guide moved to a later phase, with editions.)
 
 ## Folder layout
 
@@ -102,7 +102,7 @@ Writer drops prose in `manuscript/` -> orchestrator dispatches the harvester -> 
 1. Orchestrator runs `complete` and, for depth, the completeness rubric. Gaps become frontier questions for the interviewer.
 2. Full housekeeper pass as a gate.
 3. Weaver (with the writer's framework choice) produces the woven plan; any new storyform goes in as fog.
-4. Full housekeeper pass as a gate, then the outliner writes the sequence, scenes and beats as proposals.
+4. Full housekeeper pass as a gate, then the outliner writes the skeleton, then deepens one movement at a time, all as proposals.
 5. A rough outline with gaps marked is allowed at any point; "complete" requires every shape decision answered at least provisionally, no empty grid cells, and clean plot-hole checks.
 
 ## Long-term shape (later phases)
@@ -111,6 +111,6 @@ CI makes the story: proposals, checks and the single committer, through outline,
 
 ## Open in this sketch
 
-- The edition file format, and whether phase 1 produces a first edition (HANDOFF open item 14).
+- Editions are out of phase 1 (v9); the format is recorded for later (HANDOFF open item 14).
 - Plugin packaging and status line registration (open item 10).
 - Binary delivery and the Rust build and release pipeline (open items 13 and 18).
