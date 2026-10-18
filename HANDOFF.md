@@ -1,6 +1,6 @@
 # Skaldsaga: Planning Handoff (v6)
 
-*Planning session summary, October 18, 2026 (late afternoon). Supersedes v5 (October 18, mid-afternoon). Status: design phase, nothing built yet. Companion file: `ARCHITECTURE.md` (one-page sketch, reviewed this session). The project was called Story Harness until this session; the GitHub repo will be renamed to Skaldsaga.*
+*Planning session summary, October 18, 2026 (late afternoon). Supersedes v5 (October 18, mid-afternoon). Status: design phase, nothing built yet. Companion file: `ARCHITECTURE.md` (one-page sketch, reviewed this session). The project was called Story Harness until this session; the GitHub repo has been renamed to Skaldsaga.*
 
 ## How to use this document
 
@@ -44,7 +44,7 @@ A set of Claude Code skills (a "harness") that helps a novice aspiring author tu
 
 **Decided**
 
-- **The project is called Skaldsaga.** It is the open-source project name, the plugin name, and the command the writer types (`/skaldsaga`). The GitHub repo will be renamed from Story-harness to Skaldsaga after this session.
+- **The project is called Skaldsaga.** It is the open-source project name, the plugin name, and the command the writer types (`/skaldsaga`). The GitHub repo has been renamed from Story-harness to Skaldsaga.
 - **Internal role names stay internal.** "Orchestrator," "interviewer," "housekeeper" and the rest remain the names used in these docs and in code, but the writer never sees them. The orchestrator is the `skaldsaga` skill.
 - **Why this name:**
   - A *skald* is a Norse poet-storyteller, which gives us the mentor persona (an expert advisor who guides the writer). Like a muse, it also covers later phases (pair and automated writing) without a rename.
