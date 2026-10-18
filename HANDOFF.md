@@ -24,6 +24,7 @@ This session closed open item 2 (node-format follow-ups) and drafted open item 1
 - **Detail nodes dropped from phase 1** (the `detail` type and `detail_of` field). Per-fact revisions solve the problem they existed for. They may return later as optional tidiness if nodes get bloated.
 - **Storyform node defined:** `threads`, `decisions`, versioned `premise`, `central_question`, and `status` (main, fog, active). **Fog subplots are real storyform nodes** with `status: fog`, holding only a one-line premise and the characters involved, so they have stable IDs that scenes, facts, and the weaver can reference before they are mapped.
 - **Harness machinery lives in a hidden `.harness/` folder** at the project root: the pending inbox, settings, the session meter file, and session recaps. The four visible top-level folders are unchanged, and `spec/_index/` stays in the spec.
+- **Project name: Skaldsaga** (decided later the same session; see "Name"). The entry-point skill is `/skaldsaga`; "orchestrator" stays the internal name for that role.
 
 ## The project
 
@@ -36,6 +37,24 @@ A set of Claude Code skills (a "harness") that helps a novice aspiring author tu
 - This phase delivers only a complete, detailed outline (spec, plot structure, chapters and scenes with beats).
 - Modeled on Matt Pocock's wayfinder skill concept: planning across many sessions where each decision reveals what to plan next.
 - **Long-term goal (later phases, out of scope now):** a fully automated novel-writing factory, with either assisted writing or automated scene writing for human review, producing publishable scenes and documents. Later phases include writer and review agent pairs and editor agents (pacing, flow, grammar, voice, and so on). The spec layout must be future-proofed for this (see Spec and storage, and Node format).
+
+## Name
+
+**Decided**
+
+- **The project is called Skaldsaga.** It is the open-source project name, the plugin name, and the command the writer types (`/skaldsaga`). The GitHub repo will be renamed from Story-harness to Skaldsaga after this session.
+- **Internal role names stay internal.** "Orchestrator," "interviewer," "housekeeper" and the rest remain the names used in these docs and in code, but the writer never sees them. The orchestrator is the `skaldsaga` skill.
+- **Why this name:**
+  - A *skald* is a Norse poet-storyteller, which gives us the mentor persona (an expert advisor who guides the writer). Like a muse, it also covers later phases (pair and automated writing) without a rename.
+  - *Saga* is Old Norse for "story" or "what is told." It keeps the name about story rather than any medium (novels, serials, comics), and everyone can spell it.
+  - In modern Icelandic, *skáldsaga* (poet + story) is the everyday word for "novel."
+  - Short, one word, no hyphens or apostrophes, so the command matches the name. "Harness" was dropped because it is a technical word.
+- **Names rejected and why:** any "muse" name (Subtxt, the Dramatica-based app, already has an AI coach called Muse in the same niche; Plotmuse is an existing company); bare "Skald" (existing AI writing apps Skald Writer and Skald Scribe); Gaelic pairings such as *scéal* (hard to spell, and a cross-language blend).
+
+**Research (web search only, October 18, 2026; GitHub search was not available)**
+
+- No product found using "Skaldsaga." The term appears only in scholarship, where "skaldsagas" are the medieval Icelandic sagas about poets. Recheck GitHub, package registries and trademarks before publishing.
+- Known risk: "skald" sounds like "scald," so some people will misspell the command. Consider whether the plugin can also answer to a misspelling.
 
 ## Audience and interaction principles
 

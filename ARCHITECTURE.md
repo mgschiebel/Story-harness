@@ -1,6 +1,6 @@
-# Story Harness: Architecture Sketch (draft)
+# Skaldsaga: Architecture Sketch (draft)
 
-*October 18, 2026. Companion to `HANDOFF.md` (v5), which holds the reasoning and full schemas. Everything here reflects Decided items unless marked* **Proposed***. Names of skills, scripts and files are working names.*
+*October 18, 2026. Companion to `HANDOFF.md` (v5), which holds the reasoning and full schemas. Everything here reflects Decided items unless marked* **Proposed***. The project name Skaldsaga and the entry-point skill name `skaldsaga` are Decided; other names of skills, scripts and files are working names. Internal role names (orchestrator, interviewer, housekeeper and so on) are never shown to the writer.*
 
 ## Components
 
@@ -8,7 +8,7 @@
 
 | Component | Kind | Job |
 |---|---|---|
-| **orchestrator** | skill (entry point) | First-run setup; session open (recap from the last session file, start a full housekeeper pass, suggest one next step plus "something else"); chooses the topic; dispatches sub-agents; session wrap-up. Reads only `spec/_index/` and `.harness/`, never whole nodes. |
+| **orchestrator** (skill name: `skaldsaga`) | skill (entry point; the writer types `/skaldsaga`) | First-run setup; session open (recap from the last session file, start a full housekeeper pass, suggest one next step plus "something else"); chooses the topic; dispatches sub-agents; session wrap-up. Reads only `spec/_index/` and `.harness/`, never whole nodes. |
 | **interviewer** | skill | The live question loop for one topic. Socratic, infer-and-confirm, plain language. Reads spec nodes plus the pending inbox. Writes one proposal per confirmed answer. Raises flags at natural pauses. Checks the meter after each saved answer. |
 
 ### Sub-agents (no writer contact; short summary back)
@@ -60,7 +60,7 @@ my-novel/
     sessions/     one recap per session
 ```
 
-Distributed as a Claude Code plugin bundling the skills, agent definitions and scripts. **Proposed**, and it depends on verifying that a plugin can register the status line (open item 10).
+Distributed as a Claude Code plugin named `skaldsaga`, bundling the skills, agent definitions and scripts. **Proposed**, and it depends on verifying that a plugin can register the status line (open item 10).
 
 ## Call flows
 
