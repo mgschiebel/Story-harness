@@ -39,6 +39,7 @@ A grilling session on the coverage-grid stages and the weaver and outliner (open
 - **Soft checks split between script and model.** Countable checks run free and instant in the `complete` script; the housekeeper keeps only checks that need judgment.
 - **Flags are budgeted:** the housekeeper reports everything, the interviewer raises at most one or two per natural pause by impact, and the rest wait in a queue that must be cleared before weaving and outlining.
 - **The completeness rubric makes four judgments:** cells meet their stage, decisions have support, the ending answers both questions, and the threads interlock (the interlock check is now Decided). Open item 6 is closed at design level.
+- **Starting values for all settings chosen**, and an existing personal status line is wrapped rather than replaced (see Default settings). Open item 10 is closed apart from two unverified research points.
 
 ## What changed in v8
 
@@ -568,6 +569,21 @@ Facts are addressed by ID (`node#fact.field`), never by list position, so parall
 
 Keyed by target ID. Each entry records how the target is referenced, which the delete check, housekeeper scope, and impact lookup all need.
 
+## Default settings (new in v9; all Decided, all tunable in `.harness/settings.json`)
+
+| Setting | Default | Reasoning |
+|---|---|---|
+| Meter: recommend wrapping up | 50% of context used | Models get less sharp as context fills, so the "smart window" ends well before 100%. |
+| Meter: wrap up regardless | 70% | Leaves room to finish the question, save, and write the recap. |
+| Rolling housekeeper pass | Every 5 saved answers | Raises issues while the topic is live without a pass running constantly. |
+| Reader cap for a scoped pass | 25 readers | Above this, a full pass at the next session start is better. |
+| Full pass every N sessions | Every 10 sessions | Catches slow drift that incremental passes miss (adopted from Proposed). |
+| Flags per natural pause | 2 | Flag budget. |
+| Pacing note thresholds | Under 0.5x or over 2x a movement's expected share | Pacing heuristic. |
+| Models per sub-agent | As in Architecture | Unchanged. |
+
+**Existing personal status line:** setup detects it and explains in one plain sentence; the meter wraps it (the writer still sees their own line, and usage is recorded). If wrapping fails, setup asks before replacing it.
+
 ## Checks: who catches what (new in v9; all Decided)
 
 **Script soft checks** (in `complete`, run on every commit; no model, no tokens):
@@ -757,7 +773,7 @@ Checks tied to anything opted out with "keep it simple" are skipped. At the gate
 7. Plan the evals with seeded plot holes, including a comparison of housekeeper models on scoped passes (to decide whether a cheaper default is safe). Also plan tests for the gating lanes, quarantine, version-checked commit, held-proposal flow, rolling passes, uniqueness rule (all three cardinalities), delete blocking, and merge.
 8. *Deferred in v9 (length left phase 1):* research traditional and self-publishing length norms for the length data file, when the edition phase begins.
 9. Read the wayfinder SKILL.md for patterns worth reusing.
-10. *Partly closed:* plugins cannot ship the main status line, so first-run setup writes it into the project's `.claude/settings.json` (see Research notes). Still unverified: hook access to context usage (no longer needed), and the SessionStart `initialUserMessage` field. Also: what happens when the writer already has a personal status line, since the project setting would replace it. Choose starting values for all settings: meter thresholds, rolling-pass interval (every N answers), and the reader cap that escalates to a full pass.
+10. *Closed in v9 except research:* plugins cannot ship the main status line, so setup writes it into the project's `.claude/settings.json`; an existing personal status line is wrapped, not replaced; starting values for all settings are in Default settings. Still unverified: the SessionStart `initialUserMessage` field, and hook access to context usage (no longer needed).
 11. Check the Dramatica licensing page before borrowing any specific term.
 12. Starter relation vocabulary for the attribute registry (family, place, bond, related; plus the `strength` and `flaw` attributes added in v9) with each relation's symmetry and cardinality. Confirm the `add_item`/`remove_item` ops.
 13. *Reopened in v8 (scripts are now Rust):* how the compiled binaries reach the writer. Options: bundle every platform's binary inside the plugin (simple, but large and puts binaries in git); have CI publish a built distribution branch or separate marketplace repo that the plugin installs from (keeps main clean); or have first-run setup download the right binary from GitHub Releases and verify its checksum (smallest plugin, but needs a network and a download tool). Also: where the binaries live (not a top-level `bin/`), and what happens if a binary is missing or blocked by the operating system. Leave room for the later standalone app (see Future phases).
@@ -776,6 +792,6 @@ Checks tied to anything opted out with "keep it simple" are skipped. At the gate
 
 ## Suggested next steps
 
-Next candidates: the evals plan (item 7), starting values for all settings (item 10), and the starter relation vocabulary (item 12). With items 3 to 6 closed, the phase 1 design is close to buildable.
+Next candidates: the evals plan (item 7) and the starter relation vocabulary (item 12). With items 3 to 6 closed, the phase 1 design is close to buildable.
 
 The Rust move (items 13 and 18) can run as a separate track: confirm the Proposed items, then build the session meter as the pilot once building starts.
