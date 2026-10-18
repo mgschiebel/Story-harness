@@ -13,6 +13,8 @@
 
 ### Sub-agents (no writer contact; short summary back)
 
+Each sub-agent's model is a tunable default in `.harness/settings.json`: housekeeper, completeness rubric, weaver and outliner start on the strong model; the harvester on mid-tier.
+
 | Sub-agent | Job |
 |---|---|
 | **housekeeper** | Incremental pass at session start (changes since the last cleared pass); full pass (gate before weave and outline, on request) or scoped pass (touched nodes and facts plus their readers; rolling every N answers; immediately after a confirmed-decision change). Reads cleared state only. Never edits; returns flags. |

@@ -141,6 +141,13 @@ Note: the exact four theme questions were not confirmed from the official pages 
   - **Completeness check:** a primitive with a script half and a rubric half; the rubric half runs as a sub-agent for deep passes.
 - **Session boundaries:** each topic ends at a deliberate boundary. The writer clears the chat and the next session opens with the orchestrator's recap. State is saved to disk after every confirmed answer, so nothing lives only in the chat.
 - **Session meter:** a small script, not a sub-agent (a sub-agent cannot see the main context). The status line script writes context usage to a project file, and the interviewer checks it after each saved answer. At a first threshold the harness recommends wrapping up at the next natural pause (the writer may decline once). At a second, higher threshold it wraps up regardless. Thresholds are settings. Wrap-up means: finish the current question, save state, write the recap, tell the writer to clear.
+- **Models per sub-agent are settings (decided this session).** Each sub-agent's model is a default in `.harness/settings.json` that the writer can tune, so a writer on a budget can turn things down and newer models can be adopted without a code change. Starting defaults:
+  - **Scripts:** no model, no tokens.
+  - **Housekeeper (all passes) and completeness rubric:** the strong model. The housekeeper is not the deterministic part (the scripts are); it does judgment work such as unearned twists, uncorrected beliefs and premise drift. A cheap pass that misses something still marks facts cleared, and strict-lane agents trust cleared state.
+  - **Harvester:** mid-tier. It is mostly careful extraction, and adopting an existing project can mean reading a whole manuscript, so this is where tiering clearly saves.
+  - **Weaver and outliner:** strong (creative structural work).
+  - **Orchestrator and interviewer:** run in the main conversation on whatever model the writer has selected. *Unverified:* whether a skill can set the main conversation's model.
+  - **Lowering a default needs evidence.** The seeded-plot-hole evals (open item 7) test whether a cheaper model catches enough in scoped housekeeper passes; only then is that default lowered.
 - **Hand-back pattern for sub-agents that need the writer.** Sub-agents cannot talk to the writer, but the weaver (framework choice) and the outliner may need answers. Such a sub-agent stops and returns a short list of plain-language questions. The interviewer asks them in the main conversation and saves the answers as normal proposals. The orchestrator then re-dispatches the sub-agent, which finds the answers in the spec. Rejected alternative: running the weaver as a main-thread skill, which would fill the chat's context with weaving work and shorten sessions.
 - Scripts can ship inside skill folders (a skill is a folder with a markdown file plus scripts).
 - **First-run setup** (all four top-level folders, session meter wiring, default thresholds) is part of the orchestrator's first-run path, not a separate skill. The orchestrator handles it in the background so a non-programmer never has to invoke a setup skill.
@@ -491,12 +498,13 @@ Keyed by target ID. Each entry records how the target is referenced, which the d
 4. Settle the coverage-grid stages after the framework design.
 5. Design the weaver and outliner in detail: macro plan versus scene beats, open slots described by purpose, and outline deepened act by act.
 6. Specify the housekeeper's rubric checks (what it actually looks for in a scoped pass) and the completeness-check rubric. Several soft checks are now named (unearned twist, dangling setup, uncorrected belief, fact ending with no cause, early pivot, scene drifting from its cell summary, similar attribute keys).
-7. Plan the evals with seeded plot holes. Also plan tests for the gating lanes, quarantine, version-checked commit, held-proposal flow, rolling passes, uniqueness rule (all three cardinalities), delete blocking, and merge.
+7. Plan the evals with seeded plot holes, including a comparison of housekeeper models on scoped passes (to decide whether a cheaper default is safe). Also plan tests for the gating lanes, quarantine, version-checked commit, held-proposal flow, rolling passes, uniqueness rule (all three cardinalities), delete blocking, and merge.
 8. Research traditional and self-publishing length norms for the length data file.
 9. Read the wayfinder SKILL.md for patterns worth reusing.
 10. Verify the unverified Claude Code items (plugin-shipped status line, hook access to context usage). Choose starting values for all settings: meter thresholds, rolling-pass interval (every N answers), and the reader cap that escalates to a full pass.
 11. Check the Dramatica licensing page before borrowing any specific term.
 12. Starter relation vocabulary for the attribute registry (family, place, bond, related) with each relation's symmetry and cardinality. Confirm the `add_item`/`remove_item` ops.
+13. **Script language (parked this session):** the scripts need a runtime the writer's computer already has. A novice on Windows may have neither Python nor Node. Research what a fresh Claude Code install guarantees on Windows and Mac, then choose between Node, Python, or compiled single binaries.
 
 ## Suggested next steps
 
