@@ -469,6 +469,7 @@ Keyed by target ID. Each entry records how the target is referenced, which the d
 - The phase 1 version-check rule may need revisiting once parallel scene agents exist.
 - **Parallel attribute safety (new):** if two writer agents propose the same entity attribute, the single committer applies one and the other fails the uniqueness check and is re-checked. No silent drift.
 - **Series shelf (new):** unused facts carry over as material for later books.
+- **Web front end (new, research):** a friendlier home than a terminal or VS Code for non-programmers. Research whether the agent harness itself can be embedded in a Node app that also serves a web interface to the agents and the manuscript. Leads to check: the Claude Agent SDK (runs Claude Code's agent loop from TypeScript or Node), how users would authenticate (API key versus subscription), Node single executable applications, and the licensing and usage terms for distributing such an app. The script delivery choice (open item 13) is decided alongside this.
 
 **Proposed**
 
@@ -510,7 +511,7 @@ Keyed by target ID. Each entry records how the target is referenced, which the d
 10. *Partly closed:* plugins cannot ship the main status line, so first-run setup writes it into the project's `.claude/settings.json` (see Research notes). Still unverified: hook access to context usage (no longer needed), and the SessionStart `initialUserMessage` field. Also: what happens when the writer already has a personal status line, since the project setting would replace it. Choose starting values for all settings: meter thresholds, rolling-pass interval (every N answers), and the reader cap that escalates to a full pass.
 11. Check the Dramatica licensing page before borrowing any specific term.
 12. Starter relation vocabulary for the attribute registry (family, place, bond, related) with each relation's symmetry and cardinality. Confirm the `add_item`/`remove_item` ops.
-13. **Script delivery:** the scripts are written for Node (decided; see Architecture). Still open: whether writers must have Node installed (setup offers to install it) or the scripts ship as Node single executable applications, one per platform, so nothing needs installing. *Unverified:* the current status of Node's single executable application feature.
+13. *Deferred to a future phase:* how the Node scripts reach the writer (require a Node install, or ship single executables). Decide together with the web front end research in Future phases.
 
 ## Suggested next steps
 
