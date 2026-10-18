@@ -20,7 +20,7 @@ Each sub-agent's model is a tunable default in `.harness/settings.json`: houseke
 | **housekeeper** | Incremental pass at session start (changes since the last cleared pass); full pass (gate before weave and outline, on request) or scoped pass (touched nodes and facts plus their readers; rolling every N answers; immediately after a confirmed-decision change). Reads cleared state only. Never edits; returns flags. |
 | **harvester** | Reads drafts in `manuscript/`, proposes spec updates for new facts, flags drift against declared scene reads. |
 | **weaver** | Chooses a framework with the writer (via hand-back: returns questions, the interviewer asks them, the orchestrator re-dispatches), interleaves the storyforms' threads across the book, may surface a new fog storyform. |
-| **outliner** | Turns the woven plan into chapters (scene ID groupings), scenes, and beats. |
+| **outliner** | Turns the woven plan into the scene sequence (reading order), scenes, and beats. Chapters and other groupings belong to editions (HANDOFF open item 14). |
 | **completeness-rubric** | The deep, model-judged half of the completeness check. |
 
 ### Scripts (deterministic; ship inside skill folders)
@@ -49,7 +49,8 @@ my-novel/
     decisions/    d-0001.md ...
     threads/      t-0001.md ...
     storyforms/   sf-0001.md ... (main, active, and fog subplots)
-    chapters.md   ordered scene ID groupings          (Proposed: file name)
+    sequence.md   scene IDs in reading order (the story itself)
+    editions/     groupings over the sequence: chapters, acts, serial updates (Proposed)
     style.md      viewpoint and style node
     _index/       backlinks, attributes, grid, scenes, status (generated)
   manuscript/     prose drafts and what-if variants
@@ -99,10 +100,10 @@ Writer drops prose in `manuscript/` -> orchestrator dispatches the harvester -> 
 1. Orchestrator runs `complete` and, for depth, the completeness rubric. Gaps become frontier questions for the interviewer.
 2. Full housekeeper pass as a gate.
 3. Weaver (with the writer's framework choice) produces the woven plan; any new storyform goes in as fog.
-4. Full housekeeper pass as a gate, then the outliner writes chapters, scenes and beats as proposals.
+4. Full housekeeper pass as a gate, then the outliner writes the sequence, scenes and beats as proposals.
 5. A rough outline with gaps marked is allowed at any point; "complete" requires every shape decision answered at least provisionally, no empty grid cells, and clean plot-hole checks.
 
 ## Open in this sketch
 
-- The chapters file name and format.
+- The edition file format, and whether phase 1 produces a first edition (HANDOFF open item 14).
 - Plugin packaging and status line registration (open item 10).

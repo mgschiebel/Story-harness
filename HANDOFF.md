@@ -34,7 +34,7 @@ A set of Claude Code skills (a "harness") that helps a novice aspiring author tu
 
 - Runs in Claude Code. Building begins in future sessions.
 - Targets novel-length fiction.
-- This phase delivers only a complete, detailed outline (spec, plot structure, chapters and scenes with beats).
+- This phase delivers only a complete, detailed outline (spec, plot structure, and the scene sequence with beats).
 - Modeled on Matt Pocock's wayfinder skill concept: planning across many sessions where each decision reveals what to plan next.
 - **Long-term goal (later phases, out of scope now):** a fully automated novel-writing factory, with either assisted writing or automated scene writing for human review, producing publishable scenes and documents. Later phases include writer and review agent pairs and editor agents (pacing, flow, grammar, voice, and so on). The spec layout must be future-proofed for this (see Spec and storage, and Node format).
 
@@ -232,8 +232,14 @@ Two separate concerns, kept distinct:
 - **Facts are ID'd entries inside entity nodes:** each entity node holds a list of its facts (schema in Node format). A fact involving two entities is stored once on one home node; the generated index shows it from the other side. Scene reads, the setup-and-payoff ledger, and the ordering checks reference fact IDs. Each fact has its own revision (updated in v5), so editing one fact does not stale readers of other facts on the same node.
 - **Labels per fact, node status derived:** writer confidence and review state sit on each fact (and on each shape decision's value). A node's status in the index is computed, never stored (for example "2 provisional, 1 unreviewed"). A quarantined fact does not quarantine its whole entity, and readiness can gate on exactly the facts a scene reads.
 - **The spec is the source of truth. Flow is one-way (spec to draft).** If a draft introduces a new fact, the harvest step proposes a spec update for the writer's approval, never changing canon silently.
-- **Two clocks tracked from the start:** in-world time (relative unless a date is given) and reading order (worked out from scene IDs and chapter groupings, never stored as position numbers). This lets an automated scene-writing agent see only the spec up to that point in the timeline.
-- **The scene is the atomic unit.** A chapter is an ordered grouping of scene IDs that can be regrouped freely. Word-budget and serial-length checks apply to groupings.
+- **Two clocks tracked from the start:** in-world time (relative unless a date is given) and reading order (the order of scene IDs in the sequence file, never stored as position numbers). This lets an automated scene-writing agent see only the spec up to that point in the timeline.
+- **The scene is the atomic unit.**
+- **The story is one sequence of scenes; chapters belong to editions (decided this session).** Chapters are a written-novel idea, and the harness supports other forms (plays, web serials, comics). So the story itself is a single ordered series of scenes from start to end, and every grouping is presentation:
+  - **The sequence** is stored in one file, `spec/sequence.md`: the scene IDs in reading order. Moving a scene is a one-line edit. The single committer serializes edits, so the shared file causes no conflicts, and any reorder correctly stales whatever checked reading order (reveals, knowledge). It is also the one file a writer might open to see the story's shape. Rejected: a sortable position key on each scene (no single place shows the whole story).
+  - **Editions** are groupings laid over the same sequence: chapters (optionally inside parts) for a novel, acts for a play, updates with release days for a web serial. A project can hold several editions side by side, and publishing uses one.
+  - **Flashbacks need no special structure:** a flashback is a scene whose in-world time is earlier than its place in the sequence (the two clocks above).
+  - **Word budgets** apply to stages (pacing) and to each edition's groupings (for example, serial updates of about 2,500 words).
+  - *Proposed:* each edition is its own small file in `spec/editions/` (a list of breaks in the sequence plus labels). Groupings break only at scene boundaries.
 - **Harness machinery (new in v5)** lives in a hidden `.harness/` folder at the project root: `inbox/` (pending proposals), `settings.json`, `meter.json` (written by the status line), and `sessions/` (one plain-language recap per session). First run creates it alongside the four visible folders. Recaps could later be surfaced to the writer as a journal.
 - Phase 1 captures a **viewpoint and style node**, asked in plain language and held as provisional (fields in Node format).
 - **What-if scene prototypes** are visible variant files inside the project folder, promoted by an explicit step (promotion runs the harvest step). Git stays hidden underneath for history and the agents' parallel workspaces.
@@ -456,7 +462,7 @@ Keyed by target ID. Each entry records how the target is referenced, which the d
 **Proposed**
 
 - Frameworks sit on top of the coverage grid. The grid stays framework-agnostic and the framework supplies named beats at typical positions. Name frameworks but write original descriptions, since some beat sheets are trademarked or book-specific.
-- A length data file with ranges by genre and publishing path, with sources and dates. It outputs a target length, a word budget per stage and chapter, subplot-fit checks, pacing flags, and per-scene estimates. All of it is advice with reasons, never hard rules.
+- A length data file with ranges by genre and publishing path, with sources and dates. It outputs a target length, a word budget per stage and per edition grouping (chapter, update, act), subplot-fit checks, pacing flags, and per-scene estimates. All of it is advice with reasons, never hard rules.
 
 ## Future phases (recorded ideas, not in scope now)
 
@@ -512,6 +518,7 @@ Keyed by target ID. Each entry records how the target is referenced, which the d
 11. Check the Dramatica licensing page before borrowing any specific term.
 12. Starter relation vocabulary for the attribute registry (family, place, bond, related) with each relation's symmetry and cardinality. Confirm the `add_item`/`remove_item` ops.
 13. *Deferred to a future phase:* how the Node scripts reach the writer (require a Node install, or ship single executables). Decide together with the web front end research in Future phases.
+14. **First edition in phase 1:** should the outliner propose a starting edition (for example chapters for a novel, or updates for a serial, chosen from the writer's goal), or does phase 1 stop at the sequence? Also the edition file format.
 
 ## Suggested next steps
 
