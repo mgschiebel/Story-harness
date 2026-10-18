@@ -101,7 +101,7 @@ Writer drops prose in `manuscript/` -> orchestrator dispatches the harvester -> 
 
 1. Orchestrator runs `complete` and, for depth, the completeness rubric. Gaps become frontier questions for the interviewer.
 2. Full housekeeper pass as a gate.
-3. Weaver (with the writer's framework choice) produces the woven plan; any new storyform goes in as fog.
+3. Weaver (with the writer's framework choice) resolves fog subplots and plans the whole book; any new storyform goes in as fog.
 4. Full housekeeper pass as a gate, then the weaver writes the skeleton and the outliner deepens it one movement at a time, all as proposals.
 5. A rough outline with gaps marked is allowed at any point; "complete" requires every shape decision answered at least provisionally, no empty grid cells, and clean plot-hole checks.
 
