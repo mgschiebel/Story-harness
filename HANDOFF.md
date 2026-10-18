@@ -27,6 +27,11 @@ A grilling session on the coverage-grid stages and the weaver and outliner (open
 - **Removed from phase 1: the suggested first edition and the length primitive** (supersedes the v7 decision). Phase 1 has no prose, so word counts would be guesses; word budgets belong to editions and move to a later phase, where the edition step teaches length during revision. Phase 1 keeps only relative pacing notes in scene counts.
 - **Fog subplots at weave time:** each is mapped, shelved, or folded into an existing thread, chosen by the writer.
 - **Promote to subplot** stays in phase 1: the reverse of fold-in, for any thread content, writer-started, using existing operations.
+- **Stage readings written for all four threads** (main plot and challenger added).
+- **Landmarks and framework beats are stored on the storyform**, one entry per landmark, not as scene tags.
+- **The weaver produces the skeleton directly**; no separate woven plan. The outliner only deepens.
+- **Scenes gain a "turn"** (what the POV character wants, what gets in the way, how it ends differently), which catches flat scenes and feeds cause-and-effect checks.
+- **Scene-count pacing heuristic** set (expected share from the framework; soft note when a movement is under half or over double it). Open item 5 is closed.
 
 ## What changed in v8
 
@@ -422,11 +427,17 @@ purpose: "Mara discovers Jonah lied"   # works for open slots too
 when: {after: s-0011, offset: "next morning"}
 beats: ["...", "..."]
 reads: [f-0031, f-0050]     # declared: facts this scene relies on
-landmarks: []               # Proposed (v9): e.g. [inciting_incident]; confirmed tags, see Coverage grid and movements
-status: outlined            # slot | outlined | drafted | reviewed | approved (slot Proposed in v9)
+turn:                       # v9: the scene's change; inferred and confirmed
+  wants: "Get the letters past the checkpoint"    # POV character's goal in this scene
+  against: "The guard recognizes her"             # what gets in the way
+  ends: "She gets through, but Jonah is arrested" # how it ends differently than it began
+status: outlined            # slot | outlined | drafted | reviewed | approved (slot added in v9)
 ```
 
-Writes, hints, and reveals are not stored on the scene. They are generated into `scenes.json` from facts that point at it (`true_from: {in: ...}`, reader moments, character learns).
+Writes, hints, and reveals are not stored on the scene. They are generated into `scenes.json` from facts that point at it (`true_from: {in: ...}`, reader moments, character learns). Landmark and framework-beat roles are also generated into `scenes.json`, from the storyform's `landmarks` and `beats` maps (v9).
+
+- **Slots (v9):** the weaver's skeleton creates scenes with `status: slot`, holding at least `purpose` and `coverage`, and optionally a partial `turn`. Deepening fills the rest and moves them to `outlined`.
+- **The turn (v9):** goal, conflict and outcome (taught with plain names; "scene and sequel" and "value shift" are related craft terms). A scene whose end matches its beginning gets a soft "possible flat scene: what changes here?" One scene's `ends` should lead into a later scene's `wants`, which supports the cause-and-effect check.
 
 ### Shape decision
 
@@ -490,10 +501,17 @@ premise:                # writer's own words, versioned for drift checks
 dramatic_question: "Will Mara get the letters through?"  # plot: answered by the outcome
 thematic_question: "Is loyalty worth lying for?"         # theme: answered by how the ending feels
 framework: {value: hero_journey, confidence: provisional} # v9; value may be undecided or none
+landmarks:              # v9: tier 1, one entry each; null = not found yet (becomes a suggestion)
+  inciting_incident: {scene: s-7kq2xmhd, confidence: provisional}
+  mc_commits:        {scene: s-p3rwe9ka, confidence: confirmed}
+  midpoint:          null
+beats:                  # v9: tier 2, from the chosen framework; replaced when the framework changes
+  theme_stated:      {scene: s-4hq8nzwt, confidence: provisional}
 characters: [p-0007, p-0002]   # fog only: who the subplot involves
 ```
 
 - **Fog subplots are real storyform nodes (v5)** with `status: fog`, holding only a one-line premise and the characters involved. They get stable IDs that scenes, facts, and the weaver can reference before they are mapped. Mapping one flips it to active and fills its threads and decisions.
+- **Landmarks live on the storyform (v9),** not on scenes: one entry per landmark makes "one inciting incident per storyform" hold by shape, avoids ambiguity when a scene is a landmark for both the main story and a subplot, lets movement boundaries be derived from one small map, and makes missing landmarks visible as empty entries.
 - `dramatic_question` and `thematic_question` (v7; replace `central_question`) feed the argument-coherence check; `premise.history` is the versioned baseline the housekeeper uses for drift.
 
 ### Proposal
@@ -568,7 +586,14 @@ Keyed by target ID. Each entry records how the target is referenced, which the d
   | **Resolution** (`resolution`) | The climax and its aftermath; the thread's question gets answered. |
 
   "Crisis" was chosen over "turning point," which craft writing uses loosely (sometimes for the midpoint).
-- **Per-thread readings** of the four stages. Drafted: inner journey (the MC's belief and its cost; the belief is strained; it cracks or is doubled down on; the MC changes or holds firm, where the pivot belief ends or survives) and relationship (how the bond stands; it is tested; it reaches a breaking point; it deepens, breaks or stays unresolved). *Still to write:* main plot and challenger.
+- **Per-thread readings** of the four stages (stage 4 of each is tested against that thread's shape decisions):
+
+  | Thread | Setup | Complications | Crisis | Resolution |
+  |---|---|---|---|---|
+  | **Main plot** | The world as it is, the problem arrives, and what is at stake if it isn't solved. | Efforts toward the goal meet growing obstacles; costs pile up. | A major reversal; the goal looks out of reach and the consequence is close. | The final confrontation; the dramatic question is answered (outcome). |
+  | **Inner journey** | The MC's belief and its cost. | The belief is strained. | It cracks, or is doubled down on. | The MC changes or holds firm (the pivot belief ends or survives). |
+  | **Challenger** | Who they are, and how their view differs from the MC's. | Their pressure on the MC grows, through example, argument or conflict. | Their challenge peaks; the MC can't ignore it anymore. | They change or hold firm, usually the opposite of the MC. |
+  | **Relationship** | How the bond stands. | It is tested. | It reaches a breaking point. | It deepens, breaks, or stays unresolved. |
 - **Alignment within a storyform:** each thread's stage N falls in roughly the same part of the book, giving four shared **movements**, each advancing every thread. Soft guidance only: a thread running early or late gets one "possible pacing issue," then the writer's choice is respected. Lined-up resolutions support the proposed interlock check.
 - **Subplots float independently** of the main storyform (they may span the whole book or only part of it), but their own threads align with each other and they get their own four movements.
 - **Subplot minimum:** its own dramatic question, stakes, and at least one thread with all four stages. Other threads accept "keep it simple"; infer-and-confirm suggests which threads the subplot really has. Every thread that exists must have all four stages filled. A subplot can grow into a full storyform by adding threads.
@@ -579,6 +604,9 @@ Keyed by target ID. Each entry records how the target is referenced, which the d
   - **Behavior:** inferred from described scenes and confirmed ("That sounds like the moment that kicks off the story; is that right?"), which tags the scene and teaches the craft term. Missing ones become a suggestion, explained once, then respected. Attached to the main plot by default, except where a landmark plainly belongs to another thread. Subplots get landmarks too, more lightly. Beats tied to theme (such as "theme stated") are suggested only once the thematic question exists.
 - **Movement boundaries are derived, never stored:** end of Setup = the scene tagged "MC commits"; end of Complications = the midpoint scene; end of Crisis = the low-point scene; Resolution = everything after. Moving a landmark scene moves the boundary; `sequence.md` stays pure. Before landmarks exist, scenes fall back on their `coverage` stage and the skeleton's provisional placements. A generated index view shows the sequence split into movements. Subplots use the same rule with their own landmarks.
 - **Pacing in phase 1 uses scene counts only,** in plain words ("your middle may feel rushed"), as soft notes from the housekeeper or completeness rubric. Relative balance across movements is canon in any edition; word counts are not (see below).
+  - **Expected share** per movement comes from the framework's proportions (four-part: about a quarter each; other frameworks supply their own).
+  - **A soft note when a movement is under half or over double its expected share** (both thresholds are settings), phrased as a story effect with one sentence of why ("your Crisis has 3 of 40 scenes; the low point may arrive before readers feel the pressure build").
+  - **Only once the skeleton exists**; explained once, then respected. Subplots get the same check against their own span, more loosely.
 
 ## Weaver, outliner and frameworks
 
@@ -589,7 +617,8 @@ Keyed by target ID. Each entry records how the target is referenced, which the d
   - **Recommended late,** at weave time, from taste anchors, genre and the writer's goal.
   - **Four-part is the default** if nothing points elsewhere (it maps one-to-one onto the four stages). **Switchable any time** (only tier-2 beats re-map). **"No framework" is valid** (landmarks only).
   - Stored on the storyform node (`framework`).
-- **Layered outline (v9):** a **skeleton pass** across the whole book creates scene slots described by purpose, each linked to a grid cell and any landmarks; then a **deepening pass, one movement at a time, starting with Setup,** adds beats, POV, location and reads. One movement per session fits the clear-and-recap rhythm, keeps sub-agent work bounded, and keeps hand-back questions topical. Later movements may send revisions back to earlier ones; the housekeeper catches the ripple.
+- **Layered outline (v9):** a **skeleton pass** across the whole book creates scene slots described by purpose, each linked to a grid cell and any landmarks; then a **deepening pass, one movement at a time, starting with Setup,** adds beats, POV, location, reads and the scene turn.
+- **The weaver produces the skeleton; no separate woven plan (v9).** The weaver chooses the framework (hand-back), resolves fog subplots, then interleaves every thread's cells, landmarks and beats into ordered slot scenes in `sequence.md`, built around pins. The outliner only deepens, one movement per dispatch. Everything weaving decides already lives in slots, their `coverage`, their order, and the storyform's landmark and beat maps, so no intermediate artifact can go stale. Split of judgment: the weaver does whole-book structure, the outliner does scene craft. Full housekeeper passes gate both the weaver and the start of deepening. One movement per session fits the clear-and-recap rhythm, keeps sub-agent work bounded, and keeps hand-back questions topical. Later movements may send revisions back to earlier ones; the housekeeper catches the ripple.
 - **Layers set the work order, not a depth limit (v9).** Anything the writer raises early (a detailed climax in session two, say) is captured at whatever depth it arrives, provisional like any answer. It becomes a **pin**: the skeleton pass builds around existing detailed scenes rather than over them, and conflicts are flagged as usual. This is the outline-level version of allowing drafts before structure.
 - **The skeleton is sized by story need (v9):** at least one slot per grid cell, plus landmarks and framework beats, plus pinned scenes. No word targets.
 - **Fog subplots at weave time (v9):** before weaving, the writer chooses for each fog subplot: **map it now** (interview until it meets the subplot minimum, then weave it), **shelve it** (left out of this outline and kept for later), or **fold it in** (it is really part of an existing thread; its facts move there with `move_fact` and the fog node is deleted). The orchestrator raises these as weave time approaches, in plain words. Shelved subplots are not gaps.
@@ -667,7 +696,7 @@ Keyed by target ID. Each entry records how the target is referenced, which the d
 2. *Closed:* sub-agents that need the writer use the hand-back pattern (see Architecture).
 3. *Mostly settled in v7* (see Story-shape layer): terminology ladder, MC and challenger names, MC versus POV character, thread names, the two big questions, the required core, and the "keep it simple" opt-out. Theme questions verified. Still open: final wording of every shape decision (including the challenger and relationship drafts), node fields for the adopted story points (open item 17), and how the theme layer's own-words answers relate to the thematic question.
 4. *Closed in v9:* four fixed stages (Setup, Complications, Crisis, Resolution), aligned within a storyform, with landmarks and framework beats on top (see Coverage grid and movements).
-5. *Mostly settled in v9* (see Weaver, outliner and frameworks): layered outline, skeleton sized by story need, pins, framework timing, fog subplot outcomes, promote to subplot. Still open: what the deepening pass adds to each scene beyond beats, POV, location and reads; how landmarks are stored on scenes (the Proposed `landmarks` field and `slot` status); the main plot and challenger stage readings; the weaver's output (where the woven plan lives, if anywhere beyond slots and coverage); and the scene-count pacing heuristics.
+5. *Closed in v9* (see Weaver, outliner and frameworks, and Coverage grid and movements): layered outline, weaver produces the skeleton, outliner deepens, pins, framework timing, fog subplot outcomes, promote to subplot, stage readings for all threads, storyform-level landmarks, the scene turn, and the scene-count pacing heuristic.
 6. Specify the housekeeper's rubric checks (what it actually looks for in a scoped pass) and the completeness-check rubric. Several soft checks are now named (unearned twist, dangling setup, uncorrected belief, fact ending with no cause, early pivot, scene drifting from its cell summary, similar attribute keys).
 7. Plan the evals with seeded plot holes, including a comparison of housekeeper models on scoped passes (to decide whether a cheaper default is safe). Also plan tests for the gating lanes, quarantine, version-checked commit, held-proposal flow, rolling passes, uniqueness rule (all three cardinalities), delete blocking, and merge.
 8. *Deferred in v9 (length left phase 1):* research traditional and self-publishing length norms for the length data file, when the edition phase begins.
@@ -690,6 +719,6 @@ Keyed by target ID. Each entry records how the target is referenced, which the d
 
 ## Suggested next steps
 
-Finish the remaining weaver and outliner questions (item 5): the deepening pass's scene fields, landmark storage, the main plot and challenger stage readings, and the weaver's output. Finish the wording and node fields from item 3 alongside them, since the outliner is the main consumer of the adopted story points.
+Finish the wording and node fields from item 3 (shape decisions and the adopted story points from item 17), now that the outliner that consumes them is designed. Then the housekeeper and completeness rubrics (item 6), which have gained several new soft checks in v9 (landmark suggestions, pacing notes, flat scenes, subplot timing).
 
 The Rust move (items 13 and 18) can run as a separate track: confirm the Proposed items, then build the session meter as the pilot once building starts.

@@ -19,8 +19,8 @@ Each sub-agent's model is a tunable default in `.harness/settings.json`: houseke
 |---|---|
 | **housekeeper** | Incremental pass at session start (changes since the last cleared pass); full pass (gate before weave and outline, on request) or scoped pass (touched nodes and facts plus their readers; rolling every N answers; immediately after a confirmed-decision change). Reads cleared state only. Never edits; returns flags. |
 | **harvester** | Reads drafts in `manuscript/`, proposes spec updates for new facts, flags drift against declared scene reads. |
-| **weaver** | Chooses a framework with the writer (via hand-back: returns questions, the interviewer asks them, the orchestrator re-dispatches), interleaves the storyforms' threads across the four movements (Setup, Complications, Crisis, Resolution), may surface a new fog storyform. Fog subplots are mapped, shelved or folded in first. |
-| **outliner** | Turns the woven plan into the scene sequence (reading order) in layers: a skeleton of purpose-described slots across the whole book, built around any pinned scenes, then deepened one movement at a time. Chapters and other groupings belong to editions, which are not built in phase 1 (HANDOFF open item 14). |
+| **weaver** | Chooses a framework with the writer (via hand-back: returns questions, the interviewer asks them, the orchestrator re-dispatches), resolves fog subplots (map, shelve or fold in), then interleaves every thread's stages, landmarks and beats into the skeleton: ordered slot scenes in the sequence across the four movements (Setup, Complications, Crisis, Resolution), built around pinned scenes. No separate woven plan. May surface a new fog storyform. |
+| **outliner** | Deepens the skeleton one movement per dispatch: beats, POV, location, reads and the scene turn. Chapters and other groupings belong to editions, which are not built in phase 1 (HANDOFF open item 14). |
 | **completeness-rubric** | The deep, model-judged half of the completeness check. |
 
 ### Scripts (deterministic; written in Rust, compiled binaries ship with the plugin)
@@ -102,7 +102,7 @@ Writer drops prose in `manuscript/` -> orchestrator dispatches the harvester -> 
 1. Orchestrator runs `complete` and, for depth, the completeness rubric. Gaps become frontier questions for the interviewer.
 2. Full housekeeper pass as a gate.
 3. Weaver (with the writer's framework choice) produces the woven plan; any new storyform goes in as fog.
-4. Full housekeeper pass as a gate, then the outliner writes the skeleton, then deepens one movement at a time, all as proposals.
+4. Full housekeeper pass as a gate, then the weaver writes the skeleton and the outliner deepens it one movement at a time, all as proposals.
 5. A rough outline with gaps marked is allowed at any point; "complete" requires every shape decision answered at least provisionally, no empty grid cells, and clean plot-hole checks.
 
 ## Long-term shape (later phases)
