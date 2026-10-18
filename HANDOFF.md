@@ -417,7 +417,7 @@ No extra fields beyond the common core. Facts (including relationship facts) cov
 pov: p-0007
 location: l-0003
 participants: [p-0007, p-0002]
-coverage: {thread: t-0001, stage: turning_point}
+coverage: {thread: t-0001, stage: crisis}
 purpose: "Mara discovers Jonah lied"   # works for open slots too
 when: {after: s-0011, offset: "next morning"}
 beats: ["...", "..."]
