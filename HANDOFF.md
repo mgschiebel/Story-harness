@@ -1,6 +1,6 @@
-# Skaldsaga: Planning Handoff (v6)
+# Skaldsaga: Planning Handoff (v7)
 
-*Planning session summary, October 18, 2026 (late afternoon). Supersedes v5 (October 18, mid-afternoon). Status: design phase, nothing built yet. Companion file: `ARCHITECTURE.md` (one-page sketch, reviewed this session). The project was called Story Harness until this session; the GitHub repo has been renamed to Skaldsaga.*
+*Planning session summary, October 18, 2026 (evening). Supersedes v6 (October 18, late afternoon). Status: design phase, nothing built yet. Companion file: `ARCHITECTURE.md` (one-page sketch, reviewed in the v6 session). The project was called Story Harness until the v6 session; the GitHub repo has been renamed to Skaldsaga.*
 
 ## How to use this document
 
@@ -12,9 +12,22 @@ Labels used below:
 - **Proposed**: suggested in discussion, not yet explicitly confirmed.
 - **Research**: from web searches or documentation; verify before relying on it. Items marked *unverified* have not been checked at all.
 
-## What changed since v5
+## What changed since v6
 
-This session reviewed `ARCHITECTURE.md` (open item 1, now closed) and settled open item 2. All of the following are **Decided** unless marked; details are in the sections named.
+This session worked through editions (open item 14) from the writer's day-to-day point of view. All of the following are **Decided**; details are in "Editions" under Spec and storage.
+
+- **Editions are separate files; `sequence.md` stays pure.** Chapter, act and update breaks never go into the sequence. Reason: the sequence is canon, so breaks inside it would stale reading-order checks whenever a break moved, and CD would need to write to a canon file.
+- **One true canon.** Every edition uses the same facts. An edition may leave scenes out or use alternative scenes, but it can never change what is true.
+- **Reader checks run per edition.** Facts, timing and character knowledge are checked once, in canon. What the reader sees (hints, reveals, setups and payoffs, cause and effect between visible scenes) is checked per edition, because each edition has its own scene list.
+- **Alternative scenes are ordinary scene nodes** that are not in the main sequence. They don't have to cover the same ground as the scene they replace; the edition just has to pass every check.
+- **A retelling that changes canon is a new project,** forked by copying the facts with a note of where they came from (project and version), never synced back.
+- **Edition lifecycle:** not published → publishing in progress (serials and anything released in parts) → published. Published editions are frozen snapshots; canon may move on and republishing means a new edition. While in progress, a canon change that touches released groupings marks them "needs republishing" and Skaldsaga strongly recommends bringing them up to current canon.
+- **Review snapshots** (beta readers, editors, publishers) belong to not-published editions. Each is pinned to a canon version so feedback can be shown against the exact text the reviewer read. They never trigger republishing.
+- **Phase 1 ends with a suggested first edition** (closes the main question in open item 14): the outliner's last step proposes a not-published edition chosen from the writer's goal, clearly labeled as a suggestion. The edition file format is still open.
+
+## What changed in v6
+
+The v6 session reviewed `ARCHITECTURE.md` (open item 1, now closed) and settled open item 2. All of the following are **Decided** unless marked; details are in the sections named.
 
 - **Name: Skaldsaga** (see "Name"). It is the project, plugin and command name (`/skaldsaga`). Internal role names such as "orchestrator" stay internal and are never shown to the writer.
 - **Starting Skaldsaga** (see Architecture): the writer types `/skaldsaga` the first time, which runs setup. Afterwards a SessionStart hook shipped in the plugin opens each session with the recap (also after `/clear`). The hook is guarded: it does nothing unless `.harness/` exists, so it never starts questions in other folders or in an existing project before setup.
@@ -241,7 +254,24 @@ Two separate concerns, kept distinct:
   - **Editions** are groupings laid over the same sequence: chapters (optionally inside parts) for a novel, acts for a play, updates with release days for a web serial. A project can hold several editions side by side, and publishing uses one.
   - **Flashbacks need no special structure:** a flashback is a scene whose in-world time is earlier than its place in the sequence (the two clocks above).
   - **Word budgets** apply to stages (pacing) and to each edition's groupings (for example, serial updates of about 2,500 words).
-  - *Proposed:* each edition is its own small file in `spec/editions/` (a list of breaks in the sequence plus labels). Groupings break only at scene boundaries.
+  - *Proposed:* each edition file lives in `spec/editions/` and lists its breaks by scene ID plus labels. Groupings break only at scene boundaries.
+
+### Editions (decided in v7)
+
+- **Separate files, pure sequence.** Each edition is its own file; `sequence.md` never holds breaks. Breaks inside the sequence would bump its revision and stale every reading-order check whenever a break moved, and would make CD write to a canon file. *Proposed:* a generated, read-only view in `spec/_index/` shows the sequence with one edition's breaks, so the writer still gets a single-file picture.
+- **One true canon, shared by every edition.** An edition may leave scenes out or use alternative scenes, but facts are the same in every edition.
+- **Alternative scenes** are real scene nodes in the spec that are not in the main sequence. They may read and reveal any canon fact. If one would make something new true, that fact enters canon through the normal approval flow and must not contradict anything. An alternative scene does not have to match what the scene it replaces revealed; the edition just has to be a complete story.
+- **What is checked where:**
+  - **Once, in canon:** what is true, when it is true, and what characters know.
+  - **Per edition:** reader hints and reveals, setups and payoffs, and cause and effect between scenes the reader actually sees. Cutting the scene that plants a setup leaves an unpaid payoff in that edition only.
+- **Retellings are forks.** If a new version needs canon to change (a genuinely different story), it becomes a new project that imports a copy of the facts with a note of where they came from (project and version). It never ties back to the original.
+- **Lifecycle (three stages):**
+  1. **Not published.** Planned or in draft. Breaks and groupings change freely; it always builds from current canon.
+  2. **Publishing in progress.** For serials and anything released in parts. Each released grouping is pinned to the canon version it was built from. When a canon change touches something already released, those groupings are marked **needs republishing** and Skaldsaga strongly recommends bringing them up to current canon; a republished grouping is re-pinned to the new version. This keeps a live edition consistent for readers who are following along.
+  3. **Published.** Finished and frozen: a historical snapshot. It is never re-checked; canon may move on, and Skaldsaga may note "differs from current canon" as information only. Republishing means starting a new edition.
+- **The writer marks an edition published deliberately** (for example when a serial ends). A published edition never reopens. A novel usually goes straight from not published to published in a single release.
+- **Review snapshots.** Copies handed out for comment (beta readers, an editor, a publisher, advance copies) belong to a not-published edition. Sharing a copy creates a snapshot pinned to its canon version (for example "Beta round 1, sent to 4 readers"). Feedback is filed in `reviews/` tied to that snapshot, so Skaldsaga can show what the reviewer actually read and translate the comment into a question about the current text. Snapshots never trigger republishing. *Proposed:* a soft, information-only heads-up when a change touches text in a late advance copy. Serial writers can use the same mechanism to beta-read an update before release.
+- **Phase 1 proposes a first edition.** The outliner's last step suggests one not-published edition chosen from the writer's goal (chapters for a novel, updates for a web serial), labeled as a suggestion the writer can change at any time.
 - **Harness machinery (new in v5)** lives in a hidden `.harness/` folder at the project root: `inbox/` (pending proposals), `settings.json`, `meter.json` (written by the status line), and `sessions/` (one plain-language recap per session). First run creates it alongside the four visible folders. Recaps could later be surfaced to the writer as a journal.
 - Phase 1 captures a **viewpoint and style node**, asked in plain language and held as provisional (fields in Node format).
 - **What-if scene prototypes** are visible variant files inside the project folder, promoted by an explicit step (promotion runs the harvest step). Git stays hidden underneath for history and the agents' parallel workspaces.
@@ -441,6 +471,7 @@ Keyed by target ID. Each entry records how the target is referenced, which the d
 - Cover all five plot-hole categories: (1) continuity and timeline, (2) knowledge and motivation, (3) setups without payoffs and payoffs without setups, (4) argument coherence (the ending answers the story's central question), (5) cause-and-effect gaps between scenes.
 - One storyform per map for now. Potential subplots are recorded in the spec as fog items for future mapping sessions.
 - Hard timeline, knowledge ordering, and attribute uniqueness violations are caught per proposal by the dependency checker (see Governance).
+- **Reader-facing checks run per edition (v7).** Reveals, hints, setups and payoffs, and cause and effect between visible scenes depend on each edition's scene list; truth, timing and character knowledge are checked once in canon.
 - **Knowledge checks use truth and belief facts (new)**, for example "Mara acts on knowing Jonah lied in scene 9, but only learns it in scene 14." The housekeeper soft-flags false beliefs that are never corrected or paid off, and facts that end with no cause (possible cause-and-effect gap).
 
 **Proposed**
@@ -479,10 +510,10 @@ Keyed by target ID. Each entry records how the target is referenced, which the d
 - **Series shelf (new):** unused facts carry over as material for later books.
 - **CI/CD framing for the whole pipeline (decided this session as the long-term shape):**
   - **CI = making the story.** Proposals are like pull requests, the dependency checker and housekeeper are the tests, and the single committer is the merge. Outline (this phase), drafting and editing are CI stages. "Green" means a complete, approved story.
-  - **The build artifact** is a pinned, git-tagged version of the approved sequence and manuscript. Every CD run builds from one pinned version, so all editions come from the same text.
+  - **The build artifact** is a pinned, git-tagged version of the approved sequence and manuscript. Every CD run builds from one pinned version, so all editions come from the same text. *Refined in v7:* for editions released in parts, each released grouping records its own pinned version (see Editions under Spec and storage).
   - **CD = one pipeline per edition** (the editions above are its deployment targets). Each holds format-specific agents and checks: Kindle (EPUB validity, table of contents), print (trim size, margins, page count, spine width), web serial (update lengths, release schedule, platform formatting), and so on.
   - **CD can block and send findings back to CI.** Some format needs are really story needs (a serial update should end on a hook, which is pacing). CD fails like a broken deploy and files proposals in the inbox; it never patches canon itself (the same one-way rule as the harvester).
-  - **Deferred to the CD phase:** whether an edition may carry its own extra text (serial recaps, chapter titles, front matter, edition-only cuts) or every word must come from CI. The author leans toward allowing CD-specific rewrites.
+  - **Deferred to the CD phase:** whether an edition may carry its own extra text (serial recaps, chapter titles, front matter) or every word must come from CI. The author leans toward allowing CD-specific rewrites. *Settled in v7:* editions may cut scenes and use alternative scenes (which are spec scene nodes), but never change canon facts.
 - **Web front end (new, research):** a friendlier home than a terminal or VS Code for non-programmers. Research whether the agent harness itself can be embedded in a Node app that also serves a web interface to the agents and the manuscript. Leads to check: the Claude Agent SDK (runs Claude Code's agent loop from TypeScript or Node), how users would authenticate (API key versus subscription), Node single executable applications, and the licensing and usage terms for distributing such an app. The script delivery choice (open item 13) is decided alongside this.
 
 **Proposed**
@@ -526,8 +557,10 @@ Keyed by target ID. Each entry records how the target is referenced, which the d
 11. Check the Dramatica licensing page before borrowing any specific term.
 12. Starter relation vocabulary for the attribute registry (family, place, bond, related) with each relation's symmetry and cardinality. Confirm the `add_item`/`remove_item` ops.
 13. *Deferred to a future phase:* how the Node scripts reach the writer (require a Node install, or ship single executables). Decide together with the web front end research in Future phases.
-14. **First edition in phase 1:** should the outliner propose a starting edition (for example chapters for a novel, or updates for a serial, chosen from the writer's goal), or does phase 1 stop at the sequence? Also the edition file format.
+14. *Partly closed in v7:* phase 1 does propose a first edition (see Editions under Spec and storage). Still open: the edition file format, including breaks by scene ID, labels, lifecycle status, per-grouping status (planned, released, needs republishing) and pinned versions, alternative-scene substitutions and cuts, and review snapshots. Also: when a scene moves in the sequence, does a break follow the scene it is anchored to, or keep its position?
+15. How reviewer and reader feedback is stored in `reviews/` and turned into questions about the current text (mostly later phases; the snapshot link is decided).
+16. How forking a project for a retelling works in practice (later phase; the rule is decided).
 
 ## Suggested next steps
 
-Start with open item 14 (does phase 1 produce a first edition, and the edition file format). Then the story-shape names and theme questions (item 3), and the coverage-grid stages with the weaver and outliner design (items 4 and 5).
+Start with the edition file format (open item 14). Then the story-shape names and theme questions (item 3), and the coverage-grid stages with the weaver and outliner design (items 4 and 5).
