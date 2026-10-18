@@ -1,6 +1,6 @@
-# Story Harness Skills: Planning Handoff (v5)
+# Skaldsaga: Planning Handoff (v6)
 
-*Planning session summary, October 18, 2026 (mid-afternoon). Supersedes v4 (October 18, afternoon). Status: design phase, nothing built yet. Companion file: `ARCHITECTURE.md` (one-page sketch, draft).*
+*Planning session summary, October 18, 2026 (late afternoon). Supersedes v5 (October 18, mid-afternoon). Status: design phase, nothing built yet. Companion file: `ARCHITECTURE.md` (one-page sketch, reviewed this session). The project was called Story Harness until this session; the GitHub repo will be renamed to Skaldsaga.*
 
 ## How to use this document
 
@@ -12,19 +12,21 @@ Labels used below:
 - **Proposed**: suggested in discussion, not yet explicitly confirmed.
 - **Research**: from web searches or documentation; verify before relying on it. Items marked *unverified* have not been checked at all.
 
-## What changed since v4
+## What changed since v5
 
-This session closed open item 2 (node-format follow-ups) and drafted open item 1 (`ARCHITECTURE.md`). All of the following are now **Decided** (details in "Node format"):
+This session reviewed `ARCHITECTURE.md` (open item 1, now closed) and settled open item 2. All of the following are **Decided** unless marked; details are in the sections named.
 
-- **No node-level `links:` list.** Every relationship in the story world is a **fact**, so it gets in-world time, endings, confidence, and reader and character knowledge (for example, "Jonah is Mara's brother" can be a twist). Spec bookkeeping (how the outline is organized, not what is true in the story) uses **typed fields** per node type instead (scene `pov`, `location`, `participants`, `coverage`; thread `characters`; decision `evidence`, `pivot`; storyform `threads`). The `related` fallback is a fact whose `statement` says what the connection is.
-- **Relationship facts** use `attribute` for the relation and an entity ID as `value` (for example `attribute: sibling_of`, `value: p-0002`).
-- **Attribute cardinality** in the registry: **single** (one live value per entity, e.g. `eye_color`), **many** (a list, e.g. `sibling_of`), **per-target** (one live value per other entity, e.g. `bond`). The uniqueness check follows the cardinality.
-- **Relationships are stored once**, on a home node (the node being discussed when the answer came up). The registry marks each relation **symmetric** (`sibling_of`, `spouse_of`), an **inverse pair** (`parent_of`/`child_of`, `located_in`/`contains`; only one direction stored), or **one-way** (`bond`: Mara trusting Jonah and Jonah trusting Mara are two facts, since they can change separately). The generated index shows each side its view. Who knows about the relationship stays on the single fact's `characters` list.
-- **Per-fact revisions.** Each fact has its own `revision`, bumped when that fact changes. Node revisions cover node-level fields. The version check uses fact revisions for facts read or written, so editing one plot fact no longer stales a scene that reads only an unrelated fact on the same node.
-- **Detail nodes dropped from phase 1** (the `detail` type and `detail_of` field). Per-fact revisions solve the problem they existed for. They may return later as optional tidiness if nodes get bloated.
-- **Storyform node defined:** `threads`, `decisions`, versioned `premise`, `central_question`, and `status` (main, fog, active). **Fog subplots are real storyform nodes** with `status: fog`, holding only a one-line premise and the characters involved, so they have stable IDs that scenes, facts, and the weaver can reference before they are mapped.
-- **Harness machinery lives in a hidden `.harness/` folder** at the project root: the pending inbox, settings, the session meter file, and session recaps. The four visible top-level folders are unchanged, and `spec/_index/` stays in the spec.
-- **Project name: Skaldsaga** (decided later the same session; see "Name"). The entry-point skill is `/skaldsaga`; "orchestrator" stays the internal name for that role.
+- **Name: Skaldsaga** (see "Name"). It is the project, plugin and command name (`/skaldsaga`). Internal role names such as "orchestrator" stay internal and are never shown to the writer.
+- **Starting Skaldsaga** (see Architecture): the writer types `/skaldsaga` the first time, which runs setup. Afterwards a SessionStart hook shipped in the plugin opens each session with the recap (also after `/clear`). The hook is guarded: it does nothing unless `.harness/` exists, so it never starts questions in other folders or in an existing project before setup.
+- **Existing projects** (see Architecture): setup looks before touching anything and asks the writer how to bring files in, recommending: move originals untouched into an archive folder, copy prose drafts into `manuscript/`. Non-prose notes stay in the archive and are harvested into the spec from there. Folders that clash with Skaldsaga's names go into the archive too. If the folder already uses git, setup asks whether to commit into the writer's repo (recommended, with a labeled "before Skaldsaga" commit) or keep a separate history.
+- **Setup pattern:** where writers reasonably differ, setup asks in plain language, recommends a default, and stores the answer in `.harness/settings.json`.
+- **Hand-back pattern** (closes open item 2): a sub-agent that needs the writer returns plain-language questions; the interviewer asks them and saves proposals; the orchestrator re-dispatches the sub-agent.
+- **Incremental session-open pass:** the housekeeper pass at session start covers only changes since the last cleared pass. Full passes run before weave and outline and on request. *Proposed:* a full pass every N sessions.
+- **Models per sub-agent are tunable settings.** The housekeeper (it does judgment work; the scripts are the deterministic part), the completeness rubric, weaver and outliner default to the strong model; the harvester to mid-tier. A cheaper housekeeper default must first pass the evals.
+- **Scripts are written for Node**, for room to grow (for example a local web viewer for the manuscript). How they reach the writer (require Node, or ship single executables) is deferred to a future phase, alongside research into embedding the agent harness in a Node app with a web front end.
+- **No chapters in the story model.** The story is one ordered sequence of scenes, stored in `spec/sequence.md`. Chapters, acts and serial updates belong to **editions**, groupings laid over the sequence, and a project can hold several. Flashbacks need nothing special (the two clocks already cover them).
+- **CI/CD as the long-term shape** (see Future phases): CI makes the story and produces a pinned version; CD runs one pipeline per edition with format-specific checks, can block and send proposals back, and never edits canon.
+- **Research recorded** (see Research notes): a fresh Claude Code install guarantees no Node or Python; plugins cannot register the main status line, so setup writes it into the project's `.claude/settings.json`; a skill's `model` field lasts one turn, so the main-thread skills run on the writer's model.
 
 ## The project
 
@@ -33,7 +35,7 @@ A set of Claude Code skills (a "harness") that helps a novice aspiring author tu
 **Decided**
 
 - Runs in Claude Code. Building begins in future sessions.
-- Targets novel-length fiction.
+- Targets novel-length fiction in this phase, but the story model stays medium-agnostic (one scene sequence, with chapters, acts or serial updates as editions), so plays, serials and other forms can follow.
 - This phase delivers only a complete, detailed outline (spec, plot structure, and the scene sequence with beats).
 - Modeled on Matt Pocock's wayfinder skill concept: planning across many sessions where each decision reveals what to plan next.
 - **Long-term goal (later phases, out of scope now):** a fully automated novel-writing factory, with either assisted writing or automated scene writing for human review, producing publishable scenes and documents. Later phases include writer and review agent pairs and editor agents (pacing, flow, grammar, voice, and so on). The spec layout must be future-proofed for this (see Spec and storage, and Node format).
@@ -511,7 +513,7 @@ Keyed by target ID. Each entry records how the target is referenced, which the d
 
 ## Open items
 
-1. Review the architecture sketch draft (`ARCHITECTURE.md`) and confirm or adjust it.
+1. *Closed:* `ARCHITECTURE.md` reviewed this session (see What changed since v5).
 2. *Closed:* sub-agents that need the writer use the hand-back pattern (see Architecture).
 3. Finalize plain-English names for the story-shape decisions and write our own challenger and relationship decisions. Verify the four theme questions.
 4. Settle the coverage-grid stages after the framework design.
@@ -528,4 +530,4 @@ Keyed by target ID. Each entry records how the target is referenced, which the d
 
 ## Suggested next steps
 
-Finish reviewing `ARCHITECTURE.md` (open item 1). Settled so far in that review: the project name, how Skaldsaga starts, the existing-project first run, and the hand-back pattern.
+Start with open item 14 (does phase 1 produce a first edition, and the edition file format). Then the story-shape names and theme questions (item 3), and the coverage-grid stages with the weaver and outliner design (items 4 and 5).

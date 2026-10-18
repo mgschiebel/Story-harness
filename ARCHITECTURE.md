@@ -1,6 +1,6 @@
-# Skaldsaga: Architecture Sketch (draft)
+# Skaldsaga: Architecture Sketch (reviewed)
 
-*October 18, 2026. Companion to `HANDOFF.md` (v5), which holds the reasoning and full schemas. Everything here reflects Decided items unless marked* **Proposed***. The project name Skaldsaga and the entry-point skill name `skaldsaga` are Decided; other names of skills, scripts and files are working names. Internal role names (orchestrator, interviewer, housekeeper and so on) are never shown to the writer.*
+*October 18, 2026. Companion to `HANDOFF.md` (v6), which holds the reasoning and full schemas. Everything here reflects Decided items unless marked* **Proposed***. The project name Skaldsaga and the entry-point skill name `skaldsaga` are Decided; other names of skills, scripts and files are working names. Internal role names (orchestrator, interviewer, housekeeper and so on) are never shown to the writer.*
 
 ## Components
 
