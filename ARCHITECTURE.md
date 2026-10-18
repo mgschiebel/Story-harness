@@ -103,6 +103,10 @@ Writer drops prose in `manuscript/` -> orchestrator dispatches the harvester -> 
 4. Full housekeeper pass as a gate, then the outliner writes the sequence, scenes and beats as proposals.
 5. A rough outline with gaps marked is allowed at any point; "complete" requires every shape decision answered at least provisionally, no empty grid cells, and clean plot-hole checks.
 
+## Long-term shape (later phases)
+
+CI makes the story: proposals, checks and the single committer, through outline, drafting and editing. It produces a pinned, git-tagged version. CD runs one pipeline per edition (Kindle, print, web serial) with format-specific agents and checks, building from that pinned version. CD can block and file proposals back into the inbox, but never edits canon. See HANDOFF Future phases.
+
 ## Open in this sketch
 
 - The edition file format, and whether phase 1 produces a first edition (HANDOFF open item 14).

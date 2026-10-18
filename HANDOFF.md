@@ -475,6 +475,12 @@ Keyed by target ID. Each entry records how the target is referenced, which the d
 - The phase 1 version-check rule may need revisiting once parallel scene agents exist.
 - **Parallel attribute safety (new):** if two writer agents propose the same entity attribute, the single committer applies one and the other fails the uniqueness check and is re-checked. No silent drift.
 - **Series shelf (new):** unused facts carry over as material for later books.
+- **CI/CD framing for the whole pipeline (decided this session as the long-term shape):**
+  - **CI = making the story.** Proposals are like pull requests, the dependency checker and housekeeper are the tests, and the single committer is the merge. Outline (this phase), drafting and editing are CI stages. "Green" means a complete, approved story.
+  - **The build artifact** is a pinned, git-tagged version of the approved sequence and manuscript. Every CD run builds from one pinned version, so all editions come from the same text.
+  - **CD = one pipeline per edition** (the editions above are its deployment targets). Each holds format-specific agents and checks: Kindle (EPUB validity, table of contents), print (trim size, margins, page count, spine width), web serial (update lengths, release schedule, platform formatting), and so on.
+  - **CD can block and send findings back to CI.** Some format needs are really story needs (a serial update should end on a hook, which is pacing). CD fails like a broken deploy and files proposals in the inbox; it never patches canon itself (the same one-way rule as the harvester).
+  - **Deferred to the CD phase:** whether an edition may carry its own extra text (serial recaps, chapter titles, front matter, edition-only cuts) or every word must come from CI. The author leans toward allowing CD-specific rewrites.
 - **Web front end (new, research):** a friendlier home than a terminal or VS Code for non-programmers. Research whether the agent harness itself can be embedded in a Node app that also serves a web interface to the agents and the manuscript. Leads to check: the Claude Agent SDK (runs Claude Code's agent loop from TypeScript or Node), how users would authenticate (API key versus subscription), Node single executable applications, and the licensing and usage terms for distributing such an app. The script delivery choice (open item 13) is decided alongside this.
 
 **Proposed**
