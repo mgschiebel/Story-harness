@@ -62,7 +62,7 @@ my-novel/
     sessions/     one recap per session
 ```
 
-Distributed as a Claude Code plugin named `skaldsaga`, bundling the skills, agent definitions and scripts. **Proposed**, and it depends on verifying that a plugin can register the status line (open item 10).
+Distributed as a Claude Code plugin named `skaldsaga`, bundling the skills, agent definitions and scripts. **Proposed.** A plugin cannot register the main status line, so `init` writes the `statusLine` entry into the project's `.claude/settings.json` (one permission prompt). No script runtime is guaranteed on the writer's machine, so the script language is still open (HANDOFF open item 13).
 
 ## Call flows
 
