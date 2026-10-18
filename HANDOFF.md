@@ -1,6 +1,6 @@
-# Skaldsaga: Planning Handoff (v7)
+# Skaldsaga: Planning Handoff (v8)
 
-*Planning session summary, October 18, 2026 (evening). Supersedes v6 (October 18, late afternoon). Status: design phase, nothing built yet. Companion file: `ARCHITECTURE.md` (one-page sketch, reviewed in the v6 session). The project was called Story Harness until the v6 session; the GitHub repo has been renamed to Skaldsaga.*
+*Planning session summary, October 18, 2026 (night). Supersedes v7 (October 18, evening). Status: design phase, nothing built yet. Companion file: `ARCHITECTURE.md` (one-page sketch, reviewed in the v6 session). The project was called Story Harness until the v6 session; the GitHub repo has been renamed to Skaldsaga.*
 
 ## How to use this document
 
@@ -12,7 +12,23 @@ Labels used below:
 - **Proposed**: suggested in discussion, not yet explicitly confirmed.
 - **Research**: from web searches or documentation; verify before relying on it. Items marked *unverified* have not been checked at all.
 
-## What changed since v6
+## What changed since v7
+
+A short side session revisited the script language, which had been Node since v6. Details are in Architecture, Future phases, Research notes and open items 13 and 18.
+
+- **Decided: scripts move from Node to Rust.** The Rust source lives in the repo, and what the writer installs carries compiled binaries for each supported operating system. Reasons:
+  - **Nothing for the writer to install.** A fresh Claude Code install guarantees neither Node nor Python (see Research notes). A compiled binary just runs, which matters for writers who have never used a terminal.
+  - **Fast startup.** The status line script runs constantly, and a compiled binary starts in milliseconds.
+  - **Types for the spec schema.** Facts, the two clocks, confidence and review labels, and scene reads and writes become typed structures, so the checker, committer and index rebuild are harder to get subtly wrong. The compiler also catches mistakes that coding agents would otherwise ship.
+  - **A path to the long-term product:** eventually a single Rust binary with everything inside, including a friendly interface that uses Claude through the API. The local web viewer that motivated Node can be served from Rust too.
+- **Proposed: one binary with subcommands** (`init`, `check`, `commit`, `index`, `meter`, `complete`) instead of one executable per script. Build it as a core library (working name `skaldsaga-core`) plus a thin command-line front end, so the future standalone app wraps the same core instead of rewriting it.
+- **Proposed: compiled binaries stay out of the main git history.** CI builds every target and publishes them (GitHub Releases, and possibly a built distribution branch that the plugin installs from). How the right binary reaches the writer is open item 13.
+- **Folder name caution.** The idea discussed was a `bin` directory, but a top-level `bin/` folder blocks plugin installation through claude.ai and Cowork (see Research notes), so the binaries need another home, for example `scripts/bin/` or inside a skill folder.
+- **Proposed: the session meter is the pilot.** It is small but exercises the whole delivery chain: status line wiring, cross-platform builds, first-run delivery, and signing.
+- **Known costs, accepted for now:** a build and release pipeline for macOS (Apple Silicon and Intel), Linux and Windows; unsigned binaries trigger macOS Gatekeeper and Windows SmartScreen warnings, which would scare novice writers, so signing likely needs an Apple developer account and Windows signing work; a higher bar for open-source contributors than scripts; and slower iteration while the schema is still changing.
+- **Future front end note.** The Claude Agent SDK is aimed at TypeScript and Python (verify), so a Rust app would either run its own agent loop over the Claude API or drive Claude Code as a subprocess. Calling the API directly also raises the question of API keys and per-token billing versus the writer's Claude subscription. Both are recorded under Future phases.
+
+## What changed in v7
 
 This session worked through editions (open item 14) from the writer's day-to-day point of view. All of the following are **Decided**; details are in "Editions" under Spec and storage.
 
@@ -43,7 +59,7 @@ The v6 session reviewed `ARCHITECTURE.md` (open item 1, now closed) and settled 
 - **Hand-back pattern** (closes open item 2): a sub-agent that needs the writer returns plain-language questions; the interviewer asks them and saves proposals; the orchestrator re-dispatches the sub-agent.
 - **Incremental session-open pass:** the housekeeper pass at session start covers only changes since the last cleared pass. Full passes run before weave and outline and on request. *Proposed:* a full pass every N sessions.
 - **Models per sub-agent are tunable settings.** The housekeeper (it does judgment work; the scripts are the deterministic part), the completeness rubric, weaver and outliner default to the strong model; the harvester to mid-tier. A cheaper housekeeper default must first pass the evals.
-- **Scripts are written for Node**, for room to grow (for example a local web viewer for the manuscript). How they reach the writer (require Node, or ship single executables) is deferred to a future phase, alongside research into embedding the agent harness in a Node app with a web front end.
+- **Scripts are written for Node** *(superseded in v8: Rust)*, for room to grow (for example a local web viewer for the manuscript). How they reach the writer (require Node, or ship single executables) is deferred to a future phase, alongside research into embedding the agent harness in a Node app with a web front end.
 - **No chapters in the story model.** The story is one ordered sequence of scenes, stored in `spec/sequence.md`. Chapters, acts and serial updates belong to **editions**, groupings laid over the sequence, and a project can hold several. Flashbacks need nothing special (the two clocks already cover them).
 - **CI/CD as the long-term shape** (see Future phases): CI makes the story and produces a pinned version; CD runs one pipeline per edition with format-specific checks, can block and send proposals back, and never edits canon.
 - **Research recorded** (see Research notes): a fresh Claude Code install guarantees no Node or Python; plugins cannot register the main status line, so setup writes it into the project's `.claude/settings.json`; a skill's `model` field lasts one turn, so the main-thread skills run on the writer's model.
@@ -186,8 +202,8 @@ Note: the four Dramatica theme questions are now confirmed (see Research notes, 
   - **Orchestrator and interviewer:** run in the main conversation on whatever model the writer has selected. A skill's `model` field only lasts one turn, so it cannot pin these (see Research notes).
   - **Lowering a default needs evidence.** The seeded-plot-hole evals (open item 7) test whether a cheaper model catches enough in scoped housekeeper passes; only then is that default lowered.
 - **Hand-back pattern for sub-agents that need the writer.** Sub-agents cannot talk to the writer, but the weaver (framework choice) and the outliner may need answers. Such a sub-agent stops and returns a short list of plain-language questions. The interviewer asks them in the main conversation and saves the answers as normal proposals. The orchestrator then re-dispatches the sub-agent, which finds the answers in the spec. Rejected alternative: running the weaver as a main-thread skill, which would fill the chat's context with weaving work and shorten sessions.
-- **Scripts are written for Node (decided this session).** Chosen over Python, Go and compiled TypeScript to future-proof later phases: Node can also run local tools such as an embedded web server that shows the manuscript as a web page. A fresh Claude Code install does not include Node (see Research notes), so how scripts reach the writer is open item 13.
-- Scripts can ship inside skill folders (a skill is a folder with a markdown file plus scripts).
+- **Scripts are written in Rust (decided in v8, replacing Node from v6).** Source in the repo; the writer gets compiled binaries for their operating system, so no runtime has to be installed (a fresh Claude Code install includes neither Node nor Python; see Research notes). Rust also gives fast status line startup, typed spec structures, and a path to a single standalone binary in later phases. A local web viewer for the manuscript, the reason Node was picked, can be served from Rust as well. *Proposed:* one binary with subcommands (`init`, `check`, `commit`, `index`, `meter`, `complete`), built as a core library plus a thin command-line front end. How the binaries reach the writer is open item 13; the build and release pipeline is open item 18.
+- Scripts can ship inside skill folders (a skill is a folder with a markdown file plus scripts). For compiled binaries this means a per-platform executable inside the plugin, never in a top-level `bin/` folder (see Research notes).
 - **First-run setup** (all four top-level folders, session meter wiring, default thresholds) is part of the orchestrator's first-run path, not a separate skill. The orchestrator handles it in the background so a non-programmer never has to invoke a setup skill.
 - **Starting Skaldsaga:** the writer types `/skaldsaga` the first time in a folder; that runs first-run setup and creates `.harness/`. Two first-run paths:
   - **Fresh project** (empty folder): create the folders and start the conversation.
@@ -556,7 +572,11 @@ Keyed by target ID. Each entry records how the target is referenced, which the d
   - **CD = one pipeline per edition** (the editions above are its deployment targets). Each holds format-specific agents and checks: Kindle (EPUB validity, table of contents), print (trim size, margins, page count, spine width), web serial (update lengths, release schedule, platform formatting), and so on.
   - **CD can block and send findings back to CI.** Some format needs are really story needs (a serial update should end on a hook, which is pacing). CD fails like a broken deploy and files proposals in the inbox; it never patches canon itself (the same one-way rule as the harvester).
   - **Deferred to the CD phase:** whether an edition may carry its own extra text (serial recaps, chapter titles, front matter) or every word must come from CI. The author leans toward allowing CD-specific rewrites. *Settled in v7:* editions may cut scenes and use alternative scenes (which are spec scene nodes), but never change canon facts.
-- **Web front end (new, research):** a friendlier home than a terminal or VS Code for non-programmers. Research whether the agent harness itself can be embedded in a Node app that also serves a web interface to the agents and the manuscript. Leads to check: the Claude Agent SDK (runs Claude Code's agent loop from TypeScript or Node), how users would authenticate (API key versus subscription), Node single executable applications, and the licensing and usage terms for distributing such an app. The script delivery choice (open item 13) is decided alongside this.
+- **Web front end (research; retargeted to Rust in v8):** a friendlier home than a terminal or VS Code for non-programmers. The long-term aim is a single Rust binary that embeds the skill and agent prompts, serves a web interface to the agents and the manuscript, and uses Claude through the API. Leads to check:
+  - **Agent loop.** The Claude Agent SDK runs Claude Code's agent loop from TypeScript (and Python), not Rust (verify). Options: write our own loop over the Claude API (tool use, prompt caching), drive Claude Code as a subprocess in headless mode, or a community Rust client.
+  - **Authentication and billing.** Calling the API means an API key and per-token billing, which a novice may not expect; whether a writer's Claude subscription can be used instead must be checked against Anthropic's current terms.
+  - **Licensing and usage terms** for distributing such an app.
+  - The binary delivery choice (open item 13) should leave room for this app, so the phase 1 binary and the later app share one core library.
 
 **Proposed**
 
@@ -587,6 +607,7 @@ Keyed by target ID. Each entry records how the target is referenced, which the d
   - **Plugins cannot register the main status line.** A plugin's `settings` only honor `agent` and `subagentStatusLine`. The status line can be set in project settings (`.claude/settings.json`), so first-run setup must write it there, behind the permission prompt. On Windows the status line runs through Git Bash or PowerShell, and file paths need forward slashes. `context_window.used_percentage` counts input tokens only and may be null early in a session.
   - **A skill's `model` field lasts one turn only.** It applies for the rest of the current turn; the session model resumes on the next prompt. So the orchestrator and interviewer effectively run on the writer's chosen model. Skills also support `context: fork` with `agent`, which runs the skill in a sub-agent instead.
   - **Plugin facts:** components are namespaced under the plugin name; skills can bundle scripts in any language and reference them with `${CLAUDE_SKILL_DIR}`; hook commands get `${CLAUDE_PLUGIN_ROOT}` and `${CLAUDE_PROJECT_DIR}`; a top-level `bin/` folder blocks installation through claude.ai and Cowork, so bundled executables belong elsewhere (for example `scripts/`). A plugin's `settings.agent` can make an agent the main-thread agent, but it would apply in every project where the plugin is enabled, so it does not suit Skaldsaga's guarded start.
+- **Rust delivery (general knowledge, v8; verify before relying).** cargo-dist can automate cross-platform builds, GitHub Releases and installers. macOS quarantines downloaded unsigned binaries (Gatekeeper); signing and notarization need an Apple developer account. Windows SmartScreen warns on unsigned executables. Downloading a binary on first run needs a download tool: curl ships with macOS and recent Windows, and PowerShell can download too. *Unverified:* whether a plugin installed through Claude Code keeps the executable permission on bundled files, and whether macOS quarantines files a plugin install writes.
 - **Anthropic harness guidance** ("Effective harnesses for long-running agents"): agents work in discrete sessions with no memory between them, so use a progress file plus git history to orient each fresh session, track features in JSON with a pass/fail flag, work one feature per session, and use separate checkers because agents judge their own work poorly.
 
 ## Open items
@@ -603,7 +624,7 @@ Keyed by target ID. Each entry records how the target is referenced, which the d
 10. *Partly closed:* plugins cannot ship the main status line, so first-run setup writes it into the project's `.claude/settings.json` (see Research notes). Still unverified: hook access to context usage (no longer needed), and the SessionStart `initialUserMessage` field. Also: what happens when the writer already has a personal status line, since the project setting would replace it. Choose starting values for all settings: meter thresholds, rolling-pass interval (every N answers), and the reader cap that escalates to a full pass.
 11. Check the Dramatica licensing page before borrowing any specific term.
 12. Starter relation vocabulary for the attribute registry (family, place, bond, related) with each relation's symmetry and cardinality. Confirm the `add_item`/`remove_item` ops.
-13. *Deferred to a future phase:* how the Node scripts reach the writer (require a Node install, or ship single executables). Decide together with the web front end research in Future phases.
+13. *Reopened in v8 (scripts are now Rust):* how the compiled binaries reach the writer. Options: bundle every platform's binary inside the plugin (simple, but large and puts binaries in git); have CI publish a built distribution branch or separate marketplace repo that the plugin installs from (keeps main clean); or have first-run setup download the right binary from GitHub Releases and verify its checksum (smallest plugin, but needs a network and a download tool). Also: where the binaries live (not a top-level `bin/`), and what happens if a binary is missing or blocked by the operating system. Leave room for the later standalone app (see Future phases).
 14. *Closed in v7:* phase 1 proposes a first edition, using a minimal edition file (see Editions under Spec and storage). Later phases extend the format with cuts, alternative scenes, per-grouping release status and pins, and review snapshots.
 15. How reviewer and reader feedback is stored in `reviews/` and turned into questions about the current text (mostly later phases; the snapshot link is decided).
 16. How forking a project for a retelling works in practice (later phase; the rule is decided).
@@ -614,7 +635,10 @@ Keyed by target ID. Each entry records how the target is referenced, which the d
     - **What's really wrong versus what the MC thinks is wrong**, and what they try versus what would fix it (problem, symptom, response, solution). Ties to the pivot belief and to common craft ideas such as "want versus need."
     - **Backstory** for the MC, the challenger and their relationship, feeding facts.
     - Not adopted (lower value or too complex for novices): the Domain/Concern/Issue chain, thematic conflict, catalyst and inhibitor, benchmark, prerequisites and preconditions, audience appreciations, and anything tied to the table of story elements.
+18. *New in v8:* the Rust build and release pipeline. Which targets to support at launch (macOS Apple Silicon and Intel, Linux x86 and ARM, Windows), code signing and notarization (cost and who holds the keys), CI tooling (for example cargo-dist), versioning so the plugin and its binaries never mismatch, and the crate layout (core library plus command-line front end). Confirm the Proposed items from "What changed since v7": one binary with subcommands, binaries out of the main history, and the session meter as the pilot.
 
 ## Suggested next steps
 
 Start with the coverage-grid stages and the weaver and outliner design (items 4 and 5). Finish the remaining wording and node fields from item 3 alongside them, since the outliner is the main consumer of the adopted story points.
+
+The Rust move (items 13 and 18) can run as a separate track: confirm the Proposed items, then build the session meter as the pilot once building starts.

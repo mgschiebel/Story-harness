@@ -1,6 +1,6 @@
 # Skaldsaga: Architecture Sketch (reviewed)
 
-*October 18, 2026. Companion to `HANDOFF.md` (v6), which holds the reasoning and full schemas. Everything here reflects Decided items unless marked* **Proposed***. The project name Skaldsaga and the entry-point skill name `skaldsaga` are Decided; other names of skills, scripts and files are working names. Internal role names (orchestrator, interviewer, housekeeper and so on) are never shown to the writer.*
+*October 18, 2026. Companion to `HANDOFF.md` (v8), which holds the reasoning and full schemas. Everything here reflects Decided items unless marked* **Proposed***. The project name Skaldsaga and the entry-point skill name `skaldsaga` are Decided; other names of skills, scripts and files are working names. Internal role names (orchestrator, interviewer, housekeeper and so on) are never shown to the writer.*
 
 ## Components
 
@@ -23,7 +23,9 @@ Each sub-agent's model is a tunable default in `.harness/settings.json`: houseke
 | **outliner** | Turns the woven plan into the scene sequence (reading order), scenes, and beats. Chapters and other groupings belong to editions (HANDOFF open item 14). |
 | **completeness-rubric** | The deep, model-judged half of the completeness check. |
 
-### Scripts (deterministic; ship inside skill folders)
+### Scripts (deterministic; written in Rust, compiled binaries ship with the plugin)
+
+**Proposed:** one binary with these as subcommands, built on a core library that the later standalone app will reuse (HANDOFF open items 13 and 18).
 
 | Script | Job |
 |---|---|
@@ -63,7 +65,7 @@ my-novel/
     sessions/     one recap per session
 ```
 
-Distributed as a Claude Code plugin named `skaldsaga`, bundling the skills, agent definitions and scripts. **Proposed.** A plugin cannot register the main status line, so `init` writes the `statusLine` entry into the project's `.claude/settings.json` (one permission prompt). No script runtime is guaranteed on the writer's machine, so the script language is still open (HANDOFF open item 13).
+Distributed as a Claude Code plugin named `skaldsaga`, bundling the skills, agent definitions and scripts. **Proposed.** A plugin cannot register the main status line, so `init` writes the `statusLine` entry into the project's `.claude/settings.json` (one permission prompt). No script runtime is guaranteed on the writer's machine, so the scripts are written in Rust and ship as compiled binaries for each operating system (Decided in HANDOFF v8). Binaries cannot sit in a top-level `bin/` folder, which blocks installation through claude.ai and Cowork. How they reach the writer is HANDOFF open item 13.
 
 ## Call flows
 
@@ -111,3 +113,4 @@ CI makes the story: proposals, checks and the single committer, through outline,
 
 - The edition file format, and whether phase 1 produces a first edition (HANDOFF open item 14).
 - Plugin packaging and status line registration (open item 10).
+- Binary delivery and the Rust build and release pipeline (open items 13 and 18).
