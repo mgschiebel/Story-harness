@@ -32,6 +32,10 @@ A grilling session on the coverage-grid stages and the weaver and outliner (open
 - **The weaver produces the skeleton directly**; no separate woven plan. The outliner only deepens.
 - **Scenes gain a "turn"** (what the POV character wants, what gets in the way, how it ends differently), which catches flat scenes and feeds cause-and-effect checks.
 - **Scene-count pacing heuristic** set (expected share from the framework; soft note when a movement is under half or over double it). Open item 5 is closed.
+- **Skaldsaga stands on its own.** Dramatica was the starting point; the shape decisions and completeness criteria are now our own, in our own words.
+- **The theme layer collapses to the thematic question.** "Where the conflict lives" and "what everyone cares about" are dropped (they were Dramatica's Domain and Concern chain, already not adopted in item 17); the root problem moves into the optional "what's really wrong" story point.
+- **The 12 shape decisions are final, worded in plain language** using the story's own names, with the craft term taught afterward (see the table in Story-shape layer). Open item 3 is closed.
+- **Optional story points need no new node types:** stakes sit with the dramatic question; strength and flaw are person facts; "what's really wrong" is a belief fact plus the truth it contradicts; pressure along the way is facts with a `role` tag; backstory is facts true before the first scene. Open item 17's node fields are settled.
 
 ## What changed in v8
 
@@ -160,29 +164,35 @@ The coverage grid checks that every thread has content at every stage. It does n
   - **What can be opted out of:** the thematic question, three of the MC's four decisions (start or stop, approach, problem-solving style) and two of the four plot decisions (story driver, story limit), all still inferred and offered when scenes make them obvious, the challenger and relationship decisions, and the challenger thread itself (some simple stories have none; without a challenger there is no relationship thread either). **Always required:** the dramatic question (even a simple story needs to know what the MC wants and whether they get it) the stakes (what happens if the MC fails), whether the MC changes or holds firm (the core of the inner journey), and the ending type: outcome (is the problem solved) and judgment (is the MC better or worse off), which together give the four classic endings.
   - **How it works:** the decision gets an explicit value (for example `not_explored`) recorded as the writer's choice, so it counts as answered and does not block weaving or completeness. Coverage-grid cells for an opted-out thread are not counted as empty.
   - **Explain once, then respect it:** Skaldsaga says briefly what the writer would gain, then stops raising it. Checks that depend on an opted-out decision are skipped, not failed. The writer can revisit it any time; if later scenes strongly suggest a theme anyway, Skaldsaga may mention it once, as an offer.
-- **Challenger and relationship decisions (draft, inferred and confirmed, never asked cold):** does the challenger change or hold firm by the end (usually the opposite of the MC); does the bond between the MC and the challenger deepen, break, or stay unresolved. Both accept "keep it simple." *Proposed:* wording to be finalized with the other shape decisions.
-- **Theme layer (the four thematic questions):** the writer answers in their own words, not from a fixed menu. Follow-up questions guide them toward non-conflicting answers.
+- **Challenger and relationship decisions (draft, inferred and confirmed, never asked cold):** does the challenger change or hold firm by the end (usually the opposite of the MC); does the bond between the MC and the challenger deepen, break, or stay unresolved. Both accept "keep it simple." Final wording is decisions 11 and 12 in the table below (v9).
+- **Theme layer (collapsed in v9):** the thematic question is the theme layer's only decision, answered in the writer's own words, not from a fixed menu, with follow-ups guiding toward a non-conflicting answer. Dropped: "where the conflict lives" and "what everyone cares about" (Dramatica's Domain and Concern; their useful content appears in the main plot's setup and stakes). The root problem moved into the optional "what's really wrong versus what the MC thinks" story point.
+- **Skaldsaga's criteria stand on their own (v9).** Dramatica was the starting point; the decisions below and the completeness bar are now our own and need no Dramatica concepts.
 - **Challenger and relationship threads:** add our own shape decisions, one or two per thread (for example: does the challenger change or hold firm; does the bond deepen, break, or stay unresolved), answered in the writer's own words with guiding follow-ups.
 - **No hard combination rules.** The checker raises soft "possible issue" warnings when story content seems to clash with a decision (for example, "your hero is steadfast, but scene 12 shows them changing their core belief; which did you mean?").
 - **Evidence and pivot (new):** each decision records the scenes and facts its inference came from, and change-type decisions can name a pivot belief (see Node format). Character change is tied to a character learning the truth.
 
-**Proposed working descriptions (wording to be finalized)**
+**The 12 shape decisions (Decided in v9; wording final)**
 
-| Area | Working plain-English decision (source Dramatica question) |
-|---|---|
-| Main character | Does the MC change or hold firm (Main Character Resolve)? |
-| Main character | Does the MC need to start something or stop something (Growth)? |
-| Main character | Does the MC solve things by acting or by adjusting themselves (Approach)? |
-| Main character | Does the MC work step by step or by gut and whole picture (Problem-Solving Style)? |
-| Plot | Do events force decisions, or decisions force events (Story Driver)? |
-| Plot | Does the story end by a deadline or by running out of options (Story Limit)? |
-| Plot | Does the central problem get solved or not (Outcome)? |
-| Plot | Is the hero better or worse off at the end (Judgment)? Outcome and Judgment together give the four endings. |
-| Theme (own words) | Where the conflict lives; what everyone cares about; the central tension (point and counterpoint); the root problem. |
-| Challenger | Our own one or two decisions (see above). |
-| Relationship | Our own one or two decisions (see above). |
+Questions use the story's own names as soon as they exist (shown here with Mara as the main character and Jonah as the challenger). Craft terms are taught only after the plain question. Most decisions are inferred and confirmed rather than asked ("It sounds like Mara is a different person by the end. Is that right?"); the plain question is the fallback when an inference is ambiguous and the decision is frontier.
 
-Note: the four Dramatica theme questions are now confirmed (see Research notes, v7). Skaldsaga keeps its own-words approach for theme.
+| # | Plain question | Taught afterward as | Required? |
+|---|---|---|---|
+| 1 | By the end, has Mara become a different person, or is she still the same at heart? | The character arc; changes or holds firm | Required |
+| 2 | Is Mara's trouble something she keeps doing that she needs to quit, or something she won't do that she needs to start? | Want versus need | Optional |
+| 3 | When things go wrong, does Mara try to fix the situation, or does she try to fix herself? | Active versus reflective character | Optional |
+| 4 | Does Mara figure things out one step at a time, or does she go with her gut? | Problem-solving style | Optional |
+| 5 | What is Mara trying to do, and what's the worst that happens if she fails? | The dramatic question and the stakes | Required |
+| 6 | In your story, do things happen to Mara that force her to choose, or do her choices make things happen? | Plot-driven versus character-driven | Optional |
+| 7 | Does the story end because time runs out, or because there's nowhere left to turn? | The ticking clock | Optional |
+| 8 | Does Mara get what she was after? | The outcome | Required |
+| 9 | Is Mara happier or better off when it's over? | The ending's judgment; with 8, the four classic endings (happy, bittersweet, tragic, hollow win) | Required |
+| 10 | Underneath it all, what is your story wondering about? | The theme (the thematic question) | Optional |
+| 11 | Does Jonah end up seeing things Mara's way, or does he stick to his own? | The foil or impact character | Optional |
+| 12 | By the end, are Mara and Jonah closer, broken apart, or still unsettled? | The relationship arc | Optional |
+
+- **Required** matches the core: changes or holds firm, dramatic question with stakes, outcome, judgment. **Optional** accepts "keep it simple" and is still inferred and offered when scenes make it obvious.
+- 11 and 12 disappear when the story has no challenger.
+- The earlier working names (Resolve, Growth, Approach, Problem-Solving Style, Driver, Limit, Outcome, Judgment) are internal history only and never shown to the writer.
 
 ## Completeness bar
 
@@ -399,6 +409,7 @@ facts: [...]        # fact entries, schema below
   confidence: provisional  # confirmed | provisional | unresolved
   review: unreviewed       # unreviewed | cleared
   source: interview        # interview | harvest:<file> | placeholder
+  role: null               # v9, optional: cost | small_win | warning | required_step (pressure along the way)
 ```
 
 Rules:
@@ -694,7 +705,7 @@ Keyed by target ID. Each entry records how the target is referenced, which the d
 
 1. *Closed:* `ARCHITECTURE.md` reviewed this session (see What changed since v5).
 2. *Closed:* sub-agents that need the writer use the hand-back pattern (see Architecture).
-3. *Mostly settled in v7* (see Story-shape layer): terminology ladder, MC and challenger names, MC versus POV character, thread names, the two big questions, the required core, and the "keep it simple" opt-out. Theme questions verified. Still open: final wording of every shape decision (including the challenger and relationship drafts), node fields for the adopted story points (open item 17), and how the theme layer's own-words answers relate to the thematic question.
+3. *Closed in v9:* the 12 shape decisions are final with plain-language wording (see Story-shape layer); the theme layer collapsed to the thematic question; node fields for the adopted story points are settled (see item 17).
 4. *Closed in v9:* four fixed stages (Setup, Complications, Crisis, Resolution), aligned within a storyform, with landmarks and framework beats on top (see Coverage grid and movements).
 5. *Closed in v9* (see Weaver, outliner and frameworks, and Coverage grid and movements): layered outline, weaver produces the skeleton, outliner deepens, pins, framework timing, fog subplot outcomes, promote to subplot, stage readings for all threads, storyform-level landmarks, the scene turn, and the scene-count pacing heuristic.
 6. Specify the housekeeper's rubric checks (what it actually looks for in a scoped pass) and the completeness-check rubric. Several soft checks are now named (unearned twist, dangling setup, uncorrected belief, fact ending with no cause, early pivot, scene drifting from its cell summary, similar attribute keys).
@@ -703,22 +714,23 @@ Keyed by target ID. Each entry records how the target is referenced, which the d
 9. Read the wayfinder SKILL.md for patterns worth reusing.
 10. *Partly closed:* plugins cannot ship the main status line, so first-run setup writes it into the project's `.claude/settings.json` (see Research notes). Still unverified: hook access to context usage (no longer needed), and the SessionStart `initialUserMessage` field. Also: what happens when the writer already has a personal status line, since the project setting would replace it. Choose starting values for all settings: meter thresholds, rolling-pass interval (every N answers), and the reader cap that escalates to a full pass.
 11. Check the Dramatica licensing page before borrowing any specific term.
-12. Starter relation vocabulary for the attribute registry (family, place, bond, related) with each relation's symmetry and cardinality. Confirm the `add_item`/`remove_item` ops.
+12. Starter relation vocabulary for the attribute registry (family, place, bond, related; plus the `strength` and `flaw` attributes added in v9) with each relation's symmetry and cardinality. Confirm the `add_item`/`remove_item` ops.
 13. *Reopened in v8 (scripts are now Rust):* how the compiled binaries reach the writer. Options: bundle every platform's binary inside the plugin (simple, but large and puts binaries in git); have CI publish a built distribution branch or separate marketplace repo that the plugin installs from (keeps main clean); or have first-run setup download the right binary from GitHub Releases and verify its checksum (smallest plugin, but needs a network and a download tool). Also: where the binaries live (not a top-level `bin/`), and what happens if a binary is missing or blocked by the operating system. Leave room for the later standalone app (see Future phases).
 14. *Revised in v9:* phase 1 no longer proposes a first edition. The minimal edition file format and edition rules stay decided for the later phase that builds editions, which also extends the format with cuts, alternative scenes, per-grouping release status and pins, and review snapshots.
 15. How reviewer and reader feedback is stored in `reviews/` and turned into questions about the current text (mostly later phases; the snapshot link is decided).
 16. How forking a project for a retelling works in practice (later phase; the rule is decided).
-17. *Closed in v7:* extra story points adopted, in our own words, inferred and confirmed like everything else. **Stakes are required** (part of the required core); the rest are optional depth that accepts "keep it simple." Exact wording and node fields are still to be written with open item 3:
+17. *Closed in v7:* extra story points adopted, in our own words, inferred and confirmed like everything else. **Stakes are required** (part of the required core); the rest are optional depth that accepts "keep it simple." Node fields settled in v9 (no new node types; see the notes after this list):
     - **Stakes (required):** the goal plus what happens if it fails (goal, consequence).
     - **Pressure and payoff along the way:** costs, small wins, warning signs that the consequence is near, and the steps required to reach the goal (costs, dividends, forewarnings, requirements). Useful to the outliner for pacing.
     - **Strength and flaw** for the MC and challenger (unique ability, critical flaw); "fatal flaw" is a familiar craft term.
     - **What's really wrong versus what the MC thinks is wrong**, and what they try versus what would fix it (problem, symptom, response, solution). Ties to the pivot belief and to common craft ideas such as "want versus need."
     - **Backstory** for the MC, the challenger and their relationship, feeding facts.
     - Not adopted (lower value or too complex for novices): the Domain/Concern/Issue chain, thematic conflict, catalyst and inhibitor, benchmark, prerequisites and preconditions, audience appreciations, and anything tied to the table of story elements.
+    - **Storage (v9):** stakes sit with the dramatic question on the storyform (decision 5); strength and flaw are person facts with registered attributes `strength` and `flaw` (single cardinality, so they can change over time with `ends`); "what's really wrong versus what the MC thinks" is a belief fact (the mistaken idea, often the pivot belief) contradicting a truth fact (the real problem), building on decision 2; pressure along the way is facts with a `role` tag (`cost`, `small_win`, `warning`, `required_step`) linked to the main plot thread, which the outliner spreads across movements; backstory is ordinary facts whose `true_from` is before the first scene. All of them get time tracking, knowledge tracking and plot-hole checks for free.
 18. *New in v8:* the Rust build and release pipeline. Which targets to support at launch (macOS Apple Silicon and Intel, Linux x86 and ARM, Windows), code signing and notarization (cost and who holds the keys), CI tooling (for example cargo-dist), versioning so the plugin and its binaries never mismatch, and the crate layout (core library plus command-line front end). Confirm the Proposed items from "What changed since v7": one binary with subcommands, binaries out of the main history, and the session meter as the pilot.
 
 ## Suggested next steps
 
-Finish the wording and node fields from item 3 (shape decisions and the adopted story points from item 17), now that the outliner that consumes them is designed. Then the housekeeper and completeness rubrics (item 6), which have gained several new soft checks in v9 (landmark suggestions, pacing notes, flat scenes, subplot timing).
+Next: the housekeeper and completeness rubrics (item 6), which have gained several new soft checks in v9 (landmark suggestions, pacing notes, flat scenes, subplot timing).
 
 The Rust move (items 13 and 18) can run as a separate track: confirm the Proposed items, then build the session meter as the pilot once building starts.
