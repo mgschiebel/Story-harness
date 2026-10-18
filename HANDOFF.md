@@ -40,6 +40,7 @@ A grilling session on the coverage-grid stages and the weaver and outliner (open
 - **Flags are budgeted:** the housekeeper reports everything, the interviewer raises at most one or two per natural pause by impact, and the rest wait in a queue that must be cleared before weaving and outlining.
 - **The completeness rubric makes four judgments:** cells meet their stage, decisions have support, the ending answers both questions, and the threads interlock (the interlock check is now Decided). Open item 6 is closed at design level.
 - **Starting values for all settings chosen**, and an existing personal status line is wrapped rather than replaced (see Default settings). Open item 10 is closed apart from two unverified research points.
+- **Starter relation vocabulary set, and two small node types added: `group` and `item`** (see Relationship vocabulary under Node format). Open item 12 is closed.
 
 ## What changed in v8
 
@@ -377,7 +378,7 @@ Every node is a Markdown file. Structured data lives in YAML front matter; the b
 
 ```yaml
 id: p-0007
-type: person        # person | place | scene | decision | thread | style | storyform
+type: person        # person | place | group | item | scene | decision | thread | style | storyform (group, item added in v9)
 name: "Mara Vance"
 aliases: ["Mara", "the courier"]
 summary: "Courier who smuggles letters past the blockade"  # index line
@@ -427,9 +428,28 @@ Rules:
 - **Relationships are facts (v5):** `attribute` names the relation and `value` is the other entity's ID (`attribute: sibling_of, value: p-0002`). Stored once on a home node (the node being discussed when the answer came up). The registry marks each relation symmetric (`sibling_of`, `spouse_of`), an inverse pair (`parent_of`/`child_of`, `located_in`/`contains`; only one direction stored), or one-way (`bond`; each direction is its own fact). The `related` fallback is a fact whose `statement` describes the connection. Knowledge of a relationship is tracked on the fact's `characters` and `reader` lists like any other fact.
 - **Detail nodes were dropped in v5.** Per-fact revisions keep a scene that reads only Mara's eye color from going stale when a plot fact about her changes.
 
-### Person and place
+### Person, place, group and item
 
-No extra fields beyond the common core. Facts (including relationship facts) cover them. Roles such as hero and challenger come from thread `characters` fields.
+No extra fields beyond the common core. Facts (including relationship facts) cover them. Roles such as hero and challenger come from thread `characters` fields. **Group** (a guild, a family business, a rebel cell) and **item** (the letters, a key, a ship) were added in v9 so membership and ownership relations have something to point at.
+
+### Relationship vocabulary (starter registry, v9)
+
+| Relation | Type | Cardinality |
+|---|---|---|
+| `parent_of` / `child_of` | Inverse pair (one direction stored) | Many |
+| `sibling_of` | Symmetric | Many |
+| `spouse_of` | Symmetric | Single at any in-world moment (can end) |
+| `partner_of` | Symmetric (romantic, unmarried) | Many |
+| `friend_of` | Symmetric | Many |
+| `rival_of` | Symmetric | Many |
+| `works_for` / `employs` | Inverse pair | Many |
+| `member_of` / `has_member` | Inverse pair (person to group) | Many |
+| `bond` | One-way (how one feels about another: trusts, fears, loves, resents) | Per target |
+| `located_in` / `contains` | Inverse pair (person or place to place) | Single for a person at a moment; many for places |
+| `owns` / `owned_by` | Inverse pair (person or group to item or place) | Many |
+| `related` | Fallback; `statement` describes the connection | Many |
+
+Non-relation attributes registered so far: `strength`, `flaw` (single). New relations are added to the registry as stories need them; a new key resembling an existing one is soft-flagged.
 
 ### Scene
 
@@ -549,7 +569,7 @@ characters: [p-0007, p-0002]   # fog only: who the subplot involves
 
 Facts are addressed by ID (`node#fact.field`), never by list position, so parallel edits cannot shift each other.
 
-**Op list:** `create`, `set`, `add_fact`, `add_item` and `remove_item` (for list-valued typed fields such as `participants`; *Proposed in v5*, replacing `add_link`/`remove_link` now that node-level links are gone), `supersede` (replacement required), `delete` (zero references plus draft check), `merge` (redirect references, then attribute uniqueness check), `move_fact` (keeps ID), `reclassify` (truth to belief or back). Split is handled by the interviewer as per-reference changes.
+**Op list:** `create`, `set`, `add_fact`, `add_item` and `remove_item` (for list-valued typed fields such as `participants`; confirmed in v9, replacing `add_link`/`remove_link` now that node-level links are gone), `supersede` (replacement required), `delete` (zero references plus draft check), `merge` (redirect references, then attribute uniqueness check), `move_fact` (keeps ID), `reclassify` (truth to belief or back). Split is handled by the interviewer as per-reference changes.
 
 ### Backlinks index
 
@@ -775,7 +795,7 @@ Checks tied to anything opted out with "keep it simple" are skipped. At the gate
 9. Read the wayfinder SKILL.md for patterns worth reusing.
 10. *Closed in v9 except research:* plugins cannot ship the main status line, so setup writes it into the project's `.claude/settings.json`; an existing personal status line is wrapped, not replaced; starting values for all settings are in Default settings. Still unverified: the SessionStart `initialUserMessage` field, and hook access to context usage (no longer needed).
 11. Check the Dramatica licensing page before borrowing any specific term.
-12. Starter relation vocabulary for the attribute registry (family, place, bond, related; plus the `strength` and `flaw` attributes added in v9) with each relation's symmetry and cardinality. Confirm the `add_item`/`remove_item` ops.
+12. *Closed in v9:* starter relation vocabulary and the `group` and `item` node types (see Node format); the `add_item` and `remove_item` ops are confirmed.
 13. *Reopened in v8 (scripts are now Rust):* how the compiled binaries reach the writer. Options: bundle every platform's binary inside the plugin (simple, but large and puts binaries in git); have CI publish a built distribution branch or separate marketplace repo that the plugin installs from (keeps main clean); or have first-run setup download the right binary from GitHub Releases and verify its checksum (smallest plugin, but needs a network and a download tool). Also: where the binaries live (not a top-level `bin/`), and what happens if a binary is missing or blocked by the operating system. Leave room for the later standalone app (see Future phases).
 14. *Revised in v9:* phase 1 no longer proposes a first edition. The minimal edition file format and edition rules stay decided for the later phase that builds editions, which also extends the format with cuts, alternative scenes, per-grouping release status and pins, and review snapshots.
 15. How reviewer and reader feedback is stored in `reviews/` and turned into questions about the current text (mostly later phases; the snapshot link is decided).
@@ -792,6 +812,6 @@ Checks tied to anything opted out with "keep it simple" are skipped. At the gate
 
 ## Suggested next steps
 
-Next candidates: the evals plan (item 7) and the starter relation vocabulary (item 12). With items 3 to 6 closed, the phase 1 design is close to buildable.
+Next candidates: the evals plan (item 7), then the Rust track (items 13 and 18). With items 3 to 6 closed, the phase 1 design is close to buildable.
 
 The Rust move (items 13 and 18) can run as a separate track: confirm the Proposed items, then build the session meter as the pilot once building starts.
