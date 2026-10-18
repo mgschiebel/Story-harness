@@ -23,7 +23,7 @@ This session worked through editions (open item 14) from the writer's day-to-day
 - **A retelling that changes canon is a new project,** forked by copying the facts with a note of where they came from (project and version), never synced back.
 - **Edition lifecycle:** not published → publishing in progress (serials and anything released in parts) → published. Published editions are frozen snapshots; canon may move on and republishing means a new edition. While in progress, a canon change that touches released groupings marks them "needs republishing" and Skaldsaga strongly recommends bringing them up to current canon.
 - **Review snapshots** (beta readers, editors, publishers) belong to not-published editions. Each is pinned to a canon version so feedback can be shown against the exact text the reviewer read. They never trigger republishing.
-- **Phase 1 ends with a suggested first edition** (closes the main question in open item 14): the outliner's last step proposes a not-published edition chosen from the writer's goal, clearly labeled as a suggestion. The edition file format is still open.
+- **Phase 1 ends with a suggested first edition** (closes the main question in open item 14): the outliner's last step proposes a not-published edition chosen from the writer's goal, clearly labeled as a suggestion, using a minimal edition file (breaks anchored by scene ID).
 - **IDs are random instead of counting up** (see Spec and storage), for collision safety if facts later move between projects, and so shuffled scenes never look out of order.
 - **Book series noted for a later phase** (see Future phases): books are story-level units, not editions; the series shape is undecided.
 
@@ -275,6 +275,20 @@ Two separate concerns, kept distinct:
 - **The writer marks an edition published deliberately** (for example when a serial ends). A published edition never reopens. A novel usually goes straight from not published to published in a single release.
 - **Review snapshots.** Copies handed out for comment (beta readers, an editor, a publisher, advance copies) belong to a not-published edition. Sharing a copy creates a snapshot pinned to its canon version (for example "Beta round 1, sent to 4 readers"). Feedback is filed in `reviews/` tied to that snapshot, so Skaldsaga can show what the reviewer actually read and translate the comment into a question about the current text. Snapshots never trigger republishing. *Proposed:* a soft, information-only heads-up when a change touches text in a late advance copy. Serial writers can use the same mechanism to beta-read an update before release.
 - **Phase 1 proposes a first edition.** The outliner's last step suggests one not-published edition chosen from the writer's goal (chapters for a novel, updates for a web serial), labeled as a suggestion the writer can change at any time.
+- **Reorders and breaks.** Canon cares only about scene order and the ripple effects of a move. Breaks are anchored by scene ID, with no rules about following or staying put: published editions and released groupings are pinned and unaffected (a move touching released groupings falls under "needs republishing"), and a not-published edition is marked as needing a fresh look, after which the edition flow checks it and proposes new breaks if needed.
+- **Phase 1 edition file (minimal):**
+
+  ```yaml
+  id: e-4hq8nzwt
+  name: "Novel, first draft"
+  kind: novel            # novel | serial | play ...
+  status: not_published  # not_published | in_progress | published
+  groupings:
+    - {label: "Chapter 1", starts_at: s-7kq2xmhd}
+    - {label: "Chapter 2", starts_at: s-p3rwe9ka}
+  ```
+
+  Cuts, alternative scenes, per-grouping release status and pinned versions, and review snapshots are added in the phases that need them; the format leaves room for them.
 - **Harness machinery (new in v5)** lives in a hidden `.harness/` folder at the project root: `inbox/` (pending proposals), `settings.json`, `meter.json` (written by the status line), and `sessions/` (one plain-language recap per session). First run creates it alongside the four visible folders. Recaps could later be surfaced to the writer as a journal.
 - Phase 1 captures a **viewpoint and style node**, asked in plain language and held as provisional (fields in Node format).
 - **What-if scene prototypes** are visible variant files inside the project folder, promoted by an explicit step (promotion runs the harvest step). Git stays hidden underneath for history and the agents' parallel workspaces.
@@ -564,10 +578,10 @@ Keyed by target ID. Each entry records how the target is referenced, which the d
 11. Check the Dramatica licensing page before borrowing any specific term.
 12. Starter relation vocabulary for the attribute registry (family, place, bond, related) with each relation's symmetry and cardinality. Confirm the `add_item`/`remove_item` ops.
 13. *Deferred to a future phase:* how the Node scripts reach the writer (require a Node install, or ship single executables). Decide together with the web front end research in Future phases.
-14. *Partly closed in v7:* phase 1 does propose a first edition (see Editions under Spec and storage). Still open: the edition file format, including breaks by scene ID, labels, lifecycle status, per-grouping status (planned, released, needs republishing) and pinned versions, alternative-scene substitutions and cuts, and review snapshots. Also: when a scene moves in the sequence, does a break follow the scene it is anchored to, or keep its position?
+14. *Closed in v7:* phase 1 proposes a first edition, using a minimal edition file (see Editions under Spec and storage). Later phases extend the format with cuts, alternative scenes, per-grouping release status and pins, and review snapshots.
 15. How reviewer and reader feedback is stored in `reviews/` and turned into questions about the current text (mostly later phases; the snapshot link is decided).
 16. How forking a project for a retelling works in practice (later phase; the rule is decided).
 
 ## Suggested next steps
 
-Start with the edition file format (open item 14). Then the story-shape names and theme questions (item 3), and the coverage-grid stages with the weaver and outliner design (items 4 and 5).
+Start with the story-shape names and theme questions (item 3), and the coverage-grid stages with the weaver and outliner design (items 4 and 5).
