@@ -143,7 +143,7 @@ The coverage grid checks that every thread has content at every stage. It does n
 | Challenger | Our own one or two decisions (see above). |
 | Relationship | Our own one or two decisions (see above). |
 
-Note: the exact four theme questions were not confirmed from the official pages (see Research notes).
+Note: the four Dramatica theme questions are now confirmed (see Research notes, v7). Skaldsaga keeps its own-words approach for theme.
 
 ## Completeness bar
 
@@ -565,6 +565,11 @@ Keyed by target ID. Each entry records how the target is referenced, which the d
 ## Research notes (verify before relying)
 
 - **Dramatica.** A storyform spans four throughlines (main character, influence character, relationship, objective story). The full theory has about seventy-five objective appreciations. The 12 essential questions are four about character, four about plot, and four about theme. Eight are binary and four ask you to pick from "quads" (the thematic ones), which is roughly 65,536 combinations before the questions constrain each other. Confirmed from sources: Resolve (change or steadfast), Growth (start or stop), Approach (do-er or be-er), Problem-Solving Style (linear or holistic), Driver (action or decision), Limit (timelock or optionlock). Outcome and Judgment (success or failure, good or bad) are the other two binary ones and together give four endings. *The exact four theme questions were not listed on the pages retrieved.* The Overall Story Concern is one of them, and the Issue layer is the basis of the central theme. The community uses "story weaving" for combining storyforms, and forum posts suggest no formal weaving theory exists.
+- **Dramatica's four theme questions and full story-point list (researched in v7, October 18, 2026).**
+  - **The four thematic essential questions are a narrowing chain**, each picked from four options the previous answer allows: Domain (Universe, Physics/Activity, Mind, Psychology), then Concern, then Issue (also called Range), then Problem (storymind.com, "12 essential questions"). The choices come from Dramatica's proprietary table of story elements. Skaldsaga keeps its own-words approach instead; our thematic question corresponds roughly to the Issue and its Counterpoint.
+  - **The full storyform** is usually described as about 75 story points; a community tally of the Dramatica software's report counts 92, because counts differ in what they include (discuss.dramatica.com, "Table of Scenes & every possible story point"). Groups: overview (backstories for MC, impact character and relationship, plus synopses); audience appreciations (nature, essence, tendency, reach); per throughline (throughline, concern, issue, counterpoint, thematic conflict, problem, solution, symptom, response, benchmark, four signposts, plus unique ability and critical flaw for the two characters, catalyst and inhibitor for the other two); plot (the eight dynamics plus impact character resolve, and goal, consequence, cost, dividend, requirements, prerequisites, preconditions, forewarnings).
+  - **Plot points in plain terms** (dramatica.com theory book, chapter 17): goal (what everyone pursues), requirements (what must be done to reach it), consequence (what happens if it isn't reached), forewarnings (signs the consequence is getting close), dividends (small rewards along the way), costs (setbacks paid along the way), prerequisites (resources needed first), preconditions (strings attached by whoever controls them).
+  - **Candidate additions for Skaldsaga** are under open item 17.
 - **Narrative Context Protocol (NCP).** An open interchange schema on GitHub (3.0.0-rc.1 at last check). It validates structure only and does not include valid-combination logic. Dramatica's engine, semantic validation, and certification are licensed separately. Since the project is moving to its own checker, NCP is optional.
 - **Wayfinder.** Pocock's skill for projects too big for one session, built from a map (accumulated decisions), tickets (grilling, prototype, research, task), and sessions, with an orchestrator handling handoffs. User-invoked only. This comes from interviews and write-ups; the actual SKILL.md has not been read. Related skills: grill-me, /to-spec, /to-tickets.
 - **Serial length (anecdotal).** Chapters run about 1,500 to 4,000 words, commonly 2,000 to 3,000. Royal Road rewards frequent updates, and many authors post weekly or twice weekly. Traditional and self-publishing length norms have not been researched yet.
@@ -600,6 +605,13 @@ Keyed by target ID. Each entry records how the target is referenced, which the d
 14. *Closed in v7:* phase 1 proposes a first edition, using a minimal edition file (see Editions under Spec and storage). Later phases extend the format with cuts, alternative scenes, per-grouping release status and pins, and review snapshots.
 15. How reviewer and reader feedback is stored in `reviews/` and turned into questions about the current text (mostly later phases; the snapshot link is decided).
 16. How forking a project for a retelling works in practice (later phase; the rule is decided).
+17. **Which extra Dramatica story points to adopt (raised in v7, not decided).** Candidates, in our own words, inferred and confirmed like everything else:
+    - **Stakes:** the goal plus what happens if it fails (goal, consequence). Possibly required alongside the dramatic question.
+    - **Pressure and payoff along the way:** costs, small wins, warning signs that the consequence is near, and the steps required to reach the goal (costs, dividends, forewarnings, requirements). Useful to the outliner for pacing.
+    - **Strength and flaw** for the MC and challenger (unique ability, critical flaw); "fatal flaw" is a familiar craft term.
+    - **What's really wrong versus what the MC thinks is wrong**, and what they try versus what would fix it (problem, symptom, response, solution). Ties to the pivot belief and to common craft ideas such as "want versus need."
+    - **Backstory** for the MC, the challenger and their relationship, feeding facts.
+    - Lower value or too complex for novices: the Domain/Concern/Issue chain, thematic conflict, catalyst and inhibitor, benchmark, prerequisites and preconditions, audience appreciations, and anything tied to the table of story elements.
 
 ## Suggested next steps
 
