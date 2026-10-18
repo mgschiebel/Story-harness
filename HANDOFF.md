@@ -36,6 +36,9 @@ A grilling session on the coverage-grid stages and the weaver and outliner (open
 - **The theme layer collapses to the thematic question.** "Where the conflict lives" and "what everyone cares about" are dropped (they were Dramatica's Domain and Concern chain, already not adopted in item 17); the root problem moves into the optional "what's really wrong" story point.
 - **The 12 shape decisions are final, worded in plain language** using the story's own names, with the craft term taught afterward (see the table in Story-shape layer). Open item 3 is closed.
 - **Optional story points need no new node types:** stakes sit with the dramatic question; strength and flaw are person facts; "what's really wrong" is a belief fact plus the truth it contradicts; pressure along the way is facts with a `role` tag; backstory is facts true before the first scene. Open item 17's node fields are settled.
+- **Soft checks split between script and model.** Countable checks run free and instant in the `complete` script; the housekeeper keeps only checks that need judgment.
+- **Flags are budgeted:** the housekeeper reports everything, the interviewer raises at most one or two per natural pause by impact, and the rest wait in a queue that must be cleared before weaving and outlining.
+- **The completeness rubric makes four judgments:** cells meet their stage, decisions have support, the ending answers both questions, and the threads interlock (the interlock check is now Decided). Open item 6 is closed at design level.
 
 ## What changed in v8
 
@@ -565,6 +568,48 @@ Facts are addressed by ID (`node#fact.field`), never by list position, so parall
 
 Keyed by target ID. Each entry records how the target is referenced, which the delete check, housekeeper scope, and impact lookup all need.
 
+## Checks: who catches what (new in v9; all Decided)
+
+**Script soft checks** (in `complete`, run on every commit; no model, no tokens):
+
+- Missing landmarks (empty entries in a storyform's landmark map)
+- Scene-count pacing per movement
+- Unearned twist (a reveal with no earlier hint) and dangling setup (a hint never revealed or used)
+- Early pivot (the pivot belief ends well before the climax)
+- A subplot resolving after the main climax
+- Threads out of alignment across movements
+- Similar attribute keys (name matching)
+
+**Housekeeper judgment checks** (scoped, rolling, full and session-open passes):
+
+- Premise and idea drift against the versioned baseline
+- Motivation: does an action make sense given what the character knows and wants?
+- Cause and effect: does one scene's ending actually lead into the next?
+- Flat scenes (the turn's start and end differ in words but not in substance)
+- A scene drifting from its grid cell's summary
+- A thread that seems to carry two separate stories (the promote-to-subplot note)
+- Soft clashes between story content and shape decisions
+- False beliefs never corrected or paid off, and facts that end with no cause
+
+Script findings use the same plain-language flag flow, so the writer never sees the difference. Keeping countable checks out of the housekeeper makes it cheaper and focuses the cheaper-model evals (item 7) on judgment alone.
+
+**Completeness rubric** (sub-agent; the deep half of `complete`; run at the weave and outline gates and on request):
+
+1. **Cells meet their stage.** A filled cell must do what its stage requires (a Crisis cell where nothing reverses is "filled but not met").
+2. **Decisions have support.** Each answered decision is backed by real scenes or facts in its evidence.
+3. **The ending answers both questions.** Resolution answers the dramatic question and reflects the thematic question, consistent with decisions 8 and 9 (plot-hole check 4).
+4. **The threads interlock.** The climax resolves more than one thread, and every thread bears on the thematic question (adopted from Proposed).
+
+Checks tied to anything opted out with "keep it simple" are skipped. At the gates, any "not met" must be resolved or acknowledged before weaving or outlining continues.
+
+**Flag budget** (applies to housekeeper, rubric and script soft findings):
+
+- Each finding carries a confidence level, the IDs it rests on, and a suggested plain-language question.
+- Low-confidence findings are logged, not raised; later passes can see them, so a strengthening pattern can surface later.
+- The interviewer raises at most one or two per natural pause, ranked by impact: anything touching a confirmed decision first, then highest fan-out, then the rest.
+- The rest wait in a queue of open findings. The orchestrator offers them when momentum slows, and all must be resolved or acknowledged before weaving and outlining (the existing gates).
+- Hard script failures are never budgeted: they are raised immediately because the proposal cannot commit until they are fixed.
+
 ## Story model and coherence checking
 
 **Decided**
@@ -708,7 +753,7 @@ Keyed by target ID. Each entry records how the target is referenced, which the d
 3. *Closed in v9:* the 12 shape decisions are final with plain-language wording (see Story-shape layer); the theme layer collapsed to the thematic question; node fields for the adopted story points are settled (see item 17).
 4. *Closed in v9:* four fixed stages (Setup, Complications, Crisis, Resolution), aligned within a storyform, with landmarks and framework beats on top (see Coverage grid and movements).
 5. *Closed in v9* (see Weaver, outliner and frameworks, and Coverage grid and movements): layered outline, weaver produces the skeleton, outliner deepens, pins, framework timing, fog subplot outcomes, promote to subplot, stage readings for all threads, storyform-level landmarks, the scene turn, and the scene-count pacing heuristic.
-6. Specify the housekeeper's rubric checks (what it actually looks for in a scoped pass) and the completeness-check rubric. Several soft checks are now named (unearned twist, dangling setup, uncorrected belief, fact ending with no cause, early pivot, scene drifting from its cell summary, similar attribute keys).
+6. *Closed at design level in v9* (see Checks: who catches what): script versus housekeeper split, the four completeness-rubric judgments, and the flag budget. Exact prompt text, confidence scales and message wording are build work.
 7. Plan the evals with seeded plot holes, including a comparison of housekeeper models on scoped passes (to decide whether a cheaper default is safe). Also plan tests for the gating lanes, quarantine, version-checked commit, held-proposal flow, rolling passes, uniqueness rule (all three cardinalities), delete blocking, and merge.
 8. *Deferred in v9 (length left phase 1):* research traditional and self-publishing length norms for the length data file, when the edition phase begins.
 9. Read the wayfinder SKILL.md for patterns worth reusing.
@@ -731,6 +776,6 @@ Keyed by target ID. Each entry records how the target is referenced, which the d
 
 ## Suggested next steps
 
-Next: the housekeeper and completeness rubrics (item 6), which have gained several new soft checks in v9 (landmark suggestions, pacing notes, flat scenes, subplot timing).
+Next candidates: the evals plan (item 7), starting values for all settings (item 10), and the starter relation vocabulary (item 12). With items 3 to 6 closed, the phase 1 design is close to buildable.
 
 The Rust move (items 13 and 18) can run as a separate track: confirm the Proposed items, then build the session meter as the pilot once building starts.
