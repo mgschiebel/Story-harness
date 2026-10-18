@@ -17,7 +17,7 @@
 |---|---|
 | **housekeeper** | Full pass (session start, gate before weave and outline) or scoped pass (touched nodes and facts plus their readers; rolling every N answers; immediately after a confirmed-decision change). Reads cleared state only. Never edits; returns flags. |
 | **harvester** | Reads drafts in `manuscript/`, proposes spec updates for new facts, flags drift against declared scene reads. |
-| **weaver** | Chooses a framework with the writer (see open item 2), interleaves the storyforms' threads across the book, may surface a new fog storyform. |
+| **weaver** | Chooses a framework with the writer (via hand-back: returns questions, the interviewer asks them, the orchestrator re-dispatches), interleaves the storyforms' threads across the book, may surface a new fog storyform. |
 | **outliner** | Turns the woven plan into chapters (scene ID groupings), scenes, and beats. |
 | **completeness-rubric** | The deep, model-judged half of the completeness check. |
 
@@ -66,7 +66,7 @@ Distributed as a Claude Code plugin named `skaldsaga`, bundling the skills, agen
 
 ### Session
 
-1. Writer starts Claude Code in the project and the orchestrator loads. On first run, `init` runs, with a plain explanation before the status line permission prompt.
+1. First time: the writer types `/skaldsaga`, and `init` runs (fresh or existing-project path; see HANDOFF Architecture), with a plain explanation before the status line permission prompt. Later sessions: the plugin's SessionStart hook sees `.harness/` and has Claude open with the orchestrator's recap (also after `/clear`).
 2. Orchestrator reads the latest `.harness/sessions/` recap and `_index/status.json`, starts a full housekeeper pass in the background, and gives the recap plus one suggested topic.
 3. Writer picks a topic. The interviewer runs the loop (next flow).
 4. Wrap-up when the topic ends or the meter says so: finish the question, save, run the end-of-topic scoped pass over the last few answers, write the session recap, tell the writer to clear the chat.
@@ -102,6 +102,5 @@ Writer drops prose in `manuscript/` -> orchestrator dispatches the harvester -> 
 
 ## Open in this sketch
 
-- How the weaver and outliner get answers from the writer (HANDOFF open item 2).
 - The chapters file name and format.
 - Plugin packaging and status line registration (open item 10).

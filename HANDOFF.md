@@ -140,6 +140,7 @@ Note: the exact four theme questions were not confirmed from the official pages 
   - **Completeness check:** a primitive with a script half and a rubric half; the rubric half runs as a sub-agent for deep passes.
 - **Session boundaries:** each topic ends at a deliberate boundary. The writer clears the chat and the next session opens with the orchestrator's recap. State is saved to disk after every confirmed answer, so nothing lives only in the chat.
 - **Session meter:** a small script, not a sub-agent (a sub-agent cannot see the main context). The status line script writes context usage to a project file, and the interviewer checks it after each saved answer. At a first threshold the harness recommends wrapping up at the next natural pause (the writer may decline once). At a second, higher threshold it wraps up regardless. Thresholds are settings. Wrap-up means: finish the current question, save state, write the recap, tell the writer to clear.
+- **Hand-back pattern for sub-agents that need the writer.** Sub-agents cannot talk to the writer, but the weaver (framework choice) and the outliner may need answers. Such a sub-agent stops and returns a short list of plain-language questions. The interviewer asks them in the main conversation and saves the answers as normal proposals. The orchestrator then re-dispatches the sub-agent, which finds the answers in the spec. Rejected alternative: running the weaver as a main-thread skill, which would fill the chat's context with weaving work and shorten sessions.
 - Scripts can ship inside skill folders (a skill is a folder with a markdown file plus scripts).
 - **First-run setup** (all four top-level folders, session meter wiring, default thresholds) is part of the orchestrator's first-run path, not a separate skill. The orchestrator handles it in the background so a non-programmer never has to invoke a setup skill.
 - **Starting Skaldsaga:** the writer types `/skaldsaga` the first time in a folder; that runs first-run setup and creates `.harness/`. Two first-run paths:
@@ -484,7 +485,7 @@ Keyed by target ID. Each entry records how the target is referenced, which the d
 ## Open items
 
 1. Review the architecture sketch draft (`ARCHITECTURE.md`) and confirm or adjust it.
-2. **Sub-agents that need the writer (new, found while drafting the sketch):** the weaver chooses a framework by asking the writer questions, and the outliner may need answers too, but sub-agents cannot talk to the writer. Proposed pattern: the sub-agent returns a short list of plain-language questions, the interviewer asks them in the main thread and saves the answers as proposals, then the orchestrator re-dispatches the sub-agent. To confirm.
+2. *Closed:* sub-agents that need the writer use the hand-back pattern (see Architecture).
 3. Finalize plain-English names for the story-shape decisions and write our own challenger and relationship decisions. Verify the four theme questions.
 4. Settle the coverage-grid stages after the framework design.
 5. Design the weaver and outliner in detail: macro plan versus scene beats, open slots described by purpose, and outline deepened act by act.
@@ -498,4 +499,4 @@ Keyed by target ID. Each entry records how the target is referenced, which the d
 
 ## Suggested next steps
 
-Review `ARCHITECTURE.md` (open item 1), then settle how sub-agents get answers from the writer (open item 2).
+Finish reviewing `ARCHITECTURE.md` (open item 1). Settled so far in that review: the project name, how Skaldsaga starts, the existing-project first run, and the hand-back pattern.
