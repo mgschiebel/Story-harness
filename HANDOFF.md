@@ -25,6 +25,8 @@ This session worked through editions (open item 14) from the writer's day-to-day
 - **Review snapshots** (beta readers, editors, publishers) belong to not-published editions. Each is pinned to a canon version so feedback can be shown against the exact text the reviewer read. They never trigger republishing.
 - **Phase 1 ends with a suggested first edition** (closes the main question in open item 14): the outliner's last step proposes a not-published edition chosen from the writer's goal, clearly labeled as a suggestion, using a minimal edition file (breaks anchored by scene ID).
 - **IDs are random instead of counting up** (see Spec and storage), for collision safety if facts later move between projects, and so shuffled scenes never look out of order.
+- **Story-shape naming started (open item 3):** a terminology ladder (craft term, then abbreviation, then names); "main character"/MC; "challenger"; MC and POV character taught as different ideas; threads named main plot, inner journey, challenger, relationship.
+- **Dramatic and thematic questions** are tracked on every storyform, inferred rather than asked cold, and block weaving and outlining until answered at least provisionally.
 - **Book series noted for a later phase** (see Future phases): books are story-level units, not editions; the series shape is undecided.
 
 ## What changed in v6
@@ -107,6 +109,13 @@ The coverage grid checks that every thread has content at every stage. It does n
 - **Terminology ladder (decided in v7):** introduce the common craft term a writer might meet in books or online, explained plainly (teaching the craft), but avoid terms that are too technical (for example "protagonist"). Once taught, shorten to the common abbreviation, then switch to the story's own names as soon as they exist. Applied to the central character: "main character" with an explanation, then "MC," then the character's name ("Does Mara change by the end?").
 - **The challenger keeps that name (decided in v7)** for the character who presses on the MC's way of seeing things (Dramatica's influence character). A teaching aside mentions the related terms a writer may meet: foil (a character who contrasts with the MC; ours actively pushes back), impact character, and antagonist (whoever opposes the MC's goal, who may or may not be the challenger).
 - **Main character and POV character are taught as different ideas (decided in v7).** The POV character is whose eyes a scene is seen through (one or many); the MC is whose inner struggle the story argues (usually one per storyform). Other POV characters' arcs may become subplots. Ladder: "point of view character," then "POV character," then names. Timing follows infer-and-confirm: each described scene notes whose eyes it is through, and a second viewpoint triggers the teaching moment and a check on which one is the MC.
+- **Thread names (decided in v7):** the **main plot** (the external problem and stakes; "external plot" taught as the related term), the MC's **inner journey** ("internal arc" taught as the related term), the **challenger**, and the **relationship**. Main plot and inner journey give the writer the classic outer-versus-inner split used in most craft advice. Internal kind values in the thread format may stay as they are.
+- **Two big questions, tracked on every storyform (decided in v7):**
+  - **The dramatic question:** will the MC achieve the goal? (A common craft term.) Answered by the ending's outcome.
+  - **The thematic question:** what the story examines, for example "Is loyalty worth lying for?" Answered by how the ending feels (better or worse off, and at what cost). It is the writer's own words for the theme layer's central tension.
+  - **The threads examine the thematic question from different sides:** the MC lives one answer, the challenger embodies another, the relationship is where they collide, and the main plot shows what each costs at scale. The coherence checker tests that every thread bears on the thematic question and that the ending answers both questions.
+  - **Asked late, inferred first.** Ask directly only if the writer raises it; otherwise infer once a few scenes and choices exist and confirm ("Your story keeps circling whether Mara should trust anyone. Is that the big question?"). Never ask "what's your theme?" cold.
+  - **Blocker:** both questions must be answered (at least provisionally, like other shape decisions) before weaving or outlining can start. The orchestrator steers toward them as that stage approaches.
 - **Theme layer (the four thematic questions):** the writer answers in their own words, not from a fixed menu. Follow-up questions guide them toward non-conflicting answers.
 - **Challenger and relationship threads:** add our own shape decisions, one or two per thread (for example: does the challenger change or hold firm; does the bond deepen, break, or stay unresolved), answered in the writer's own words with guiding follow-ups.
 - **No hard combination rules.** The checker raises soft "possible issue" warnings when story content seems to clash with a decision (for example, "your hero is steadfast, but scene 12 shows them changing their core belief; which did you mean?").
@@ -116,10 +125,10 @@ The coverage grid checks that every thread has content at every stage. It does n
 
 | Area | Working plain-English decision (source Dramatica question) |
 |---|---|
-| Hero | Does the hero change or hold firm (Main Character Resolve)? |
-| Hero | Does the hero need to start something or stop something (Growth)? |
-| Hero | Does the hero solve things by acting or by adjusting themselves (Approach)? |
-| Hero | Does the hero work step by step or by gut and whole picture (Problem-Solving Style)? |
+| Main character | Does the MC change or hold firm (Main Character Resolve)? |
+| Main character | Does the MC need to start something or stop something (Growth)? |
+| Main character | Does the MC solve things by acting or by adjusting themselves (Approach)? |
+| Main character | Does the MC work step by step or by gut and whole picture (Problem-Solving Style)? |
 | Plot | Do events force decisions, or decisions force events (Story Driver)? |
 | Plot | Does the story end by a deadline or by running out of options (Story Limit)? |
 | Plot | Does the central problem get solved or not (Outcome)? |
@@ -134,7 +143,7 @@ Note: the exact four theme questions were not confirmed from the official pages 
 
 **Decided**
 
-- A "complete" outline requires: all shape decisions answered at least provisionally, no empty cells in the coverage grid, and the five plot-hole checks run clean.
+- A "complete" outline requires: all shape decisions answered at least provisionally (including the dramatic and thematic questions, which also gate the start of weaving), no empty cells in the coverage grid, and the five plot-hole checks run clean.
 - A rough outline is allowed early, with gaps marked (so Dramatica concepts are never forced on the writer).
 - A complete outline may contain provisional answers. Each provisional answer gates the tasks that depend on it. Anything unresolved blocks "complete."
 
@@ -435,12 +444,13 @@ decisions: [d-0001, d-0002]                  # empty while fog
 premise:                # writer's own words, versioned for drift checks
   current: "A courier smuggles letters past a blockade..."
   history: [{date: 2026-10-18, text: "..."}]
-central_question: "Will Mara get the letters through?"   # what the ending must answer
+dramatic_question: "Will Mara get the letters through?"  # plot: answered by the outcome
+thematic_question: "Is loyalty worth lying for?"         # theme: answered by how the ending feels
 characters: [p-0007, p-0002]   # fog only: who the subplot involves
 ```
 
 - **Fog subplots are real storyform nodes (v5)** with `status: fog`, holding only a one-line premise and the characters involved. They get stable IDs that scenes, facts, and the weaver can reference before they are mapped. Mapping one flips it to active and fills its threads and decisions.
-- `central_question` feeds the argument-coherence check; `premise.history` is the versioned baseline the housekeeper uses for drift.
+- `dramatic_question` and `thematic_question` (v7; replace `central_question`) feed the argument-coherence check; `premise.history` is the versioned baseline the housekeeper uses for drift.
 
 ### Proposal
 
@@ -496,7 +506,7 @@ Keyed by target ID. Each entry records how the target is referenced, which the d
 
 **Proposed**
 
-- Plain labels for the four threads: personal (the hero's inner struggle), challenger (the character pressing the hero), relationship (the bond between them), and big picture (the external problem and stakes).
+- *Superseded in v7:* plain labels for the four threads are now main plot, inner journey, challenger and relationship (see Story-shape layer).
 - A coverage grid: threads by stages, each cell with a plain requirement (starting condition, escalating conflict, turning point, resolution). Add an interlock check: the climax resolves more than one thread, and every thread bears on the central question.
 - Deterministic scripts for links, status, timelines, and a setup-and-payoff ledger. Rubric-guided model checks reported as "possible issues," not verdicts. A small argument-coherence rule set written in our own vocabulary, which tests the ending against the story-shape decisions.
 - Evals using stories with seeded plot holes to test the checker (the skill-creator skill supports evals).
