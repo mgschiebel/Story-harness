@@ -104,6 +104,7 @@ The coverage grid checks that every thread has content at every stage. It does n
 
 - Every shape decision must be answered at least provisionally before the outline step ("complete" requires it).
 - Translate the Dramatica jargon into our own plain-English names upfront, since the checker is our own.
+- **Terminology ladder (decided in v7):** introduce the common craft term a writer might meet in books or online, explained plainly (teaching the craft), but avoid terms that are too technical (for example "protagonist"). Once taught, shorten to the common abbreviation, then switch to the story's own names as soon as they exist. Applied to the central character: "main character" with an explanation, then "MC," then the character's name ("Does Mara change by the end?").
 - **Theme layer (the four thematic questions):** the writer answers in their own words, not from a fixed menu. Follow-up questions guide them toward non-conflicting answers.
 - **Challenger and relationship threads:** add our own shape decisions, one or two per thread (for example: does the challenger change or hold firm; does the bond deepen, break, or stay unresolved), answered in the writer's own words with guiding follow-ups.
 - **No hard combination rules.** The checker raises soft "possible issue" warnings when story content seems to clash with a decision (for example, "your hero is steadfast, but scene 12 shows them changing their core belief; which did you mean?").
