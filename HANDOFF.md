@@ -1,6 +1,6 @@
-# Story Harness Skills: Planning Handoff (v4)
+# Story Harness Skills: Planning Handoff (v5)
 
-*Planning session summary, October 18, 2026 (afternoon). Supersedes v3 (October 18, morning). Status: design phase, nothing built yet.*
+*Planning session summary, October 18, 2026 (mid-afternoon). Supersedes v4 (October 18, afternoon). Status: design phase, nothing built yet. Companion file: `ARCHITECTURE.md` (one-page sketch, draft).*
 
 ## How to use this document
 
@@ -12,24 +12,18 @@ Labels used below:
 - **Proposed**: suggested in discussion, not yet explicitly confirmed.
 - **Research**: from web searches or documentation; verify before relying on it. Items marked *unverified* have not been checked at all.
 
-## What changed since v3
+## What changed since v4
 
-This session finished open item 2 (node format) and closed open item 3 (single committer). All of the following are now **Decided** (details in "Node format"):
+This session closed open item 2 (node-format follow-ups) and drafted open item 1 (`ARCHITECTURE.md`). All of the following are now **Decided** (details in "Node format"):
 
-- **Fact entry schema** is complete: truth and belief kinds, relative in-world time, explicit endings, reader hint and reveal moments, optional options list for unresolved facts, `question` and `source` fields.
-- **In-world time is relative unless a date is given.** Anchors can point at a fact or a scene.
-- **Facts end explicitly** (`ends` plus `ended_by`).
-- **Truth and belief kinds.** Beliefs have a holder (a character or the reader) and an optional link to the truth they contradict. Reader beliefs cover red herrings.
-- **Reader knowledge is a list of moments**, each hinted or revealed, with at most one reveal.
-- **Properties are facts with an `attribute` key**, protected by a uniqueness rule, an attribute registry, declared writes, and optional detail nodes.
-- **Links are typed**, with a small fixed set per node type and a `related` fallback.
-- **Scene reads are declared; writes, hints, and reveals are derived** from facts that point at the scene.
-- **Shape decisions record evidence and an optional pivot** (the belief whose ending marks a character's change).
-- **Threads hold a one-line plan per stage**; the coverage grid shows each cell as empty, planned, or covered.
-- **Style node:** global defaults plus per-viewpoint overrides; voice material lives in the style guide folder.
-- **Proposal op list** is final, including delete, supersede, merge, move, and reclassify rules.
-- **One generated index folder** (`spec/_index/`), rebuilt by one script after every commit.
-- **Single committer** confirmed (was Proposed).
+- **No node-level `links:` list.** Every relationship in the story world is a **fact**, so it gets in-world time, endings, confidence, and reader and character knowledge (for example, "Jonah is Mara's brother" can be a twist). Spec bookkeeping (how the outline is organized, not what is true in the story) uses **typed fields** per node type instead (scene `pov`, `location`, `participants`, `coverage`; thread `characters`; decision `evidence`, `pivot`; storyform `threads`). The `related` fallback is a fact whose `statement` says what the connection is.
+- **Relationship facts** use `attribute` for the relation and an entity ID as `value` (for example `attribute: sibling_of`, `value: p-0002`).
+- **Attribute cardinality** in the registry: **single** (one live value per entity, e.g. `eye_color`), **many** (a list, e.g. `sibling_of`), **per-target** (one live value per other entity, e.g. `bond`). The uniqueness check follows the cardinality.
+- **Relationships are stored once**, on a home node (the node being discussed when the answer came up). The registry marks each relation **symmetric** (`sibling_of`, `spouse_of`), an **inverse pair** (`parent_of`/`child_of`, `located_in`/`contains`; only one direction stored), or **one-way** (`bond`: Mara trusting Jonah and Jonah trusting Mara are two facts, since they can change separately). The generated index shows each side its view. Who knows about the relationship stays on the single fact's `characters` list.
+- **Per-fact revisions.** Each fact has its own `revision`, bumped when that fact changes. Node revisions cover node-level fields. The version check uses fact revisions for facts read or written, so editing one plot fact no longer stales a scene that reads only an unrelated fact on the same node.
+- **Detail nodes dropped from phase 1** (the `detail` type and `detail_of` field). Per-fact revisions solve the problem they existed for. They may return later as optional tidiness if nodes get bloated.
+- **Storyform node defined:** `threads`, `decisions`, versioned `premise`, `central_question`, and `status` (main, fog, active). **Fog subplots are real storyform nodes** with `status: fog`, holding only a one-line premise and the characters involved, so they have stable IDs that scenes, facts, and the weaver can reference before they are mapped.
+- **Harness machinery lives in a hidden `.harness/` folder** at the project root: the pending inbox, settings, the session meter file, and session recaps. The four visible top-level folders are unchanged, and `spec/_index/` stays in the spec.
 
 ## The project
 
@@ -133,7 +127,7 @@ Note: the exact four theme questions were not confirmed from the official pages 
 **Proposed**
 
 - The orchestrator recommends one default next step plus "something else."
-- Shared primitives: plain-language translation reference, impact lookup (related items via typed links, the backlinks index, and rules), spec read/write with status, a harvest primitive for drafted material, the coherence checker, and the length primitive.
+- Shared primitives: plain-language translation reference, impact lookup (related items via relationship facts, typed fields, the backlinks index, and rules), spec read/write with status, a harvest primitive for drafted material, the coherence checker, and the length primitive.
 - The housekeeper never edits on its own. It raises plain-language heads-ups. Keep the original premise and taste anchors as a versioned baseline, and supersede decisions with dated notes rather than overwriting.
 - Even a single storyform needs weaving, to interleave its four threads across the book.
 - When weaving surfaces a possible new storyform, add it to the map as a fog item automatically and raise it with the user only when it is ready to explore.
@@ -150,37 +144,37 @@ Two separate concerns, kept distinct:
 
 - **Nothing in the spec is updated until all governance checks (dependency checker and housekeeper) have completed.** This avoids a race where the spec is updated and then the housekeeper rejects the change.
 - **Pending inbox:** changes go to a pending inbox on disk. The dependency checker runs on each immediately. The interviewer reads the spec plus the pending inbox so it does not contradict uncommitted answers.
-- **Single committer (new, was Proposed):** one committer applies proposals one at a time, bumps node revisions, and rebuilds the generated index folder after each commit. The version check, uniqueness rule, merge handling, and index rebuild all depend on this.
+- **Single committer (new, was Proposed):** one committer applies proposals one at a time, bumps node and fact revisions, and rebuilds the generated index folder after each commit. The version check, uniqueness rule, merge handling, and index rebuild all depend on this.
 - **Proposal format:** one JSON file per confirmed answer, made of field-level operations. Each proposal records which agent made it (which determines its lane), the writer's answer in their own words (for recaps), and the revisions it was checked against. Full schema and op list in Node format.
 - **Dependency checker:** a deterministic script run instantly on every proposal, with three jobs:
-  1. **Validity:** referenced IDs exist, links resolve, required fields are present, operations are well-formed. Delete is blocked when anything references the target (new).
+  1. **Validity:** referenced IDs exist, references resolve, required fields are present, operations are well-formed. Delete is blocked when anything references the target (new).
   2. **Routing:** counts fan-out (how many nodes read what changed) and detects whether a confirmed decision is touched. This sets the lane and triggers live confirmation.
   3. **Hard ordering and uniqueness checks:** a character cannot learn a fact before it becomes true; the reader cannot learn a fact before it is revealed; an event cannot precede its cause in in-world time; no scene reads a fact after it has ended (new); at most one live fact per entity and attribute at any in-world moment (new). It enforces only relations that are actually pinned down. Loose in-world time it cannot resolve goes to the housekeeper as a possible issue.
 - **Housekeeper scoped passes:**
-  - **Scope:** the touched nodes plus their readers (anything that links to or declares a read of them, found through the backlinks index). Above a cap of N readers (a setting), it recommends a full pass at the next session start instead.
+  - **Scope:** the touched nodes plus their readers (anything that references or declares a read of them, found through the backlinks index). Above a cap of N readers (a setting), it recommends a full pass at the next session start instead.
   - **Timing:** rolling background passes. After every few saved answers (a setting), a scoped pass runs as a background sub-agent over the answers since the last pass. Only one pass is in flight at a time. The interviewer raises any flags at the next natural pause while the topic is still live. The end-of-topic step covers only the final few answers.
 - **Flagged proposals: the writer decides.** A flagged proposal stays held in the inbox. The interviewer or orchestrator explains the flag in plain language, and the writer chooses:
   - **Revise:** the answer is updated and the proposal is re-checked.
   - **Keep anyway:** the proposal is committed and the flag is recorded as acknowledged.
   - **Not sure yet:** the proposal is committed as provisional and the flag stays open as an assumption to confirm.
-  - **Hard script failures** (broken links, ordering or uniqueness violations, blocked deletes) are held and explained the same way, but "keep anyway" is not offered, because they cannot be true.
+  - **Hard script failures** (broken references, ordering or uniqueness violations, blocked deletes) are held and explained the same way, but "keep anyway" is not offered, because they cannot be true.
 - **Changes to confirmed decisions are handled live.** When an answer would change a confirmed decision, the interviewer's consistency check catches it and confirms in the moment ("You'd confirmed Mara changes by the end; this sounds like she holds firm. Is that a change of mind?"). If the writer says yes, a housekeeper scoped pass starts immediately in the background. The interviewer steers to topics that do not depend on the changed decision until the pass returns, then raises any flags.
 - **Removing and changing things (new):**
-  - **Never referenced** (no links, scene reads, anchors, or evidence in the backlinks index): plain **delete**. Git underneath keeps history. Delete also runs the harvest drift check against drafts, because the index cannot see prose.
+  - **Never referenced** (no relationship facts, typed-field references, scene reads, anchors, or evidence in the backlinks index): plain **delete**. Git underneath keeps history. Delete also runs the harvest drift check against drafts, because the index cannot see prose.
   - **Referenced:** delete is blocked and the interviewer asks what changed:
     - **In the story** ("Mara stops trusting Jonah"): the fact gets `ends` and `ended_by`; the change becomes a story moment.
     - **The writer's mind** ("she never trusted him"): **supersede with a required replacement**; scenes that read the old fact are flagged.
   - **Cutting something referenced** (for example, Jonah's sister): hard failures on the scenes that read it force revision first; once nothing references it, it can be deleted. No separate retire state exists.
   - **Series shelf:** unused facts are simply left in place for later books. The writer deletes only what they truly do not want.
-  - **Merge** (two entities become one): redirect all links to the survivor, then run the attribute uniqueness check on the combined facts.
+  - **Merge** (two entities become one): redirect all references to the survivor, then run the attribute uniqueness check on the combined facts.
   - **Split** (one entity becomes two): no automatic redirect; the interviewer asks about each reference ("In scene 12, is this Jonah or his brother?").
   - **Truth becomes belief** (the reader was misled all along): reclassify the fact's kind in place and flag the scenes that relied on it.
   - **Deleting a scene:** facts anchored to it count as references; re-anchor them first.
-  - **Moving a fact to a different home node:** keep its ID; bump both nodes' revisions. Never done as delete plus create.
+  - **Moving a fact to a different home node:** keep its ID and its fact revision; bump both nodes' revisions. Never done as delete plus create.
 - **Per-agent lanes:** cheap agents such as the interviewer accept backout costs and commit optimistically. Expensive or isolated parallel agents are held to stricter rigor (checks before commit). Any change to a confirmed decision, or with high fan-out, escalates to the strict lane regardless of which agent made it.
 - **Quarantine:** optimistic commits are tagged unreviewed. Strict-lane agents read only cleared state, so a housekeeper rejection can only undo cheap work.
 - **Two independent labels** on each fact: writer confidence (confirmed, provisional, unresolved) and review state (unreviewed, cleared).
-- **Version check (settled for phase 1, may change in later phases):** each node carries a revision number. A proposal records the revisions of (1) the nodes it writes, (2) the nodes its author read to form the answer, and (3) the nodes each checker examined when clearing it. At commit, if any of those revisions has changed, the clearance is stale and the proposal is re-checked. Otherwise it commits, even if unrelated parts of the spec changed. In short: a clearance is only as fresh as everything its checks looked at.
+- **Version check (settled for phase 1, may change in later phases; updated in v5):** each node carries a revision for its node-level fields, and each fact carries its own revision. A proposal records the revisions of (1) the nodes and facts it writes, (2) the nodes and facts its author read to form the answer, and (3) the nodes and facts each checker examined when clearing it. At commit, if any of those revisions has changed, the clearance is stale and the proposal is re-checked. Otherwise it commits, even if unrelated parts of the spec changed. In short: a clearance is only as fresh as everything its checks looked at.
 - **Task readiness (future phases):** a task is ready only when every dependency is confirmed. In assisted mode the writer can opt in to "draft anyway"; the draft is tagged with its assumptions, and the housekeeper marks it stale if an assumption changes.
 - **Scenes declare reads at the fact level; writes are derived (updated).** A scene lists the fact IDs it relies on. What a scene makes true, hints, or reveals is generated from the facts that point at it. Dependencies and parallel-conflict handling derive from this data.
 
@@ -197,12 +191,13 @@ Two separate concerns, kept distinct:
 - **Organized by story element:** people, places, scenes, shape decisions, threads, each holding one small node per entity. The coverage grid and map are generated index views linking to those nodes. Reason: structure changes a lot during planning and entities mostly do not, so the layout should not be keyed to the most volatile thing.
 - **Four top-level folders created at first run:** spec, manuscript (prose), reviews (findings per editor type), and style guide. Empty folders get a one-line README explaining what goes there later. Drafts a writer brings in before any structure exists go in the manuscript folder, where the harvest step reads them.
 - **Stable IDs are opaque and type-prefixed:** for example `people/p-0007.md`, `scenes/s-0042.md`, facts `f-0031`. Names live in front matter and index lines, so renaming a character touches one field and breaks no links. IDs never change.
-- **Generated index folder (new):** `spec/_index/` holds `backlinks.json`, `attributes.json`, `grid.json`, `scenes.json`, and `status.json`. One script rebuilds all of them after every commit. Nothing in it is ever hand-edited; deleting the folder and re-running the script always restores it. Agents load only the file they need. Nodes store only their outgoing links.
-- **Facts are ID'd entries inside entity nodes:** each entity node holds a list of its facts (schema in Node format). A fact involving two entities has one home node plus a link from the other. Scene reads, the setup-and-payoff ledger, and the ordering checks reference fact IDs. Because revisions are per node, editing one fact bumps its node's revision.
+- **Generated index folder (new):** `spec/_index/` holds `backlinks.json`, `attributes.json`, `grid.json`, `scenes.json`, and `status.json`. One script rebuilds all of them after every commit. Nothing in it is ever hand-edited; deleting the folder and re-running the script always restores it. Agents load only the file they need. Nodes store only their outgoing references (relationship facts and typed fields); backlinks are generated.
+- **Facts are ID'd entries inside entity nodes:** each entity node holds a list of its facts (schema in Node format). A fact involving two entities is stored once on one home node; the generated index shows it from the other side. Scene reads, the setup-and-payoff ledger, and the ordering checks reference fact IDs. Each fact has its own revision (updated in v5), so editing one fact does not stale readers of other facts on the same node.
 - **Labels per fact, node status derived:** writer confidence and review state sit on each fact (and on each shape decision's value). A node's status in the index is computed, never stored (for example "2 provisional, 1 unreviewed"). A quarantined fact does not quarantine its whole entity, and readiness can gate on exactly the facts a scene reads.
 - **The spec is the source of truth. Flow is one-way (spec to draft).** If a draft introduces a new fact, the harvest step proposes a spec update for the writer's approval, never changing canon silently.
 - **Two clocks tracked from the start:** in-world time (relative unless a date is given) and reading order (worked out from scene IDs and chapter groupings, never stored as position numbers). This lets an automated scene-writing agent see only the spec up to that point in the timeline.
 - **The scene is the atomic unit.** A chapter is an ordered grouping of scene IDs that can be regrouped freely. Word-budget and serial-length checks apply to groupings.
+- **Harness machinery (new in v5)** lives in a hidden `.harness/` folder at the project root: `inbox/` (pending proposals), `settings.json`, `meter.json` (written by the status line), and `sessions/` (one plain-language recap per session). First run creates it alongside the four visible folders. Recaps could later be surfaced to the writer as a journal.
 - Phase 1 captures a **viewpoint and style node**, asked in plain language and held as provisional (fields in Node format).
 - **What-if scene prototypes** are visible variant files inside the project folder, promoted by an explicit step (promotion runs the harvest step). Git stays hidden underneath for history and the agents' parallel workspaces.
 
@@ -219,26 +214,25 @@ Every node is a Markdown file. Structured data lives in YAML front matter; the b
 
 ```yaml
 id: p-0007
-type: person        # person | place | scene | decision | thread | style | storyform | detail
+type: person        # person | place | scene | decision | thread | style | storyform
 name: "Mara Vance"
 aliases: ["Mara", "the courier"]
 summary: "Courier who smuggles letters past the blockade"  # index line
-revision: 12        # bumped by the committer on every change
-links:              # outgoing only; backlinks are generated
-  - {to: p-0002, type: sibling}
+revision: 12        # bumped by the committer when node-level fields change
 facts: [...]        # fact entries, schema below
 ```
 
-- **Links are typed**, with a small fixed set per node type (for example `participant`, `pov`, `located_in`, `detail_of`, `sibling`) and a `related` fallback so the interviewer is never stuck choosing. The exact type vocabulary per node type is still to be listed.
+- **No node-level links list (v5).** Relationships in the story world are facts (see below). Spec bookkeeping uses typed fields per node type (scene `pov`, `location`, `participants`, `coverage`; thread `characters`; decision `evidence`, `pivot`; storyform `threads`, `decisions`).
 
 ### Fact entry
 
 ```yaml
 - id: f-0031
   kind: truth              # truth | belief
+  revision: 3              # bumped by the committer when this fact changes
   statement: "The cellar lock is old and brittle"
   attribute: null          # optional property key, e.g. eye_color
-  value: null              # optional property value, e.g. "grey-green"
+  value: null              # optional property value, e.g. "grey-green", or an entity ID for relationships
   holder: null             # belief only: a person ID or reader
   contradicts: null        # belief only: the truth's fact ID
   question: null           # unresolved only: what's undecided, plain words
@@ -265,12 +259,13 @@ Rules:
 - **Beliefs** use the same time fields; a belief usually ends when its holder learns the truth. The **reader** can be a holder, which covers red herrings.
 - **Reader hints and reveals:** a reveal with no earlier hint gets a soft "possible unearned twist"; a hint never revealed or used gets a soft "dangling setup."
 - **Unresolved facts** keep one ID so scenes can still declare a read and readiness blocks on them. When settled, a set operation picks the winner and losing options go to history.
-- **Properties are facts with an `attribute` key.** Uniqueness rule: at most one live fact per entity and attribute at any in-world moment (hard check). The attribute registry (`attributes.json`) lists keys in use per node type; a new key that looks like an existing one is soft-flagged. Attribute writes are declared like any other write.
-- **Optional detail nodes** (`type: detail`, linked `detail_of`) can hold low-stakes appearance facts, so a scene that reads only Mara's eye color does not go stale whenever a plot fact about her changes. Phase 1 only needs to allow the link type.
+- **Properties are facts with an `attribute` key.** The attribute registry (`attributes.json`) lists keys in use per node type with a **cardinality**: single (one live value per entity at any in-world moment, e.g. `eye_color`), many (a list, e.g. `sibling_of`), or per-target (one live value per other entity, e.g. `bond`). The uniqueness check (hard) follows the cardinality. A new key that looks like an existing one is soft-flagged. Attribute writes are declared like any other write.
+- **Relationships are facts (v5):** `attribute` names the relation and `value` is the other entity's ID (`attribute: sibling_of, value: p-0002`). Stored once on a home node (the node being discussed when the answer came up). The registry marks each relation symmetric (`sibling_of`, `spouse_of`), an inverse pair (`parent_of`/`child_of`, `located_in`/`contains`; only one direction stored), or one-way (`bond`; each direction is its own fact). The `related` fallback is a fact whose `statement` describes the connection. Knowledge of a relationship is tracked on the fact's `characters` and `reader` lists like any other fact.
+- **Detail nodes were dropped in v5.** Per-fact revisions keep a scene that reads only Mara's eye color from going stale when a plot fact about her changes.
 
 ### Person and place
 
-No extra fields beyond the common core. Facts, attributes, and typed links cover them. Roles such as hero and challenger come from links to threads.
+No extra fields beyond the common core. Facts (including relationship facts) cover them. Roles such as hero and challenger come from thread `characters` fields.
 
 ### Scene
 
@@ -310,7 +305,7 @@ review: unreviewed
 ```yaml
 kind: personal          # personal | challenger | relationship | big_picture
 storyform: sf-0001      # one per map now; future-proofs subplots
-characters: [p-0007]    # typed links: lead, opposite, etc.
+characters: [{who: p-0007, role: lead}]   # roles: lead, opposite, etc.
 decisions: [d-0001, d-0002]
 stages:
   - {stage: starting_condition, summary: "Mara trusts no one", confidence: provisional}
@@ -338,7 +333,19 @@ Each scene's `pov` resolves its style rules. Voice samples, the flag-and-confirm
 
 ### Storyform
 
-*Proposed, not yet discussed:* a minimal node linking its four threads and its shape decisions, plus the versioned premise baseline.
+```yaml
+status: main            # main | fog | active
+threads: [t-0001, t-0002, t-0003, t-0004]   # one per kind; empty while fog
+decisions: [d-0001, d-0002]                  # empty while fog
+premise:                # writer's own words, versioned for drift checks
+  current: "A courier smuggles letters past a blockade..."
+  history: [{date: 2026-10-18, text: "..."}]
+central_question: "Will Mara get the letters through?"   # what the ending must answer
+characters: [p-0007, p-0002]   # fog only: who the subplot involves
+```
+
+- **Fog subplots are real storyform nodes (v5)** with `status: fog`, holding only a one-line premise and the characters involved. They get stable IDs that scenes, facts, and the weaver can reference before they are mapped. Mapping one flips it to active and fills its threads and decisions.
+- `central_question` feeds the argument-coherence check; `premise.history` is the versioned baseline the housekeeper uses for drift.
 
 ### Proposal
 
@@ -352,15 +359,15 @@ Each scene's `pov` resolves its style rules. Voice samples, the flag-and-confirm
   "ops": [
     {"op": "add_fact", "node": "p-0007", "fact": {"...": "..."}},
     {"op": "set", "target": "p-0007#f-0050.ends", "value": {"in": "s-0031"}},
-    {"op": "add_link", "node": "s-0031", "link": {"to": "p-0004", "type": "participant"}}
+    {"op": "add_item", "target": "s-0031.participants", "value": "p-0004"}
   ],
-  "revisions": {"writes": {}, "read": {}, "checked": {}}
+  "revisions": {"writes": {}, "read": {}, "checked": {}}   // node and fact revisions
 }
 ```
 
 Facts are addressed by ID (`node#fact.field`), never by list position, so parallel edits cannot shift each other.
 
-**Op list:** `create`, `set`, `add_fact`, `add_link`, `remove_link`, `supersede` (replacement required), `delete` (zero references plus draft check), `merge` (redirect links, then attribute uniqueness check), `move_fact` (keeps ID), `reclassify` (truth to belief or back). Split is handled by the interviewer as per-reference link changes.
+**Op list:** `create`, `set`, `add_fact`, `add_item` and `remove_item` (for list-valued typed fields such as `participants`; *Proposed in v5*, replacing `add_link`/`remove_link` now that node-level links are gone), `supersede` (replacement required), `delete` (zero references plus draft check), `merge` (redirect references, then attribute uniqueness check), `move_fact` (keeps ID), `reclassify` (truth to belief or back). Split is handled by the interviewer as per-reference changes.
 
 ### Backlinks index
 
@@ -372,7 +379,8 @@ Facts are addressed by ID (`node#fact.field`), never by list position, so parall
     {"from": "d-0002", "via": "evidence"}
   ],
   "p-0007": [
-    {"from": "s-0031", "via": "link:pov"}
+    {"from": "s-0031", "via": "pov"},
+    {"from": "p-0002", "via": "fact:f-0060.sibling_of"}
   ]
 }
 ```
@@ -448,18 +456,19 @@ Keyed by target ID. Each entry records how the target is referenced, which the d
 
 ## Open items
 
-1. Write the one-page architecture sketch (skills, primitives, folder layout, call flow) reflecting the confirmed split, governance, and node format.
-2. Small node-format follow-ups: list the typed-link vocabulary per node type; define the storyform node; decide the field list for detail nodes (likely common core only).
+1. Review the architecture sketch draft (`ARCHITECTURE.md`) and confirm or adjust it.
+2. **Sub-agents that need the writer (new, found while drafting the sketch):** the weaver chooses a framework by asking the writer questions, and the outliner may need answers too, but sub-agents cannot talk to the writer. Proposed pattern: the sub-agent returns a short list of plain-language questions, the interviewer asks them in the main thread and saves the answers as proposals, then the orchestrator re-dispatches the sub-agent. To confirm.
 3. Finalize plain-English names for the story-shape decisions and write our own challenger and relationship decisions. Verify the four theme questions.
 4. Settle the coverage-grid stages after the framework design.
 5. Design the weaver and outliner in detail: macro plan versus scene beats, open slots described by purpose, and outline deepened act by act.
 6. Specify the housekeeper's rubric checks (what it actually looks for in a scoped pass) and the completeness-check rubric. Several soft checks are now named (unearned twist, dangling setup, uncorrected belief, fact ending with no cause, early pivot, scene drifting from its cell summary, similar attribute keys).
-7. Plan the evals with seeded plot holes. Also plan tests for the gating lanes, quarantine, version-checked commit, held-proposal flow, rolling passes, uniqueness rule, delete blocking, and merge.
+7. Plan the evals with seeded plot holes. Also plan tests for the gating lanes, quarantine, version-checked commit, held-proposal flow, rolling passes, uniqueness rule (all three cardinalities), delete blocking, and merge.
 8. Research traditional and self-publishing length norms for the length data file.
 9. Read the wayfinder SKILL.md for patterns worth reusing.
 10. Verify the unverified Claude Code items (plugin-shipped status line, hook access to context usage). Choose starting values for all settings: meter thresholds, rolling-pass interval (every N answers), and the reader cap that escalates to a full pass.
 11. Check the Dramatica licensing page before borrowing any specific term.
+12. Starter relation vocabulary for the attribute registry (family, place, bond, related) with each relation's symmetry and cardinality. Confirm the `add_item`/`remove_item` ops.
 
 ## Suggested next steps
 
-Draft the one-page architecture sketch (open item 1), clearing the small node-format follow-ups (open item 2) along the way.
+Review `ARCHITECTURE.md` (open item 1), then settle how sub-agents get answers from the writer (open item 2).
