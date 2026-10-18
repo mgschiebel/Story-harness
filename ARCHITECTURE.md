@@ -25,7 +25,7 @@ Each sub-agent's model is a tunable default in `.harness/settings.json`: houseke
 
 ### Scripts (deterministic; written in Rust, compiled binaries ship with the plugin)
 
-**Proposed:** one binary with these as subcommands, built on a core library that the later standalone app will reuse (HANDOFF open items 13 and 18).
+**Decided (v9):** one binary with these as subcommands, built on a core library that the later standalone app will reuse (HANDOFF open items 13 and 18).
 
 | Script | Job |
 |---|---|
@@ -113,4 +113,4 @@ CI makes the story: proposals, checks and the single committer, through outline,
 
 - Editions are out of phase 1 (v9); the format is recorded for later (HANDOFF open item 14).
 - Plugin packaging and status line registration (open item 10).
-- Binary delivery and the Rust build and release pipeline (open items 13 and 18).
+- Binary delivery and the release pipeline are settled in HANDOFF (Build, release and delivery); a few install behaviors still need verifying.
