@@ -41,6 +41,7 @@ A grilling session on the coverage-grid stages and the weaver and outliner (open
 - **The completeness rubric makes four judgments:** cells meet their stage, decisions have support, the ending answers both questions, and the threads interlock (the interlock check is now Decided). Open item 6 is closed at design level.
 - **Starting values for all settings chosen**, and an existing personal status line is wrapped rather than replaced (see Default settings). Open item 10 is closed apart from two unverified research points.
 - **Starter relation vocabulary set, and two small node types added: `group` and `item`** (see Relationship vocabulary under Node format). Open item 12 is closed.
+- **Evals plan set:** ordinary Rust tests with fixture spec folders for everything deterministic, and seeded-defect test stories with clean controls for the housekeeper and completeness rubric, which also decide whether a cheaper model can be the default (see Testing and evals). Open item 7 is closed at plan level.
 
 ## What changed in v8
 
@@ -604,6 +605,19 @@ Keyed by target ID. Each entry records how the target is referenced, which the d
 
 **Existing personal status line:** setup detects it and explains in one plain sentence; the meter wraps it (the writer still sees their own line, and usage is recorded). If wrapping fails, setup asks before replacing it.
 
+## Testing and evals (new in v9; all Decided)
+
+**1. Script tests (ordinary Rust tests, run in CI on every change, must always pass).** Fixture spec folders with expected results for everything deterministic: gating lanes, quarantine, version-checked commits, the held-proposal flow, the uniqueness rule for all three cardinalities, delete blocking, merge, index rebuild, and every script soft check.
+
+**2. Judgment evals (housekeeper and completeness rubric).**
+
+- **A small library of short test stories,** each a real spec folder of roughly 15 to 25 scenes.
+- **Seeded defects,** one or two per story, each labeled with the expected finding, together covering every housekeeper judgment check and every rubric judgment.
+- **Clean controls** with no defects, to measure false alarms; for a novice, false alarms harm as much as misses.
+- **Scoring:** seeded defects caught, and false flags raised.
+- **Model comparison:** a cheaper model becomes a default only if it catches at least about 90% of what the strong model catches, with no more false alarms. Rolling scoped passes are tested this way too.
+- **Authoring:** Claude may draft test stories, but a human reviews every seeded defect, because an accidental second plot hole skews the scores. (The skill-creator skill supports running evals.)
+
 ## Checks: who catches what (new in v9; all Decided)
 
 **Script soft checks** (in `complete`, run on every commit; no model, no tokens):
@@ -790,7 +804,7 @@ Checks tied to anything opted out with "keep it simple" are skipped. At the gate
 4. *Closed in v9:* four fixed stages (Setup, Complications, Crisis, Resolution), aligned within a storyform, with landmarks and framework beats on top (see Coverage grid and movements).
 5. *Closed in v9* (see Weaver, outliner and frameworks, and Coverage grid and movements): layered outline, weaver produces the skeleton, outliner deepens, pins, framework timing, fog subplot outcomes, promote to subplot, stage readings for all threads, storyform-level landmarks, the scene turn, and the scene-count pacing heuristic.
 6. *Closed at design level in v9* (see Checks: who catches what): script versus housekeeper split, the four completeness-rubric judgments, and the flag budget. Exact prompt text, confidence scales and message wording are build work.
-7. Plan the evals with seeded plot holes, including a comparison of housekeeper models on scoped passes (to decide whether a cheaper default is safe). Also plan tests for the gating lanes, quarantine, version-checked commit, held-proposal flow, rolling passes, uniqueness rule (all three cardinalities), delete blocking, and merge.
+7. *Closed at plan level in v9* (see Testing and evals). Remaining is build work: writing and reviewing the test stories and fixtures.
 8. *Deferred in v9 (length left phase 1):* research traditional and self-publishing length norms for the length data file, when the edition phase begins.
 9. Read the wayfinder SKILL.md for patterns worth reusing.
 10. *Closed in v9 except research:* plugins cannot ship the main status line, so setup writes it into the project's `.claude/settings.json`; an existing personal status line is wrapped, not replaced; starting values for all settings are in Default settings. Still unverified: the SessionStart `initialUserMessage` field, and hook access to context usage (no longer needed).
@@ -812,6 +826,6 @@ Checks tied to anything opted out with "keep it simple" are skipped. At the gate
 
 ## Suggested next steps
 
-Next candidates: the evals plan (item 7), then the Rust track (items 13 and 18). With items 3 to 6 closed, the phase 1 design is close to buildable.
+Next candidates: the Rust track (items 13 and 18), reading the wayfinder SKILL.md (item 9), and the Dramatica licensing check (item 11). The remaining open items are research or later-phase work, so phase 1 is ready to start building once the Rust delivery questions are settled. With items 3 to 6 closed, the phase 1 design is close to buildable.
 
 The Rust move (items 13 and 18) can run as a separate track: confirm the Proposed items, then build the session meter as the pilot once building starts.
