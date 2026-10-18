@@ -28,6 +28,8 @@ This session worked through editions (open item 14) from the writer's day-to-day
 - **Story-shape naming started (open item 3):** a terminology ladder (craft term, then abbreviation, then names); "main character"/MC; "challenger"; MC and POV character taught as different ideas; threads named main plot, inner journey, challenger, relationship.
 - **Dramatic and thematic questions** are tracked on every storyform, inferred rather than asked cold, and block weaving and outlining until answered at least provisionally.
 - **"Keep it simple" is a valid answer** for the thematic question, three of the MC's four decisions, story driver and limit, the challenger and relationship decisions, and the challenger thread itself. Always required: the dramatic question, the stakes, whether the MC changes or holds firm, outcome and judgment.
+- **Dramatica research done** (see Research notes): the four theme questions are confirmed as a narrowing chain from a proprietary table, so our own-words theme approach stands; the full storyform (about 75 story points, 92 in one tally) was reviewed for novice value.
+- **Stakes join the required core**, which is now: the dramatic question, the stakes, whether the MC changes or holds firm, and the ending type (outcome and judgment). Strength and flaw, pressure along the way (costs, small wins, warning signs, required steps), want versus need, and backstory are adopted as optional depth (open item 17).
 - **Book series noted for a later phase** (see Future phases): books are story-level units, not editions; the series shape is undecided.
 
 ## What changed in v6
@@ -591,7 +593,7 @@ Keyed by target ID. Each entry records how the target is referenced, which the d
 
 1. *Closed:* `ARCHITECTURE.md` reviewed this session (see What changed since v5).
 2. *Closed:* sub-agents that need the writer use the hand-back pattern (see Architecture).
-3. Finalize plain-English names for the story-shape decisions and write our own challenger and relationship decisions. Verify the four theme questions.
+3. *Mostly settled in v7* (see Story-shape layer): terminology ladder, MC and challenger names, MC versus POV character, thread names, the two big questions, the required core, and the "keep it simple" opt-out. Theme questions verified. Still open: final wording of every shape decision (including the challenger and relationship drafts), node fields for the adopted story points (open item 17), and how the theme layer's own-words answers relate to the thematic question.
 4. Settle the coverage-grid stages after the framework design.
 5. Design the weaver and outliner in detail: macro plan versus scene beats, open slots described by purpose, and outline deepened act by act.
 6. Specify the housekeeper's rubric checks (what it actually looks for in a scoped pass) and the completeness-check rubric. Several soft checks are now named (unearned twist, dangling setup, uncorrected belief, fact ending with no cause, early pivot, scene drifting from its cell summary, similar attribute keys).
@@ -615,4 +617,4 @@ Keyed by target ID. Each entry records how the target is referenced, which the d
 
 ## Suggested next steps
 
-Start with the story-shape names and theme questions (item 3), and the coverage-grid stages with the weaver and outliner design (items 4 and 5).
+Start with the coverage-grid stages and the weaver and outliner design (items 4 and 5). Finish the remaining wording and node fields from item 3 alongside them, since the outliner is the main consumer of the adopted story points.
