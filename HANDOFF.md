@@ -1,6 +1,6 @@
 # Skaldsaga: Planning Handoff (v9)
 
-*Planning session summary, October 18, 2026 (late night). Supersedes v8 (October 18, night). Background, research on the original story-theory inspiration, and attribution live in `docs/background.md`, which build sessions should not load. Status: phase 1 design complete; building starts next (nothing built yet). Companion file: `ARCHITECTURE.md` (one-page sketch, reviewed in the v6 session). The project was called Story Harness until the v6 session; the GitHub repo has been renamed to Skaldsaga.*
+*Planning session summary, October 18, 2026 (late night). Supersedes v8 (October 18, night). Background, research on the original story-theory inspiration, and attribution live in `docs/background.md`, which build sessions should not load. Status: phase 1 design complete; PRs 1 to 4 built, and the installed plugin (0.1.1) is being tested from a phone (see Current stage). Companion file: `ARCHITECTURE.md` (one-page sketch, reviewed in the v6 session). The project was called Story Harness until the v6 session; the GitHub repo has been renamed to Skaldsaga.*
 
 ## How to use this document
 
@@ -14,6 +14,18 @@ Labels used below:
 - **Proposed**: suggested in discussion, not yet explicitly confirmed.
 - **Research**: from web searches or documentation; verify before relying on it. Items marked *unverified* have not been checked at all.
 
+## Current stage: testing the installed plugin from a phone (October 18, 2026)
+
+**Read this first if you are a session started from the "skaldsaga design project" Claude Code Project.** PRs 1 to 3 are merged and release 0.1.1 is installed into the Project as a plugin. Sessions opened there are usually **test sessions**: the author types `/skaldsaga` to check that the installed pieces work. Do not start building unless asked.
+
+What a test session checks, and what to expect:
+
+- **Program:** `/skaldsaga` reports the version (0.1.1 works).
+- **Session-start hook:** the context should contain a line starting "This folder is a Skaldsaga project". If it's missing, check whether `/home/claude/.harness` existed *before* the session started (`stat -c %w`): the hook is guarded and stays silent without it.
+- **Meter:** `meter check` reports a state. `unknown` with "no meter reading yet" means the status line hasn't run; whether it runs in cloud sessions at all is still unconfirmed.
+
+**Finding from the first test session (October 18, evening):** every cloud session starts on a fresh machine, so nothing from an earlier session survives, including `.harness/` and the meter wiring. The Project instructions said to run `mkdir -p /home/claude/.harness`, but Claude runs those only after the session has started, so the hook had already run and stayed silent. Running the hook by hand afterward worked. **Fix:** `ci/cloud-setup.sh`, pasted into the Project's environment setup script, which runs before the session starts. It creates `.harness/`, wires the meter's status line (finding the plugin at run time; the hook then re-points it at the exact path), and installs the cargo wrapper from `CLAUDE.md`. Next test: start a fresh session with that script in place and confirm the hook line appears and whether the meter gets a reading.
+
 ## Build progress
 
 **PR 1 (branch `build/meter-pilot`, October 18, 2026):** Rust workspace (`skaldsaga-core` library plus the `skaldsaga` command-line front end), the session meter pilot (`meter statusline`, `check`, `reset`, `wire`), the launcher `scripts/skaldsaga`, Linux x64 CI, and a tag-triggered release workflow that publishes a GitHub Release and rebuilds the `dist` branch. Interface notes in `docs/meter.md`. `init`, `check`, `commit`, `index` and `complete` are reserved subcommands that say "not built yet."
@@ -21,6 +33,8 @@ Labels used below:
 **PR 2:** `serde_json` replaces the stand-in JSON reader; `CLAUDE.md` holds build-session notes (cargo wrapper for cloud sessions, pipeline rules).
 
 **PR 3 (branch `build/plugin`):** a minimal installable plugin in `plugin/`: manifest, marketplace file, a test-build `skaldsaga` skill, and a guarded SessionStart hook (`skaldsaga hook session-start`: silent outside a project; in one, clears a stale meter reading on a fresh session, keeps the status line pointing at the current plugin folder, and adds a line of context). CI assembles, validates (`claude plugin validate --strict`) and smoke-tests the same folder a release ships. Install from the `dist` branch: `/plugin marketplace add mgschiebel/skaldsaga#dist`, then `/plugin install skaldsaga@skaldsaga`.
+
+**PR 4 (branch `test/cloud-setup`):** `ci/cloud-setup.sh` for the testing Project, and the "Current stage" section above.
 
 **Decided (October 18, 2026): phones and cloud sessions are the author's build and test setup only.** Writers install a released plugin into their own local Claude Code; they are not expected to use Skaldsaga from cloud sessions. This supersedes the v9 note that phone writers reach Skaldsaga through cloud sessions, and drops the idea of copying the skills into each story folder. For testing from a phone, the author uses a Claude Code Project (public beta, Pro and Max), which loads plugins added in *Project settings > Plugins* into every cloud session and has an environment setup script.
 
