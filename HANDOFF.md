@@ -24,7 +24,7 @@ Labels used below:
 - **Cloud sessions do not install plugins.** The current cloud environment docs say plugins and marketplaces declared in a repo's `.claude/settings.json` are not installed in cloud sessions. What does carry over from the cloned repo: `CLAUDE.md`, `.claude/skills/`, `.claude/agents/`, `.claude/commands/`, and hooks and permissions in `.claude/settings.json` (single-repository sessions). So phone writers in cloud sessions would need Skaldsaga's skills, agents, hooks and binary inside the project folder itself, not via the plugin. **Open decision.**
 - **`/clear` is not available in cloud sessions** ("start a new session from the sidebar instead"). The session-boundary wording must say "start a new session" there; the SessionStart hook's `startup` matcher still covers it.
 - **Status line in cloud sessions:** not documented either way (the docs describe a terminal status bar). Likely unavailable; the meter already degrades to `unknown` and the manual boundary. Test from a phone session once a project is wired.
-- **crates.io was blocked** from the build session's network (the docs say the default Trusted network level allows it, so this environment is likely set to a custom allowlist). PR 1 therefore has no dependencies; `skaldsaga-core::json` is a small stand-in for `serde_json`, to be replaced once crates.io is reachable.
+- **crates.io from cloud sessions:** blocked at first; fixed by allowlisting `index.crates.io`, `static.crates.io` and `crates.io` in the environment settings, plus a small cargo wrapper each session (see `CLAUDE.md`). PR 2 replaced the stand-in JSON reader with `serde_json`.
 
 ## What changed since v8
 

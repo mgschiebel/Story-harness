@@ -9,24 +9,34 @@
 //! Everything here is forgiving on purpose: missing or odd data turns into an
 //! `Unknown` state, never an error, and the manual session boundary still works.
 
+use serde::{Deserialize, Serialize};
+
 use crate::fsio::{self, FsError};
-use crate::json::{self, Value};
+use crate::json::{self, Value, ValueExt as _};
 use crate::project::Project;
 use crate::settings::MeterSettings;
 
-/// What the meter learned from one status line run.
-#[derive(Debug, Clone, PartialEq)]
+/// What the meter learned from one status line run, as stored in
+/// `.harness/meter.json`.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Reading {
+    #[serde(default)]
     pub session_id: Option<String>,
     /// Share of the context window in use (input tokens only). Claude Code
     /// reports `null` early in a session.
+    #[serde(default)]
     pub used_percentage: Option<f64>,
+    #[serde(default)]
     pub context_window_size: Option<f64>,
     /// Unix seconds when the reading was taken.
+    #[serde(default)]
     pub updated_at: u64,
 }
 
 /// The parts of Claude Code's status line input the meter uses.
+///
+/// Parsed field by field rather than with a derived deserializer: this input
+/// comes from outside, and one odd field must not throw away the rest.
 #[derive(Debug, Clone, PartialEq)]
 pub struct StatusInput {
     pub session_id: Option<String>,
@@ -67,38 +77,10 @@ impl StatusInput {
     }
 }
 
-impl Reading {
-    pub fn to_json(&self) -> Value {
-        let mut v = Value::object();
-        v.set("session_id", self.session_id.clone().into());
-        v.set("used_percentage", self.used_percentage.into());
-        v.set("context_window_size", self.context_window_size.into());
-        v.set("updated_at", (self.updated_at as f64).into());
-        v
-    }
-
-    pub fn from_json(v: &Value) -> Option<Reading> {
-        if !v.is_object() {
-            return None;
-        }
-        Some(Reading {
-            session_id: v
-                .get("session_id")
-                .and_then(Value::as_str)
-                .map(str::to_string),
-            used_percentage: v.get("used_percentage").and_then(Value::as_f64),
-            context_window_size: v.get("context_window_size").and_then(Value::as_f64),
-            updated_at: v
-                .get("updated_at")
-                .and_then(Value::as_f64)
-                .map_or(0, |n| n.max(0.0) as u64),
-        })
-    }
-}
-
 /// Saves a reading to `.harness/meter.json` (atomically).
 pub fn write_reading(project: &Project, reading: &Reading) -> Result<(), FsError> {
-    fsio::write_json(&project.meter_path(), &reading.to_json())
+    let value = serde_json::to_value(reading).unwrap_or_else(|_| json::object());
+    fsio::write_json(&project.meter_path(), &value)
 }
 
 /// Loads the last reading. A missing or unreadable file reads as `None`:
@@ -107,8 +89,7 @@ pub fn read_reading(project: &Project) -> Option<Reading> {
     fsio::read_json_object(&project.meter_path())
         .ok()
         .flatten()
-        .as_ref()
-        .and_then(Reading::from_json)
+        .and_then(|v| serde_json::from_value(v).ok())
 }
 
 /// Deletes the reading, for example when a new session starts, so a full
@@ -118,7 +99,8 @@ pub fn reset(project: &Project) -> Result<bool, FsError> {
 }
 
 /// What the interviewer should do.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "snake_case")]
 pub enum MeterState {
     /// Plenty of room; carry on.
     Ok,
@@ -141,8 +123,8 @@ impl MeterState {
     }
 }
 
-/// The result of checking the meter.
-#[derive(Debug, Clone, PartialEq)]
+/// The result of checking the meter; also the JSON `meter check` prints.
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct Evaluation {
     pub state: MeterState,
     pub used_percentage: Option<f64>,
@@ -196,17 +178,7 @@ pub fn evaluate(
 impl Evaluation {
     /// Machine-readable result for the skills.
     pub fn to_json(&self) -> Value {
-        let mut v = Value::object();
-        v.set("state", self.state.as_str().into());
-        v.set("used_percentage", self.used_percentage.into());
-        v.set(
-            "suggest_wrap_up_percent",
-            self.suggest_wrap_up_percent.into(),
-        );
-        v.set("wrap_up_percent", self.wrap_up_percent.into());
-        v.set("session_id", self.session_id.clone().into());
-        v.set("note", self.note.into());
-        v
+        serde_json::to_value(self).unwrap_or_else(|_| json::object())
     }
 
     /// The meter's own status line text, shown when the writer has no status
@@ -343,7 +315,7 @@ mod tests {
         );
         assert_eq!(
             e.to_json().to_compact_string(),
-            r#"{"state":"suggest_wrap_up","used_percentage":55,"suggest_wrap_up_percent":50,"wrap_up_percent":70,"session_id":"s","note":null}"#
+            r#"{"state":"suggest_wrap_up","used_percentage":55.0,"suggest_wrap_up_percent":50.0,"wrap_up_percent":70.0,"session_id":"s","note":null}"#
         );
     }
 }

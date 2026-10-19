@@ -10,7 +10,7 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use skaldsaga_core::json::Value;
+use skaldsaga_core::json::{self, Value, ValueExt as _};
 use skaldsaga_core::meter::{self, StatusInput};
 use skaldsaga_core::project::Project;
 use skaldsaga_core::settings::MeterSettings;
@@ -238,7 +238,7 @@ fn meter_wire(rest: &[&str]) -> Result<(), CliError> {
         WireError::Fs(e) => CliError::Failed(e.to_string()),
     })?;
 
-    let mut v = Value::object();
+    let mut v = json::object();
     match outcome {
         WireOutcome::AlreadyWired => v.set("outcome", "already_wired".into()),
         WireOutcome::Updated => v.set("outcome", "updated".into()),

@@ -4,7 +4,7 @@
 //! file may hold other keys; they are preserved untouched when we write.
 
 use crate::fsio::{self, FsError};
-use crate::json::Value;
+use crate::json::{self, Value, ValueExt as _};
 use crate::project::Project;
 
 /// Default: suggest wrapping up at 50% of the context window (HANDOFF, Default settings).
@@ -79,12 +79,15 @@ impl MeterSettings {
 
 /// The meter section written by first-run setup, with the decided defaults.
 pub fn default_meter_section() -> Value {
-    let mut meter = Value::object();
+    let mut meter = json::object();
     meter.set(
         "suggest_wrap_up_percent",
-        DEFAULT_SUGGEST_WRAP_UP_PERCENT.into(),
+        Value::from(DEFAULT_SUGGEST_WRAP_UP_PERCENT as u64),
     );
-    meter.set("wrap_up_percent", DEFAULT_WRAP_UP_PERCENT.into());
+    meter.set(
+        "wrap_up_percent",
+        Value::from(DEFAULT_WRAP_UP_PERCENT as u64),
+    );
     meter
 }
 
@@ -92,7 +95,7 @@ pub fn default_meter_section() -> Value {
 /// key in the settings file as it was.
 pub fn store_wrapped_statusline(project: &Project, wrapped: Option<Value>) -> Result<(), FsError> {
     let path = project.settings_path();
-    let mut doc = fsio::read_json_object(&path)?.unwrap_or_else(Value::object);
+    let mut doc = fsio::read_json_object(&path)?.unwrap_or_else(json::object);
     let mut meter = doc
         .get("meter")
         .filter(|m| m.is_object())
@@ -101,7 +104,7 @@ pub fn store_wrapped_statusline(project: &Project, wrapped: Option<Value>) -> Re
     match wrapped {
         Some(v) => meter.set("wrapped_statusline", v),
         None => {
-            meter.remove("wrapped_statusline");
+            meter.remove_key("wrapped_statusline");
         }
     }
     doc.set("meter", meter);
