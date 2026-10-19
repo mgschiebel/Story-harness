@@ -74,6 +74,10 @@ What a test session checks, and what to expect:
 
 **Next phone test (0.3.0, released October 18; Decided October 18, 2026):** test in a **new, empty GitHub repository** added to the testing Project, so test files never mix with the Skaldsaga repo. Create it with nothing ticked (no README, .gitignore or license): any visible file makes setup treat the folder as an existing project. After the release, sync the marketplace manually, then start a fresh session and type `/skaldsaga demo`. Cloud sessions start in the home folder with the repository cloned one level down (`CLAUDE_PROJECT_DIR` is empty), so expect the skill to ask whether to use the repository's folder; say yes. Expect: setup (if not done) and its snapshot, two sample answers filed, the first checked, committed and saved to git, the second refused for having Mara know about Jonah's arrest before it happens and then deleted, and an offer to push the snapshot to GitHub. Note: the session-start hook looks at the session's working folder, so it stays silent for a story folder one level down.
 
+### Step 9 planning (`complete`), October 19, 2026
+
+- *Decided:* **`complete` is its own command, run by the skill right after each commit** (not built into `commit`), and on its own when the writer asks how close the story is. It reports the whole story: where it stands against the completeness bar (unanswered shape decisions, empty grid cells, the plot-hole checks) and the script soft findings for the queue. `commit` stays focused on checking and saving one answer.
+
 ## Build progress
 
 **Step 1 (#1, branch `build/meter-pilot`, October 18, 2026):** Rust workspace (`skaldsaga-core` library plus the `skaldsaga` command-line front end), the session meter pilot (`meter statusline`, `check`, `reset`, `wire`), the launcher `scripts/skaldsaga`, Linux x64 CI, and a tag-triggered release workflow that publishes a GitHub Release and rebuilds the `dist` branch. Interface notes in `docs/meter.md`. `init`, `check`, `commit`, `index` and `complete` are reserved subcommands that say "not built yet."
