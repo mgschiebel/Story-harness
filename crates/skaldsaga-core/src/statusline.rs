@@ -14,7 +14,7 @@
 use std::path::Path;
 
 use crate::fsio::{self, FsError};
-use crate::json::Value;
+use crate::json::{self, Value, ValueExt as _};
 use crate::project::Project;
 use crate::settings;
 
@@ -100,7 +100,7 @@ pub fn wire(
     }
 
     let project_path = project.claude_settings_path();
-    let mut project_doc = fsio::read_json_object(&project_path)?.unwrap_or_else(Value::object);
+    let mut project_doc = fsio::read_json_object(&project_path)?.unwrap_or_else(json::object);
     let current = statusline_in(Some(&project_doc));
 
     if let Some(current) = current.as_ref().filter(|s| is_meter_command(s)) {
@@ -130,7 +130,7 @@ pub fn wire(
         settings::store_wrapped_statusline(project, wrapped.clone())?;
     }
 
-    let mut ours = Value::object();
+    let mut ours = json::object();
     ours.set("type", "command".into());
     ours.set("command", command.into());
     if let Some(padding) = wrapped.as_ref().and_then(|w| w.get("padding")).cloned() {
@@ -234,7 +234,7 @@ mod tests {
         );
         assert_eq!(
             project_statusline(&project).get("padding"),
-            Some(&Value::Number(2.0))
+            Some(&Value::from(2))
         );
     }
 

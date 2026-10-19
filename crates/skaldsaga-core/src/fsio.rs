@@ -8,7 +8,7 @@
 use std::io::{self, Write as _};
 use std::path::Path;
 
-use crate::json::{self, Value};
+use crate::json::{self, Value, ValueExt as _};
 
 /// Errors from reading or writing Skaldsaga's own files.
 #[derive(Debug)]

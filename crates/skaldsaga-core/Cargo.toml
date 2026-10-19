@@ -7,10 +7,9 @@ license.workspace = true
 repository.workspace = true
 rust-version.workspace = true
 
-# No dependencies on purpose for the pilot: crates.io was unreachable from the
-# build environment. The small `json` module is the only stand-in and is meant
-# to be replaced by serde/serde_json once dependencies are available.
 [dependencies]
+serde.workspace = true
+serde_json.workspace = true
 
 [lints]
 workspace = true
