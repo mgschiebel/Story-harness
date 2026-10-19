@@ -4,7 +4,7 @@
 
 A *skald* was a Norse poet-storyteller, and *saga* means "story" (in modern Icelandic, *skáldsaga* is the everyday word for a novel). Skaldsaga is an open-source set of skills for [Claude Code](https://code.claude.com) that acts like an experienced writing mentor. It asks you questions about your story, quietly keeps track of everything you decide, catches contradictions and loose ends, and teaches craft as you go.
 
-> **Status: in design.** Nothing is built or installable yet. This README describes how Skaldsaga is meant to work. The design lives in [`HANDOFF.md`](HANDOFF.md) and [`ARCHITECTURE.md`](ARCHITECTURE.md).
+> **Status: early build.** Only the first internal piece (a session meter) exists; nothing is installable yet. This README describes how Skaldsaga is meant to work. The design lives in [`HANDOFF.md`](HANDOFF.md) and [`ARCHITECTURE.md`](ARCHITECTURE.md).
 
 ## Who it's for
 

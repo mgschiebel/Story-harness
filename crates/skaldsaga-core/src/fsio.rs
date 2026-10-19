@@ -1,0 +1,164 @@
+//! The small file-access layer the rest of the core goes through.
+//!
+//! Keeping file access in one place is what lets the core stay portable (a
+//! later standalone or mobile app can swap this out) and keeps the safety
+//! rules in one spot: every write is atomic, so a reader never sees half a
+//! file even when Claude Code cancels the status line script mid-run.
+
+use std::io::{self, Write as _};
+use std::path::Path;
+
+use crate::json::{self, Value};
+
+/// Errors from reading or writing Skaldsaga's own files.
+#[derive(Debug)]
+pub enum FsError {
+    Io {
+        path: String,
+        source: io::Error,
+    },
+    Json {
+        path: String,
+        source: json::ParseError,
+    },
+    NotAnObject {
+        path: String,
+    },
+}
+
+impl std::fmt::Display for FsError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            FsError::Io { path, source } => write!(f, "{path}: {source}"),
+            FsError::Json { path, source } => write!(f, "{path}: {source}"),
+            FsError::NotAnObject { path } => write!(f, "{path}: expected a JSON object"),
+        }
+    }
+}
+
+impl std::error::Error for FsError {}
+
+fn io_err(path: &Path, source: io::Error) -> FsError {
+    FsError::Io {
+        path: path.display().to_string(),
+        source,
+    }
+}
+
+/// Reads a file, returning `None` when it does not exist.
+pub fn read_optional(path: &Path) -> Result<Option<String>, FsError> {
+    match std::fs::read_to_string(path) {
+        Ok(s) => Ok(Some(s)),
+        Err(e) if e.kind() == io::ErrorKind::NotFound => Ok(None),
+        Err(e) => Err(io_err(path, e)),
+    }
+}
+
+/// Reads a JSON object file. A missing or empty file reads as `None`.
+pub fn read_json_object(path: &Path) -> Result<Option<Value>, FsError> {
+    let Some(text) = read_optional(path)? else {
+        return Ok(None);
+    };
+    if text.trim().is_empty() {
+        return Ok(None);
+    }
+    let v = json::parse(&text).map_err(|source| FsError::Json {
+        path: path.display().to_string(),
+        source,
+    })?;
+    if !v.is_object() {
+        return Err(FsError::NotAnObject {
+            path: path.display().to_string(),
+        });
+    }
+    Ok(Some(v))
+}
+
+/// Writes a file atomically: write a temporary file next to it, then rename
+/// over the target. Creates the parent folder if needed.
+pub fn write_atomic(path: &Path, contents: &str) -> Result<(), FsError> {
+    let parent = path
+        .parent()
+        .filter(|p| !p.as_os_str().is_empty())
+        .unwrap_or(Path::new("."));
+    std::fs::create_dir_all(parent).map_err(|e| io_err(parent, e))?;
+    let file_name = path
+        .file_name()
+        .map(|n| n.to_string_lossy().into_owned())
+        .unwrap_or_default();
+    let tmp = parent.join(format!(".{file_name}.{}.tmp", std::process::id()));
+    let result = (|| {
+        let mut f = std::fs::File::create(&tmp)?;
+        f.write_all(contents.as_bytes())?;
+        f.sync_all()?;
+        std::fs::rename(&tmp, path)
+    })();
+    if let Err(e) = result {
+        let _ = std::fs::remove_file(&tmp);
+        return Err(io_err(path, e));
+    }
+    Ok(())
+}
+
+/// Writes a JSON value atomically, pretty-printed.
+pub fn write_json(path: &Path, value: &Value) -> Result<(), FsError> {
+    write_atomic(path, &value.to_pretty_string())
+}
+
+/// Removes a file, treating "already gone" as success.
+pub fn remove_optional(path: &Path) -> Result<bool, FsError> {
+    match std::fs::remove_file(path) {
+        Ok(()) => Ok(true),
+        Err(e) if e.kind() == io::ErrorKind::NotFound => Ok(false),
+        Err(e) => Err(io_err(path, e)),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::testutil::TempDir;
+
+    #[test]
+    fn atomic_write_round_trip_and_cleanup() {
+        let dir = TempDir::new();
+        let path = dir.path().join("nested/a.json");
+        write_json(&path, &json::parse(r#"{"a":1}"#).unwrap()).unwrap();
+        assert_eq!(
+            read_json_object(&path)
+                .unwrap()
+                .unwrap()
+                .to_compact_string(),
+            r#"{"a":1}"#
+        );
+        let leftovers: Vec<_> = std::fs::read_dir(path.parent().unwrap())
+            .unwrap()
+            .filter_map(Result::ok)
+            .filter(|e| e.file_name().to_string_lossy().ends_with(".tmp"))
+            .collect();
+        assert!(leftovers.is_empty());
+    }
+
+    #[test]
+    fn missing_and_empty_files_read_as_none() {
+        let dir = TempDir::new();
+        let path = dir.path().join("x.json");
+        assert!(read_json_object(&path).unwrap().is_none());
+        std::fs::write(&path, "  \n").unwrap();
+        assert!(read_json_object(&path).unwrap().is_none());
+        assert!(!remove_optional(&dir.path().join("nope")).unwrap());
+    }
+
+    #[test]
+    fn non_object_and_bad_json_are_errors() {
+        let dir = TempDir::new();
+        let path = dir.path().join("x.json");
+        std::fs::write(&path, "[1]").unwrap();
+        assert!(matches!(
+            read_json_object(&path),
+            Err(FsError::NotAnObject { .. })
+        ));
+        std::fs::write(&path, "{").unwrap();
+        assert!(matches!(read_json_object(&path), Err(FsError::Json { .. })));
+    }
+}

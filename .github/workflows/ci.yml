@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  rust:
+    name: Format, lint, test (Linux x64)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Format
+        run: cargo fmt --all --check
+
+      - name: Lint
+        run: cargo clippy --all-targets --locked -- -D warnings
+
+      - name: Test
+        run: cargo test --locked
+
+      - name: Build release binary
+        run: cargo build --release --locked
+
+      - name: Check the launcher script
+        run: shellcheck scripts/skaldsaga
+
+      - name: Launcher smoke test
+        run: |
+          set -eu
+          t=$(mktemp -d)
+          mkdir -p "$t/scripts/bin/linux-x64" "$t/novel/.harness"
+          cp scripts/skaldsaga "$t/scripts/"
+          cp target/release/skaldsaga "$t/scripts/bin/linux-x64/"
+          chmod -x "$t/scripts/bin/linux-x64/skaldsaga"   # simulate a plugin install that drops the bit
+          cargo metadata --no-deps --format-version 1 \
+            | python3 -c 'import json,sys; print([p["version"] for p in json.load(sys.stdin)["packages"] if p["name"]=="skaldsaga"][0])' \
+            > "$t/scripts/VERSION"
+          sh "$t/scripts/skaldsaga" --version
+          out=$(printf '{"session_id":"ci","workspace":{"project_dir":"%s"},"context_window":{"used_percentage":72}}' "$t/novel" \
+            | sh "$t/scripts/skaldsaga" meter statusline)
+          echo "$out"
+          test "$out" = "Skaldsaga · session 72% full · time to wrap up"
+          sh "$t/scripts/skaldsaga" meter check --project "$t/novel" | grep -q '"state": "wrap_up"'

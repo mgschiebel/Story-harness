@@ -1,0 +1,16 @@
+[package]
+name = "skaldsaga-core"
+description = "Core library for Skaldsaga: spec model, checks and session meter"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+# No dependencies on purpose for the pilot: crates.io was unreachable from the
+# build environment. The small `json` module is the only stand-in and is meant
+# to be replaced by serde/serde_json once dependencies are available.
+[dependencies]
+
+[lints]
+workspace = true

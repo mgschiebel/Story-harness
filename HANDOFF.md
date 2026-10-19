@@ -14,6 +14,18 @@ Labels used below:
 - **Proposed**: suggested in discussion, not yet explicitly confirmed.
 - **Research**: from web searches or documentation; verify before relying on it. Items marked *unverified* have not been checked at all.
 
+## Build progress
+
+**PR 1 (branch `build/meter-pilot`, October 18, 2026):** Rust workspace (`skaldsaga-core` library plus the `skaldsaga` command-line front end), the session meter pilot (`meter statusline`, `check`, `reset`, `wire`), the launcher `scripts/skaldsaga`, Linux x64 CI, and a tag-triggered release workflow that publishes a GitHub Release and rebuilds the `dist` branch. Interface notes in `docs/meter.md`. `init`, `check`, `commit`, `index` and `complete` are reserved subcommands that say "not built yet."
+
+**Findings from the To verify checks (Research, October 18, 2026; verify again before relying):**
+
+- **Executable permission:** plugin installs from GitHub marketplaces used to drop the executable bit; a fix in Claude Code v2.1.86 preserves it on `.sh` files, and it is unclear whether other files (our binary) are covered. Handled either way: hooks and the status line call the launcher through `sh`, and the launcher restores the binary's bit before running it.
+- **Cloud sessions do not install plugins.** The current cloud environment docs say plugins and marketplaces declared in a repo's `.claude/settings.json` are not installed in cloud sessions. What does carry over from the cloned repo: `CLAUDE.md`, `.claude/skills/`, `.claude/agents/`, `.claude/commands/`, and hooks and permissions in `.claude/settings.json` (single-repository sessions). So phone writers in cloud sessions would need Skaldsaga's skills, agents, hooks and binary inside the project folder itself, not via the plugin. **Open decision.**
+- **`/clear` is not available in cloud sessions** ("start a new session from the sidebar instead"). The session-boundary wording must say "start a new session" there; the SessionStart hook's `startup` matcher still covers it.
+- **Status line in cloud sessions:** not documented either way (the docs describe a terminal status bar). Likely unavailable; the meter already degrades to `unknown` and the manual boundary. Test from a phone session once a project is wired.
+- **crates.io was blocked** from the build session's network (the docs say the default Trusted network level allows it, so this environment is likely set to a custom allowlist). PR 1 therefore has no dependencies; `skaldsaga-core::json` is a small stand-in for `serde_json`, to be replaced once crates.io is reachable.
+
 ## What changed since v8
 
 A grilling session on the coverage-grid stages and the weaver and outliner (open items 4 and 5). All of the following are **Decided**; details are in "Coverage grid and movements" and "Weaver, outliner and frameworks."

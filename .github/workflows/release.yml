@@ -1,0 +1,99 @@
+name: Release
+
+# Pushing a version tag (for example v0.1.0) builds the Linux x64 binary,
+# publishes a GitHub Release, and rebuilds the `dist` branch: the plugin files
+# plus the binary, built together from one tagged version. Writers' plugins
+# install from `dist`; `main` holds source only.
+#
+# Phase 1 builds Linux x64 only. macOS, Windows and Linux ARM (via cargo-dist)
+# and signing come with the public-release phase.
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Check the tag matches the crate version
+        id: version
+        run: |
+          set -eu
+          version=$(cargo metadata --no-deps --format-version 1 \
+            | python3 -c 'import json,sys; print([p["version"] for p in json.load(sys.stdin)["packages"] if p["name"]=="skaldsaga"][0])')
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match crate version $version" >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Test
+        run: cargo test --locked
+
+      - name: Build
+        run: cargo build --release --locked
+
+      - name: Assemble the distribution folder
+        run: |
+          set -eu
+          d=dist
+          rm -rf "$d"
+          mkdir -p "$d/scripts/bin/linux-x64"
+          cp scripts/skaldsaga "$d/scripts/"
+          cp target/release/skaldsaga "$d/scripts/bin/linux-x64/"
+          chmod +x "$d/scripts/skaldsaga" "$d/scripts/bin/linux-x64/skaldsaga"
+          echo "${{ steps.version.outputs.version }}" > "$d/scripts/VERSION"
+          cp LICENSE "$d/"
+          cat > "$d/README.md" <<EOF
+          # Skaldsaga (distribution build)
+
+          Built automatically from tag ${GITHUB_REF_NAME} (commit ${GITHUB_SHA}).
+          Do not edit this branch by hand; source lives on \`main\`.
+          EOF
+          # Smoke test the assembled folder before publishing it.
+          sh "$d/scripts/skaldsaga" --version
+          tar -C "$d" -czf "skaldsaga-${{ steps.version.outputs.version }}-linux-x64.tar.gz" .
+
+      - name: Publish the GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            "skaldsaga-${{ steps.version.outputs.version }}-linux-x64.tar.gz" \
+            --title "Skaldsaga $GITHUB_REF_NAME" \
+            --notes "Phase 1 test build (not a public release). Linux x64 only, unsigned." \
+            --prerelease
+
+      - name: Update the dist branch
+        run: |
+          set -eu
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          work=$(mktemp -d)
+          if git ls-remote --exit-code --heads origin dist >/dev/null; then
+            git fetch --depth 1 origin dist
+            git worktree add "$work" FETCH_HEAD
+          else
+            git worktree add --detach "$work"
+            git -C "$work" checkout --orphan dist
+          fi
+          git -C "$work" rm -rq --ignore-unmatch .
+          cp -a dist/. "$work/"
+          git -C "$work" add -A
+          git -C "$work" commit -q -m "Build $GITHUB_REF_NAME from $GITHUB_SHA"
+          git -C "$work" push origin HEAD:refs/heads/dist
