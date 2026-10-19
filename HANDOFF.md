@@ -293,9 +293,10 @@ A set of Claude Code skills (a "harness") that helps a novice aspiring author tu
 
 - **At most one ripple question per answer, and no deadlock** (*Decided October 19, 2026*, was Proposed): when an answer affects other parts of the story, the interviewer asks at most one follow-up right away; anything more joins the flag queue. If the writer is still stuck after the what-if options and the brainstorming offer, the interviewer records a flagged provisional answer and moves on, so a session never stalls on one question. Fits the flag budget and the provisional-answer rule.
 
+- **Hide internal terms** (*Decided October 19, 2026*, was Proposed): the writer never sees any internal word from our docs or code (for example map, tickets, fog, proposal, gate, weaving, or the agent role names); they see plain phrases such as "what we've decided" and "things we'll get to later." The only exception is craft terms, which are taught through the terminology ladder.
+
 **Proposed**
 
-- Hide internal terms (map, tickets, fog). Users see "what we've decided" and "things we'll get to later."
 - When momentum slows, suggest the area where confirming one provisional answer would unblock the most downstream work.
 
 ## Story-shape layer
