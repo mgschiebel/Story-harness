@@ -1,0 +1,19 @@
+{
+  "name": "skaldsaga",
+  "description": "Skaldsaga, a story mentor for first-time writers",
+  "owner": {
+    "name": "Mike Schiebel",
+    "url": "https://github.com/mgschiebel"
+  },
+  "plugins": [
+    {
+      "name": "skaldsaga",
+      "description": "A story mentor that helps first-time writers turn a rough idea into a complete outline",
+      "source": {
+        "source": "github",
+        "repo": "mgschiebel/skaldsaga",
+        "ref": "dist"
+      }
+    }
+  ]
+}
