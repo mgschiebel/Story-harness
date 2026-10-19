@@ -32,6 +32,11 @@ impl Project {
         self.harness_dir().is_dir()
     }
 
+    /// The story spec, the source of truth.
+    pub fn spec_dir(&self) -> PathBuf {
+        self.root.join("spec")
+    }
+
     pub fn settings_path(&self) -> PathBuf {
         self.harness_dir().join("settings.json")
     }
