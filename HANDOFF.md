@@ -1,6 +1,6 @@
 # Skaldsaga: Planning Handoff (v9)
 
-*Planning session summary, October 18, 2026 (late night). Supersedes v8 (October 18, night). Background, research on the original story-theory inspiration, and attribution live in `docs/background.md`, which build sessions should not load. Status: phase 1 design complete; build steps 1 to 8 done (step 5, the spec model and first-run setup, is release 0.2.0; steps 6 and 7, the generated index and the dependency checker, are internal; step 8, the committer and the demo, is release 0.3.0), and the installed plugin is tested from a phone at each testable milestone (see Current stage). Companion file: `ARCHITECTURE.md` (one-page sketch, reviewed in the v6 session). The project was called Story Harness until the v6 session; the GitHub repo has been renamed to Skaldsaga.*
+*Planning session summary, October 18, 2026 (late night; last updated October 18, 23:55, after release 0.3.0). Supersedes v8 (October 18, night). Background, research on the original story-theory inspiration, and attribution live in `docs/background.md`, which build sessions should not load. Status: phase 1 design complete; build steps 1 to 8 done (step 5, the spec model and first-run setup, is release 0.2.0; steps 6 and 7, the generated index and the dependency checker, are internal; step 8, the committer and the demo, is release 0.3.0), and the installed plugin is tested from a phone at each testable milestone (see Current stage). Companion file: `ARCHITECTURE.md` (one-page sketch, reviewed in the v6 session). The project was called Story Harness until the v6 session; the GitHub repo has been renamed to Skaldsaga.*
 
 ## How to use this document
 
@@ -16,13 +16,23 @@ Labels used below:
 
 **Build steps and GitHub numbers (Decided, October 18, 2026):** the build plan is counted in **steps** (Step 1, Step 2 …), not pull requests. Each step cites its GitHub pull request number and branch, for example "Step 6 (#11, branch `build/index`)", so the number matches what the GitHub app shows. Small fix and doc pull requests don't get a step number and are cited by GitHub number only when they matter. Reason: GitHub counts every pull request, so the two numbers drift apart; a step number can also be named before its pull request exists.
 
-## Current stage: testing the installed plugin from a phone (October 18, 2026)
+## Current stage: waiting for the 0.3.0 phone test results (October 18, 2026)
 
-**Read this first if you are a session started from the "skaldsaga design project" Claude Code Project.** Steps 1 to 3 (#1 to #3) are merged and release 0.1.1 is installed into the Project as a plugin. Sessions opened there are usually **test sessions**: the author types `/skaldsaga` to check that the installed pieces work. Do not start building unless asked.
+**Next session: start by asking the author for the 0.3.0 phone test results**, one short question at a time, before building anything. Steps 1 to 8 are merged and **release 0.3.0** (tag `v0.3.0`, `dist` branch at 0.3.0) was published on October 18 at about 23:50 Mountain time, after step 8 (#14). The author then planned to sync the marketplace, add a new empty test repository to the Project, and run `/skaldsaga demo` (plan and expected results in "Next phone test (0.3.0 …)" below). Questions worth asking, in order:
+
+1. Did the session report 0.3.0? (If 0.2.0: the manual marketplace Sync didn't take.)
+2. Did the skill ask to use the test repository's folder, and did setup and its snapshot succeed there?
+3. Did the first sample answer pass, commit and save to git, and was the second refused (`learns_before_true`) and deleted?
+4. Did the push to GitHub work, and do the files look right there?
+5. Anything confusing in the wording?
+
+Record the results here (replacing this checklist with what was found), fix anything broken on a branch, then continue with step 9 (`complete`).
+
+**Read this if you are a session started from the "skaldsaga design project" Claude Code Project.** Sessions opened there may be **test sessions**: the author types `/skaldsaga` or `/skaldsaga demo` to check that the installed pieces work. Do not start building unless asked. Earlier test notes follow.
 
 What a test session checks, and what to expect:
 
-- **Program:** `/skaldsaga` reports the version (0.1.1 works).
+- **Program:** `/skaldsaga` reports the version (0.1.1 and 0.2.0 worked; 0.3.0 untested yet).
 - **Session-start hook:** the context should contain a line starting "This folder is a Skaldsaga project". If it's missing, check whether `/home/claude/.harness` existed *before* the session started (`stat -c %w`): the hook is guarded and stays silent without it.
 - **Meter:** `meter check` reports a state. `unknown` with "no meter reading yet" means the status line hasn't run; whether it runs in cloud sessions at all is still unconfirmed.
 
@@ -36,7 +46,7 @@ What a test session checks, and what to expect:
 
 **Second test session (October 18, late night): meter testing paused.** The setup script's effects were all missing (no `.harness/`, no status line in `.claude/settings.json`, no cargo wrapper), so either it wasn't saved in the Project's environment settings or setup scripts didn't run for that session; the hook stayed silent as designed. Checked by hand in a scratch project with `.harness/`, everything worked on Linux: the hook printed its context line, the setup script's status-line command found the installed plugin (under `/root/.claude/plugins/synced/…/skaldsaga`) and wrote a reading, the hook re-pointed the status line at the exact plugin path, and a new session ID cleared the stale reading. **Decided:** a passing Linux check is enough for now. Whether the status line runs in phone or cloud sessions stays unconfirmed, and phone testing resumes later in the build, once there are more commands to test. Test sessions should not repeat the meter check until then. (Note: `/skaldsaga:meter` does not exist; the plugin ships only the `/skaldsaga` skill.)
 
-**Next phone test (0.3.0, once step 8 (#14) is merged and released; Decided October 18, 2026):** test in a **new, empty GitHub repository** added to the testing Project, so test files never mix with the Skaldsaga repo. Create it with nothing ticked (no README, .gitignore or license): any visible file makes setup treat the folder as an existing project. After the release, sync the marketplace manually, then start a fresh session and type `/skaldsaga demo`. Cloud sessions start in the home folder with the repository cloned one level down (`CLAUDE_PROJECT_DIR` is empty), so expect the skill to ask whether to use the repository's folder; say yes. Expect: setup (if not done) and its snapshot, two sample answers filed, the first checked, committed and saved to git, the second refused for having Mara know about Jonah's arrest before it happens and then deleted, and an offer to push the snapshot to GitHub. Note: the session-start hook looks at the session's working folder, so it stays silent for a story folder one level down.
+**Next phone test (0.3.0, released October 18; Decided October 18, 2026):** test in a **new, empty GitHub repository** added to the testing Project, so test files never mix with the Skaldsaga repo. Create it with nothing ticked (no README, .gitignore or license): any visible file makes setup treat the folder as an existing project. After the release, sync the marketplace manually, then start a fresh session and type `/skaldsaga demo`. Cloud sessions start in the home folder with the repository cloned one level down (`CLAUDE_PROJECT_DIR` is empty), so expect the skill to ask whether to use the repository's folder; say yes. Expect: setup (if not done) and its snapshot, two sample answers filed, the first checked, committed and saved to git, the second refused for having Mara know about Jonah's arrest before it happens and then deleted, and an offer to push the snapshot to GitHub. Note: the session-start hook looks at the session's working folder, so it stays silent for a story folder one level down.
 
 ## Build progress
 
