@@ -27,8 +27,6 @@
 //! The generated `_index/attributes.json` combines both parts with the keys
 //! actually in use.
 
-use std::collections::BTreeMap;
-
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
@@ -284,53 +282,55 @@ pub fn parse_attributes_file(text: &str) -> (Vec<AttributeDef>, Vec<String>) {
         Err(e) => return (Vec::new(), vec![format!("front matter: {e}")]),
     };
 
-    // Every key and inverse name already taken, starting with the starter list.
-    let mut taken: BTreeMap<String, String> = BTreeMap::new();
-    for d in starter() {
-        for k in std::iter::once(&d.key).chain(d.inverse.as_ref()) {
-            taken.insert(k.clone(), "Skaldsaga's starter list".to_string());
-        }
-    }
-
-    let mut good = Vec::new();
+    let mut good: Vec<AttributeDef> = Vec::new();
     let mut problems = Vec::new();
     for d in parsed.attributes {
-        let names: Vec<&String> = std::iter::once(&d.key).chain(d.inverse.as_ref()).collect();
-        let problem = if let Some(bad) = names.iter().find(|k| !valid_key(k)) {
-            Some(format!(
-                "'{bad}' isn't a usable key (lowercase letters, digits and '_', starting with a letter)"
-            ))
-        } else if d.relation == Relation::Inverse && d.inverse.is_none() {
-            Some(format!(
-                "'{}' is an inverse pair but doesn't name the other direction ('inverse:')",
-                d.key
-            ))
-        } else if d.relation != Relation::Inverse && d.inverse.is_some() {
-            Some(format!(
-                "'{}' names an inverse, but only inverse pairs have one",
-                d.key
-            ))
-        } else if d.inverse.as_ref() == Some(&d.key) {
-            Some(format!("'{}' can't be its own inverse", d.key))
-        } else if let Some((k, by)) = names
-            .iter()
-            .find_map(|k| taken.get(k.as_str()).map(|by| (k, by)))
-        {
-            Some(format!("'{k}' is already defined in {by}"))
-        } else {
-            None
-        };
-        match problem {
-            Some(p) => problems.push(p),
-            None => {
-                for k in &names {
-                    taken.insert((*k).clone(), "this file".to_string());
-                }
-                good.push(d);
-            }
+        match validate_new(&good, &d) {
+            Ok(()) => good.push(d),
+            Err(p) => problems.push(p),
         }
     }
     (good, problems)
+}
+
+/// Checks a new story key against the starter list and the story's existing
+/// keys: a usable name, an inverse exactly when it's a pair, and no clash.
+pub fn validate_new(existing: &[AttributeDef], d: &AttributeDef) -> Result<(), String> {
+    let names: Vec<&String> = std::iter::once(&d.key).chain(d.inverse.as_ref()).collect();
+    if let Some(bad) = names.iter().find(|k| !valid_key(k)) {
+        return Err(format!(
+            "'{bad}' isn't a usable key (lowercase letters, digits and '_', starting with a letter)"
+        ));
+    }
+    if d.relation == Relation::Inverse && d.inverse.is_none() {
+        return Err(format!(
+            "'{}' is an inverse pair but doesn't name the other direction ('inverse:')",
+            d.key
+        ));
+    }
+    if d.relation != Relation::Inverse && d.inverse.is_some() {
+        return Err(format!(
+            "'{}' names an inverse, but only inverse pairs have one",
+            d.key
+        ));
+    }
+    if d.inverse.as_ref() == Some(&d.key) {
+        return Err(format!("'{}' can't be its own inverse", d.key));
+    }
+    let starter = starter();
+    for (list, by) in [
+        (starter.as_slice(), "Skaldsaga's starter list"),
+        (existing, "this story's keys"),
+    ] {
+        for other in list {
+            for taken in std::iter::once(&other.key).chain(other.inverse.as_ref()) {
+                if names.contains(&taken) {
+                    return Err(format!("'{taken}' is already defined in {by}"));
+                }
+            }
+        }
+    }
+    Ok(())
 }
 
 #[cfg(test)]
@@ -412,7 +412,7 @@ Notes.
             "'Debt' isn't a usable key",
             "'sibling_of' is already defined in Skaldsaga's starter list",
             "'owes' is an inverse pair but doesn't name",
-            "'mentee_of' is already defined in this file",
+            "'mentee_of' is already defined in this story's keys",
             "'rank' names an inverse",
         ] {
             assert!(problems.iter().any(|p| p.contains(needle)), "{needle}");

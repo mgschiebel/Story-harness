@@ -1,6 +1,6 @@
 # Skaldsaga: Planning Handoff (v9)
 
-*Planning session summary, October 18, 2026 (late night). Supersedes v8 (October 18, night). Background, research on the original story-theory inspiration, and attribution live in `docs/background.md`, which build sessions should not load. Status: phase 1 design complete; build steps 1 to 6 done (step 5, the spec model and first-run setup, is release 0.2.0; step 6, the generated index, is internal and has no release), and the installed plugin is tested from a phone at each testable milestone (see Current stage). Companion file: `ARCHITECTURE.md` (one-page sketch, reviewed in the v6 session). The project was called Story Harness until the v6 session; the GitHub repo has been renamed to Skaldsaga.*
+*Planning session summary, October 18, 2026 (late night). Supersedes v8 (October 18, night). Background, research on the original story-theory inspiration, and attribution live in `docs/background.md`, which build sessions should not load. Status: phase 1 design complete; build steps 1 to 7 done (step 5, the spec model and first-run setup, is release 0.2.0; steps 6 and 7, the generated index and the dependency checker, are internal and have no release), and the installed plugin is tested from a phone at each testable milestone (see Current stage). Companion file: `ARCHITECTURE.md` (one-page sketch, reviewed in the v6 session). The project was called Story Harness until the v6 session; the GitHub repo has been renamed to Skaldsaga.*
 
 ## How to use this document
 
@@ -62,6 +62,20 @@ What a test session checks, and what to expect:
 - **Backlinks sit only under whatever is referenced.** A fact naming a scene (reader moments, who learns it where, `true_from`/`ends` in a scene) is listed under the scene; the fact already lists its own scenes, so a fact-side entry would only repeat it. Generated views can't drift (they're rebuilt whole from the single stored reference), but one direction keeps the rule simple. The Backlinks index example below is corrected to match.
 - **Landmark keys** (chosen by Claude, recorded in `model::LANDMARKS`): `normal_world`, `inciting_incident`, `mc_commits`, `rising_stakes`, `midpoint`, `things_fall_apart`, `low_point`, `climax`, `new_normal`. Movement boundaries use `mc_commits`, `midpoint` and `low_point`.
 - **Build details (Claude's choices, open to change):** the index is built from whatever loaded, with loading problems and references to missing IDs listed in `status.json`; output is deterministic (no timestamps); the main story's movements span the whole reading order and a subplot's span runs from its first scene to its last; until all three boundary landmarks are placed in order, scenes fall back on their `coverage` stage; shelved subplots appear in the grid but aren't counted as gaps; `index` refuses to run in a folder without `.harness/`. A new fixture story (`tests/fixtures/specs/harbor`) exercises every view.
+
+**Step 7 (branch `build/check`, no release: nothing visible to try from the phone yet):** the dependency checker, `skaldsaga check` (interface notes in `docs/check.md`), and the operation engine it runs on. Decided in the step 7 session:
+
+- **Step 7 builds the operation engine too.** `check` applies a proposal's operations to an in-memory copy of the spec and checks the result; step 8's `commit` reuses the same engine and writes the result, so check and commit can't disagree. Step 7 shipped as one pull request (splitting it was considered and set aside).
+- **Lanes:** the interviewer starts optimistic; the harvester, researcher, weaver and outliner start strict. A proposal escalates to strict when 10 or more other nodes read what it changes, or when it touches a confirmed shape decision or that decision's pivot belief. The threshold is a new setting, `routing.strict_fan_out` (default 10).
+- **Build details (Claude's choices, open to change):**
+  - Verdicts are `passed`, `flagged` (soft findings only; the writer decides) and `failed` (hard findings; revise only), written back into the proposal file with the revisions checked (`sequence.md` and `attributes.md`, which have no revision, are recorded by a content fingerprint).
+  - Only findings a proposal introduces count; problems already in the spec don't block it.
+  - Ops beyond the handoff's list: `add_attribute` (records a story key in `spec/attributes.md`). The reading order is edited with `add_item` and `remove_item` on the target `sequence`, with optional `after` or `before`. `move_fact` is `{fact, to}`.
+  - `supersede` moves references from the old fact to its replacement and flags the scenes that read it; `reclassify` flags them too.
+  - In-world order comes only from anchors: `after` is strictly later; `in` and `at` are the same moment. Reading order never implies in-world order.
+  - "The reader cannot learn a fact before it is revealed" is read as: at most one reveal per fact in the reading order (alternative scenes may also reveal, since an edition can swap one in), and a hint placed after the reveal is a soft finding. *Worth confirming.*
+  - Uniqueness looks at both sides of symmetric relations and normalizes inverse pairs to their registered direction. Overlaps the timeline can't decide are soft; two values that never end are hard. Beliefs and unresolved facts are skipped.
+  - The harvest drift check on delete (comparing drafts) is left for the harvester, since it needs a model.
 
 **Decided (October 18, 2026): phones and cloud sessions are the author's build and test setup only.** Writers install a released plugin into their own local Claude Code; they are not expected to use Skaldsaga from cloud sessions. This supersedes the v9 note that phone writers reach Skaldsaga through cloud sessions, and drops the idea of copying the skills into each story folder. For testing from a phone, the author uses a Claude Code Project (public beta, Pro and Max), which loads plugins added in *Project settings > Plugins* into every cloud session and has an environment setup script.
 
@@ -643,7 +657,7 @@ characters: [p-0007, p-0002]   # fog only: who the subplot involves
 
 Facts are addressed by ID (`node#fact.field`), never by list position, so parallel edits cannot shift each other.
 
-**Op list:** `create`, `set`, `add_fact`, `add_item` and `remove_item` (for list-valued typed fields such as `participants`; confirmed in v9, replacing `add_link`/`remove_link` now that node-level links are gone), `supersede` (replacement required), `delete` (zero references plus draft check), `merge` (redirect references, then attribute uniqueness check), `move_fact` (keeps ID), `reclassify` (truth to belief or back). Split is handled by the interviewer as per-reference changes.
+**Op list:** `create`, `set`, `add_fact`, `add_item` and `remove_item` (for list-valued typed fields such as `participants`; confirmed in v9, replacing `add_link`/`remove_link` now that node-level links are gone; also the reading order, target `sequence`, from step 7), `supersede` (replacement required), `delete` (zero references plus draft check), `merge` (redirect references, then attribute uniqueness check), `move_fact` (keeps ID), `reclassify` (truth to belief or back), and `add_attribute` (a story key into `spec/attributes.md`, step 7). Split is handled by the interviewer as per-reference changes. Exact shapes in `docs/check.md`.
 
 ### Backlinks index
 
@@ -700,6 +714,7 @@ Keyed by target ID: whatever is referenced (corrected in step 6; an earlier vers
 | Reader cap for a scoped pass | 25 readers | Above this, a full pass at the next session start is better. |
 | Full pass every N sessions | Every 10 sessions | Catches slow drift that incremental passes miss (adopted from Proposed). |
 | Flags per natural pause | 2 | Flag budget. |
+| Strict lane at fan-out | 10 other nodes reading what changed (`routing.strict_fan_out`, step 7) | High fan-out escalates a proposal to the strict lane. |
 | Pacing note thresholds | Under 0.5x or over 2x a movement's expected share | Pacing heuristic. |
 | Models per sub-agent | As in Architecture | Unchanged. |
 
@@ -929,4 +944,4 @@ Checks tied to anything opted out with "keep it simple" are skipped. At the gate
 
 ## Suggested next steps
 
-Build order for the deterministic half of phase 1: `index` (step 6, done), then step 7: `check` with the proposal format, then `commit` (the single committer, with the version check), then `complete` with the script soft checks. Each step that adds something testable from the phone gets a release (see Current stage). After that come the interviewer and orchestrator prompts and the sub-agents. Remaining open items are later-phase work (15, 16) and a pre-release legal check (11).
+Build order for the deterministic half of phase 1: `index` (step 6, done), `check` with the proposal format and the operation engine (step 7, done), then step 8: `commit` (the single committer, with the version check, reusing the engine), then step 9: `complete` with the script soft checks. Each step that adds something testable from the phone gets a release (see Current stage). After that come the interviewer and orchestrator prompts and the sub-agents. Remaining open items are later-phase work (15, 16) and a pre-release legal check (11).
