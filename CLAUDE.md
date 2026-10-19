@@ -24,10 +24,11 @@ chmod +x ~/.local/bin/cargo && which cargo
 - Open pull requests with the REST API (`gh api repos/mgschiebel/skaldsaga/pulls --method POST ...`); GraphQL, and so `gh pr create`, is blocked from cloud sessions. The PR summary is in plain language; the author reviews on a phone.
 - After pushing, check CI with `gh api repos/mgschiebel/skaldsaga/commits/<sha>/check-runs` and fix failures in the session. Job logs can't be downloaded from here; read check-run annotations instead.
 - Phase 1 builds for Linux x64 only.
+- **Releasing:** cloud sessions can't push tags (the git proxy returns 403). Instead, with the author's go-ahead, bump the version in both `Cargo.toml` and `plugin/.claude-plugin/plugin.json` (merged to main), then start the Release workflow: `gh api repos/mgschiebel/skaldsaga/actions/workflows/release.yml/dispatches --method POST -f ref=main`. It creates tag `v<version>`, the GitHub Release and the `dist` branch, and refuses if that tag already exists.
 
 ## Code
 
 - `crates/skaldsaga-core`: all logic, kept portable (file access goes through `fsio`). `crates/skaldsaga`: the thin command-line front end.
-- `plugin/`: the Claude Code plugin (manifest, marketplace file, skills, hooks, launcher). `ci/assemble-dist.sh` adds the binary to make the installable folder; CI validates and smoke-tests it on every push, and a `v*` tag publishes it to the `dist` branch. Keep `plugin.json`'s version equal to the crate version.
+- `plugin/`: the Claude Code plugin (manifest, marketplace file, skills, hooks, launcher). `ci/assemble-dist.sh` adds the binary to make the installable folder; CI validates and smoke-tests it on every push, and the Release workflow publishes it to the `dist` branch. Keep `plugin.json`'s version equal to the crate version.
 - `json` wraps `serde_json` with `preserve_order`, so settings files we edit for the writer keep their key order.
 - Anything that runs automatically (status line, hooks) does nothing unless `.harness/` exists, and never shows the writer an error.

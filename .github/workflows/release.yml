@@ -1,14 +1,22 @@
 name: Release
 
-# Pushing a version tag (for example v0.1.0) builds the Linux x64 binary,
-# publishes a GitHub Release, and rebuilds the `dist` branch: the plugin files
-# plus the binary, built together from one tagged version. Writers' plugins
-# install from `dist`; `main` holds source only.
+# Publishes a release: builds the Linux x64 binary, creates the version tag
+# and a GitHub Release, and rebuilds the `dist` branch (the plugin files plus
+# the binary, built together from one version). Writers' plugins install from
+# `dist`; `main` holds source only.
+#
+# Two ways to start it:
+# - "Run workflow" on main (Actions tab, or the REST API). The version comes
+#   from Cargo.toml; the workflow creates tag v<version> itself and refuses
+#   if that tag already exists. This is the usual way: cloud build sessions
+#   can't push tags.
+# - Pushing a version tag (for example v0.1.0) whose number matches Cargo.toml.
 #
 # Phase 1 builds Linux x64 only. macOS, Windows and Linux ARM (via cargo-dist)
 # and signing come with the public-release phase.
 
 on:
+  workflow_dispatch:
   push:
     tags: ["v*"]
 
@@ -30,17 +38,28 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
-      - name: Check the tag matches the crate version
+      - name: Work out the version and tag
         id: version
         run: |
           set -eu
           version=$(cargo metadata --no-deps --format-version 1 \
             | python3 -c 'import json,sys; print([p["version"] for p in json.load(sys.stdin)["packages"] if p["name"]=="skaldsaga"][0])')
-          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+          tag="v$version"
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+              echo "Releases are made from main, not $GITHUB_REF" >&2
+              exit 1
+            fi
+            if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null; then
+              echo "$tag already exists. Bump the version in Cargo.toml and plugin.json first." >&2
+              exit 1
+            fi
+          elif [ "$tag" != "$GITHUB_REF_NAME" ]; then
             echo "Tag $GITHUB_REF_NAME does not match crate version $version" >&2
             exit 1
           fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
 
       - name: Test
         run: cargo test --locked
@@ -55,7 +74,7 @@ jobs:
           cat > dist/README.md <<EOF
           # Skaldsaga (distribution build)
 
-          Built automatically from tag ${GITHUB_REF_NAME} (commit ${GITHUB_SHA}).
+          Built automatically from tag ${{ steps.version.outputs.tag }} (commit ${GITHUB_SHA}).
           Do not edit this branch by hand; source lives on \`main\`.
 
           Install in Claude Code:
@@ -70,9 +89,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" \
+          # Creates the tag at this commit if it doesn't exist yet (the "Run workflow" path).
+          gh release create "${{ steps.version.outputs.tag }}" \
             "skaldsaga-${{ steps.version.outputs.version }}-linux-x64.tar.gz" \
-            --title "Skaldsaga $GITHUB_REF_NAME" \
+            --target "$GITHUB_SHA" \
+            --title "Skaldsaga ${{ steps.version.outputs.tag }}" \
             --notes "Phase 1 test build (not a public release). Linux x64 only, unsigned." \
             --prerelease
 
@@ -92,5 +113,5 @@ jobs:
           git -C "$work" rm -rq --ignore-unmatch .
           cp -a dist/. "$work/"
           git -C "$work" add -A
-          git -C "$work" commit -q -m "Build $GITHUB_REF_NAME from $GITHUB_SHA"
+          git -C "$work" commit -q -m "Build ${{ steps.version.outputs.tag }} from $GITHUB_SHA"
           git -C "$work" push origin HEAD:refs/heads/dist
