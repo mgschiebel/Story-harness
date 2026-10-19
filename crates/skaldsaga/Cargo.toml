@@ -1,0 +1,18 @@
+[package]
+name = "skaldsaga"
+description = "Command-line front end for Skaldsaga's deterministic scripts"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[[bin]]
+name = "skaldsaga"
+path = "src/main.rs"
+
+[dependencies]
+skaldsaga-core = { path = "../skaldsaga-core" }
+
+[lints]
+workspace = true

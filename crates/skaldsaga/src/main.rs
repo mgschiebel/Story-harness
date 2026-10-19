@@ -1,0 +1,255 @@
+//! `skaldsaga`: the command-line front end for Skaldsaga's deterministic scripts.
+//!
+//! One binary with subcommands. Only the session meter is built so far; the
+//! other subcommands are reserved and say so.
+
+mod wrapped;
+
+use std::io::{self, Read as _, Write as _};
+use std::path::PathBuf;
+use std::process::ExitCode;
+use std::time::{SystemTime, UNIX_EPOCH};
+
+use skaldsaga_core::json::Value;
+use skaldsaga_core::meter::{self, StatusInput};
+use skaldsaga_core::project::Project;
+use skaldsaga_core::settings::MeterSettings;
+use skaldsaga_core::statusline::{self, WireError, WireOutcome};
+
+const USAGE: &str = "\
+skaldsaga: deterministic scripts for the Skaldsaga story mentor
+
+Usage:
+  skaldsaga meter statusline         Status line command: reads Claude Code's JSON on
+                                     stdin, records context usage, prints a status line
+  skaldsaga meter check [--session ID] [--project DIR]
+                                     Prints the meter state as JSON
+  skaldsaga meter reset [--project DIR]
+                                     Clears the last reading (for a new session)
+  skaldsaga meter wire --command CMD [--project DIR] [--user-settings FILE]
+                                     Wires the meter into the project's status line
+  skaldsaga --version                Prints the version
+
+Not built yet: init, check, commit, index, complete
+
+DIR defaults to $CLAUDE_PROJECT_DIR, then the current folder.
+";
+
+/// Exit code for usage mistakes.
+const USAGE_ERROR: u8 = 64;
+/// Exit code for a reserved subcommand that isn't built yet.
+const NOT_BUILT: u8 = 69;
+/// Exit code for a failure while doing the work.
+const FAILURE: u8 = 1;
+
+/// Upper bound on status line input; the real payload is a few kilobytes.
+const MAX_STDIN: u64 = 4 * 1024 * 1024;
+
+fn main() -> ExitCode {
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    let args: Vec<&str> = args.iter().map(String::as_str).collect();
+    match args.as_slice() {
+        [] | ["help" | "--help" | "-h"] => {
+            print!("{USAGE}");
+            ExitCode::SUCCESS
+        }
+        ["--version" | "-V" | "version"] => {
+            println!("skaldsaga {}", skaldsaga_core::VERSION);
+            ExitCode::SUCCESS
+        }
+        ["meter", "statusline", ..] => meter_statusline(),
+        ["meter", "check", rest @ ..] => run(meter_check(rest)),
+        ["meter", "reset", rest @ ..] => run(meter_reset(rest)),
+        ["meter", "wire", rest @ ..] => run(meter_wire(rest)),
+        [
+            cmd @ ("init" | "check" | "commit" | "index" | "complete"),
+            ..,
+        ] => {
+            eprintln!("skaldsaga {cmd}: not built yet");
+            ExitCode::from(NOT_BUILT)
+        }
+        _ => {
+            eprint!("skaldsaga: unknown command\n\n{USAGE}");
+            ExitCode::from(USAGE_ERROR)
+        }
+    }
+}
+
+enum CliError {
+    Usage(String),
+    Failed(String),
+}
+
+fn run(result: Result<(), CliError>) -> ExitCode {
+    match result {
+        Ok(()) => ExitCode::SUCCESS,
+        Err(CliError::Usage(msg)) => {
+            eprintln!("skaldsaga: {msg}\n\n{USAGE}");
+            ExitCode::from(USAGE_ERROR)
+        }
+        Err(CliError::Failed(msg)) => {
+            eprintln!("skaldsaga: {msg}");
+            ExitCode::from(FAILURE)
+        }
+    }
+}
+
+/// Parses `--flag value` pairs, allowing only the given flags.
+fn flags<'a>(rest: &[&'a str], allowed: &[&str]) -> Result<Vec<(&'a str, &'a str)>, CliError> {
+    let mut out = Vec::new();
+    let mut it = rest.iter();
+    while let Some(&flag) = it.next() {
+        if !allowed.contains(&flag) {
+            return Err(CliError::Usage(format!("unexpected argument '{flag}'")));
+        }
+        let Some(&value) = it.next() else {
+            return Err(CliError::Usage(format!("{flag} needs a value")));
+        };
+        out.push((flag, value));
+    }
+    Ok(out)
+}
+
+fn flag<'a>(parsed: &[(&str, &'a str)], name: &str) -> Option<&'a str> {
+    parsed
+        .iter()
+        .rev()
+        .find(|(f, _)| *f == name)
+        .map(|(_, v)| *v)
+}
+
+fn default_project_dir() -> PathBuf {
+    std::env::var_os("CLAUDE_PROJECT_DIR")
+        .filter(|v| !v.is_empty())
+        .map(PathBuf::from)
+        .or_else(|| std::env::current_dir().ok())
+        .unwrap_or_else(|| PathBuf::from("."))
+}
+
+fn project_from(parsed: &[(&str, &str)]) -> Project {
+    Project::new(flag(parsed, "--project").map_or_else(default_project_dir, PathBuf::from))
+}
+
+/// The writer's personal Claude Code settings file.
+fn default_user_settings() -> Option<PathBuf> {
+    if let Some(dir) = std::env::var_os("CLAUDE_CONFIG_DIR").filter(|v| !v.is_empty()) {
+        return Some(PathBuf::from(dir).join("settings.json"));
+    }
+    let home = std::env::var_os("HOME")
+        .or_else(|| std::env::var_os("USERPROFILE"))
+        .filter(|v| !v.is_empty())?;
+    Some(PathBuf::from(home).join(".claude").join("settings.json"))
+}
+
+fn now() -> u64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map_or(0, |d| d.as_secs())
+}
+
+fn print_json(v: &Value) -> Result<(), CliError> {
+    let mut out = io::stdout().lock();
+    out.write_all(v.to_pretty_string().as_bytes())
+        .map_err(|e| CliError::Failed(e.to_string()))
+}
+
+/// The status line command. It must never fail visibly: whatever happens, it
+/// prints a line (possibly empty) and exits successfully.
+fn meter_statusline() -> ExitCode {
+    let mut raw = String::new();
+    let _ = io::stdin().lock().take(MAX_STDIN).read_to_string(&mut raw);
+    let input = StatusInput::parse(&raw);
+
+    let project = input
+        .as_ref()
+        .and_then(|i| i.project_dir.as_deref())
+        .filter(|d| !d.is_empty())
+        .map_or_else(|| Project::new(default_project_dir()), Project::new);
+
+    if !project.is_initialized() {
+        // Not a Skaldsaga project: stay out of the way.
+        println!();
+        return ExitCode::SUCCESS;
+    }
+
+    let reading = input.as_ref().map(|i| i.to_reading(now()));
+    if let Some(reading) = &reading {
+        // A failed write only means a missing reading; the manual session boundary still works.
+        let _ = meter::write_reading(&project, reading);
+    }
+
+    let settings = MeterSettings::load(&project).unwrap_or_default();
+    let line = settings
+        .wrapped_statusline
+        .as_ref()
+        .and_then(|w| w.get("command").and_then(Value::as_str))
+        .and_then(|cmd| wrapped::run(cmd, &raw, project.root()))
+        .unwrap_or_else(|| {
+            let current = input.as_ref().and_then(|i| i.session_id.as_deref());
+            format!(
+                "{}\n",
+                meter::evaluate(reading.as_ref(), &settings, current).status_text()
+            )
+        });
+    let mut out = io::stdout().lock();
+    let _ = out.write_all(line.as_bytes());
+    let _ = out.flush();
+    ExitCode::SUCCESS
+}
+
+fn meter_check(rest: &[&str]) -> Result<(), CliError> {
+    let parsed = flags(rest, &["--session", "--project"])?;
+    let project = project_from(&parsed);
+    let settings = MeterSettings::load(&project).unwrap_or_default();
+    let reading = meter::read_reading(&project);
+    let eval = meter::evaluate(reading.as_ref(), &settings, flag(&parsed, "--session"));
+    print_json(&eval.to_json())
+}
+
+fn meter_reset(rest: &[&str]) -> Result<(), CliError> {
+    let parsed = flags(rest, &["--project"])?;
+    let project = project_from(&parsed);
+    if !project.is_initialized() {
+        // The SessionStart hook calls this in every folder; outside a project it does nothing.
+        return Ok(());
+    }
+    meter::reset(&project)
+        .map(|_| ())
+        .map_err(|e| CliError::Failed(e.to_string()))
+}
+
+fn meter_wire(rest: &[&str]) -> Result<(), CliError> {
+    let parsed = flags(rest, &["--command", "--project", "--user-settings"])?;
+    let command = flag(&parsed, "--command")
+        .ok_or_else(|| CliError::Usage("--command is required".into()))?;
+    if !command.contains(statusline::METER_SUBCOMMAND) {
+        return Err(CliError::Usage(format!(
+            "--command must run '{}'",
+            statusline::METER_SUBCOMMAND
+        )));
+    }
+    let project = project_from(&parsed);
+    let user = flag(&parsed, "--user-settings")
+        .map(PathBuf::from)
+        .or_else(default_user_settings);
+
+    let outcome = statusline::wire(&project, command, user.as_deref()).map_err(|e| match e {
+        WireError::NotInitialized => CliError::Failed(e.to_string()),
+        WireError::Fs(e) => CliError::Failed(e.to_string()),
+    })?;
+
+    let mut v = Value::object();
+    match outcome {
+        WireOutcome::AlreadyWired => v.set("outcome", "already_wired".into()),
+        WireOutcome::Updated => v.set("outcome", "updated".into()),
+        WireOutcome::Wired { wrapped } => {
+            v.set("outcome", "wired".into());
+            v.set("wrapped", wrapped.unwrap_or(Value::Null));
+        }
+        WireOutcome::OverriddenByLocal { existing } => {
+            v.set("outcome", "overridden_by_local".into());
+            v.set("existing", existing);
+        }
+    }
+    print_json(&v)
+}

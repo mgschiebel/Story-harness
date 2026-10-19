@@ -1,0 +1,69 @@
+#!/bin/sh
+# Skaldsaga launcher: picks the compiled binary for this computer and runs it.
+#
+# Always call it through sh ("sh .../scripts/skaldsaga meter statusline"), so
+# it works even if a plugin install dropped the executable bit. For the same
+# reason it restores the bit on the binary before running it.
+#
+# The binaries live in scripts/bin/<platform>/ on the distribution branch;
+# main holds source only. SKALDSAGA_BIN overrides the binary (development).
+
+here=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+
+# The status line must never show an error to the writer.
+quiet=0
+if [ "$1" = "meter" ] && [ "$2" = "statusline" ]; then
+  quiet=1
+fi
+
+fail() {
+  if [ "$quiet" = 1 ]; then
+    cat >/dev/null 2>&1
+    echo
+    exit 0
+  fi
+  echo "Skaldsaga: $1" >&2
+  exit 1
+}
+
+platform() {
+  os=$(uname -s 2>/dev/null)
+  arch=$(uname -m 2>/dev/null)
+  case "$os" in
+    Linux) os=linux ;;
+    Darwin) echo macos-universal; return ;;
+    MINGW* | MSYS* | CYGWIN*) os=windows ;;
+    *) os=unknown ;;
+  esac
+  case "$arch" in
+    x86_64 | amd64) arch=x64 ;;
+    aarch64 | arm64) arch=arm64 ;;
+    *) arch=unknown ;;
+  esac
+  echo "$os-$arch"
+}
+
+if [ -n "$SKALDSAGA_BIN" ]; then
+  bin=$SKALDSAGA_BIN
+else
+  plat=$(platform)
+  bin="$here/bin/$plat/skaldsaga"
+  [ -f "$bin" ] || bin="$here/bin/$plat/skaldsaga.exe"
+  [ -f "$bin" ] || fail "this version doesn't include a program for your computer ($plat) yet."
+fi
+
+if [ ! -x "$bin" ]; then
+  chmod +x "$bin" 2>/dev/null || fail "couldn't make $bin runnable."
+fi
+
+# Plugin files and binary are built from one tagged version; check they match.
+# Skipped for the status line, which runs after every turn and must stay fast.
+if [ "$quiet" = 0 ] && [ -f "$here/VERSION" ]; then
+  want=$(tr -d ' \r\n' <"$here/VERSION")
+  have=$("$bin" --version 2>/dev/null | sed 's/^skaldsaga //')
+  if [ "$want" != "$have" ]; then
+    fail "the installed program is version ${have:-unknown} but the plugin expects $want. Reinstalling the Skaldsaga plugin should fix this."
+  fi
+fi
+
+exec "$bin" "$@"
