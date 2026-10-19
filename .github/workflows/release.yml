@@ -110,7 +110,7 @@ jobs:
             git worktree add --detach "$work"
             git -C "$work" checkout --orphan dist
           fi
-          git -C "$work" rm -rq --ignore-unmatch .
+          git -C "$work" rm -rqf --ignore-unmatch .
           cp -a dist/. "$work/"
           git -C "$work" add -A
           git -C "$work" commit -q -m "Build ${{ steps.version.outputs.tag }} from $GITHUB_SHA"
