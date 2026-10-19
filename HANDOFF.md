@@ -282,9 +282,10 @@ A set of Claude Code skills (a "harness") that helps a novice aspiring author tu
 - **No fixed question order.** The orchestrator and the writer's momentum drive the flow. When momentum slows, the orchestrator offers another area to look at.
 - **Raise issues while the topic is live.** Flags and conflicts are raised as close as possible to the answer that caused them. Topical questions are easier for the writer to remember, and deferring them to wrap-up forces a context switch that can confuse. This principle drives the live handling of confirmed-decision changes and the rolling housekeeper passes (see Governance).
 
+- **Ask about instances before principles, for everything** (*Decided October 19, 2026*, was Proposed): scenes, people and places first, then infer structural choices and confirm them back. The general form of infer-and-confirm, and matches the craft-teaching lessons (open item 19).
+
 **Proposed**
 
-- Ask about instances before principles for everything: scenes, people, places first, then infer structural choices and confirm them back.
 - Build option sparks from the user's own earlier answers. Ask early about favorite stories ("taste anchors").
 - At most one ripple question per answer. A no-deadlock rule: if still stuck after options, set a flagged provisional answer and keep going.
 - Hide internal terms (map, tickets, fog). Users see "what we've decided" and "things we'll get to later."
