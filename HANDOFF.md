@@ -1,10 +1,12 @@
 # Skaldsaga: Planning Handoff (v9)
 
-*Planning session summary, October 18, 2026 (late night). Supersedes v8 (October 18, night). Background, research on the original story-theory inspiration, and attribution live in `docs/background.md`, which build sessions should not load. Status: design phase, nothing built yet. Companion file: `ARCHITECTURE.md` (one-page sketch, reviewed in the v6 session). The project was called Story Harness until the v6 session; the GitHub repo has been renamed to Skaldsaga.*
+*Planning session summary, October 18, 2026 (late night). Supersedes v8 (October 18, night). Background, research on the original story-theory inspiration, and attribution live in `docs/background.md`, which build sessions should not load. Status: phase 1 design complete; building starts next (nothing built yet). Companion file: `ARCHITECTURE.md` (one-page sketch, reviewed in the v6 session). The project was called Story Harness until the v6 session; the GitHub repo has been renamed to Skaldsaga.*
 
 ## How to use this document
 
-Drop it in the project root (for example as `HANDOFF.md`) and reference it at the start of a Claude Code session, or paste or upload it into a chat session. Suggested opening prompt: "Read HANDOFF.md. Continue from the open items, and grill me one question at a time before we build anything."
+Drop it in the project root (for example as `HANDOFF.md`) and reference it at the start of a Claude Code session, or paste or upload it into a chat session. Suggested opening prompt for the first build session: "Read HANDOFF.md and ARCHITECTURE.md (not docs/background.md). We're starting phase 1 building with the phone-friendly pipeline. Run the To verify checks under Build, release and delivery, then build the first pull request: the Rust workspace (skaldsaga-core plus the command-line front end), Linux x64 CI on GitHub Actions, and the session meter pilot. Ask me before any decision the handoff doesn't cover, one short question at a time."
+
+For a planning session instead: "Read HANDOFF.md. Continue from the open items, and grill me one question at a time before we build anything."
 
 Labels used below:
 
