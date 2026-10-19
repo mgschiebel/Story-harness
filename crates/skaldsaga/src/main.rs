@@ -1,8 +1,8 @@
 //! `skaldsaga`: the command-line front end for Skaldsaga's deterministic scripts.
 //!
 //! One binary with subcommands. First-run setup, the session meter, the
-//! session-start hook, the index rebuild and the dependency checker are built
-//! so far; the other subcommands are reserved and say so.
+//! session-start hook, the index rebuild, the dependency checker, the
+//! committer and the demo are built so far; `complete` is reserved and says so.
 
 mod wrapped;
 
@@ -12,6 +12,8 @@ use std::process::ExitCode;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use skaldsaga_core::check::{self, InboxEntry};
+use skaldsaga_core::commit::{self, CommitOptions, Decision, Outcome};
+use skaldsaga_core::demo::{self, DemoOutcome};
 use skaldsaga_core::hooks;
 use skaldsaga_core::index;
 use skaldsaga_core::init::{self, InitOutcome, InitReport};
@@ -45,11 +47,17 @@ Usage:
                                      Checks pending proposals in .harness/inbox (all, or the
                                      ones named) against the spec and writes each verdict into
                                      its file. Changes nothing in the spec. Prints JSON
+  skaldsaga commit --proposal ID [--decision keep_anyway|not_sure] [--cleared] [--project DIR]
+                                     Re-checks one proposal and, if it may commit, writes it into
+                                     the spec, archives it in .harness/committed and rebuilds the
+                                     index. Prints JSON, including the paths to hand to git
+  skaldsaga demo [--project DIR]     Files two sample answers in a set-up project with an empty
+                                     story, for trying check and commit
   skaldsaga index [--project DIR]    Rebuilds the generated index in spec/_index (backlinks,
                                      attributes, grid, scenes, status). Prints a summary as JSON
   skaldsaga --version                Prints the version
 
-Not built yet: commit, complete
+Not built yet: complete
 
 DIR defaults to $CLAUDE_PROJECT_DIR, then the current folder.
 ";
@@ -84,7 +92,9 @@ fn main() -> ExitCode {
         ["init", rest @ ..] => run(init_cmd(rest)),
         ["index", rest @ ..] => run(index_cmd(rest)),
         ["check", rest @ ..] => run(check_cmd(rest)),
-        [cmd @ ("commit" | "complete"), ..] => {
+        ["commit", rest @ ..] => run(commit_cmd(rest)),
+        ["demo", rest @ ..] => run(demo_cmd(rest)),
+        [cmd @ "complete", ..] => {
             eprintln!("skaldsaga {cmd}: not built yet");
             ExitCode::from(NOT_BUILT)
         }
@@ -400,6 +410,105 @@ fn check_cmd(rest: &[&str]) -> Result<(), CliError> {
             Value::Array(missing.iter().map(|s| Value::from(s.as_str())).collect()),
         );
     }
+    print_json(&v)
+}
+
+fn require_project(parsed: &[(&str, &str)]) -> Result<Project, CliError> {
+    let project = project_from(parsed);
+    if !project.is_initialized() {
+        return Err(CliError::Failed(
+            "this folder isn't set up for Skaldsaga yet (no .harness folder)".into(),
+        ));
+    }
+    Ok(project)
+}
+
+/// Copies the verdict fields a skill needs from a check report.
+fn verdict_into(v: &mut Value, report: &check::Report) {
+    let r = report.to_value();
+    for key in ["status", "lane", "fan_out", "touches_confirmed", "findings"] {
+        v.set(key, r[key].clone());
+    }
+}
+
+/// Commits one proposal.
+fn commit_cmd(rest: &[&str]) -> Result<(), CliError> {
+    let cleared = rest.contains(&"--cleared");
+    let rest: Vec<&str> = rest.iter().copied().filter(|a| *a != "--cleared").collect();
+    let parsed = flags(&rest, &["--project", "--proposal", "--decision"])?;
+    let Some(id) = flag(&parsed, "--proposal") else {
+        return Err(CliError::Usage("commit needs --proposal ID".into()));
+    };
+    let decision =
+        match flag(&parsed, "--decision") {
+            None => None,
+            Some(d) => Some(Decision::parse(d).ok_or_else(|| {
+                CliError::Usage("--decision must be keep_anyway or not_sure".into())
+            })?),
+        };
+    let project = require_project(&parsed)?;
+    let outcome = commit::commit(&project, id, CommitOptions { decision, cleared })
+        .map_err(|e| CliError::Failed(e.to_string()))?;
+    let mut v = json::object();
+    match outcome {
+        Outcome::Committed {
+            files,
+            add_paths,
+            remove_paths,
+            message,
+            report,
+            decision,
+        } => {
+            v.set("outcome", "committed".into());
+            v.set("id", id.into());
+            verdict_into(&mut v, &report);
+            v.set(
+                "decision",
+                decision.map_or(Value::Null, |d| d.as_str().into()),
+            );
+            v.set("files", strings(&files));
+            v.set("add_paths", strings(&add_paths));
+            v.set("remove_paths", strings(&remove_paths));
+            v.set("message", message.into());
+        }
+        Outcome::Held { reason, report } => {
+            v.set("outcome", "held".into());
+            v.set("id", id.into());
+            v.set("reason", reason.as_str().into());
+            verdict_into(&mut v, &report);
+        }
+        Outcome::NotFound => {
+            v.set("outcome", "not_found".into());
+            v.set("id", id.into());
+        }
+        Outcome::Unreadable(message) => {
+            v.set("outcome", "unreadable".into());
+            v.set("id", id.into());
+            v.set("message", message.into());
+        }
+    }
+    print_json(&v)
+}
+
+/// Files the sample answers.
+fn demo_cmd(rest: &[&str]) -> Result<(), CliError> {
+    let parsed = flags(rest, &["--project"])?;
+    let project = require_project(&parsed)?;
+    let outcome = demo::write(&project).map_err(|e| CliError::Failed(e.to_string()))?;
+    let mut v = json::object();
+    v.set(
+        "outcome",
+        match outcome {
+            DemoOutcome::Written => "written",
+            DemoOutcome::SpecNotEmpty => "spec_not_empty",
+            DemoOutcome::AlreadyWritten => "already_written",
+        }
+        .into(),
+    );
+    v.set(
+        "proposals",
+        Value::Array(demo::PROPOSALS.iter().map(|p| Value::from(*p)).collect()),
+    );
     print_json(&v)
 }
 

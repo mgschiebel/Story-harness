@@ -293,6 +293,30 @@ pub fn parse_attributes_file(text: &str) -> (Vec<AttributeDef>, Vec<String>) {
     (good, problems)
 }
 
+/// The explanation written below the keys when Skaldsaga creates the file.
+pub const ATTRIBUTES_NOTES: &str = "\
+Your story's own kinds of facts and relationships, beyond the ones Skaldsaga
+knows already. Skaldsaga keeps this list up to date as you answer questions.
+";
+
+/// Renders `spec/attributes.md` for the story's keys, keeping the notes
+/// below the front matter.
+pub fn render_attributes_file(defs: &[AttributeDef], notes: &str) -> Result<String, String> {
+    #[derive(Serialize)]
+    struct Front<'a> {
+        attributes: &'a [AttributeDef],
+    }
+    let yaml = serde_norway::to_string(&Front { attributes: defs }).map_err(|e| e.to_string())?;
+    let mut out = format!("---\n{yaml}---\n");
+    let notes = notes.trim();
+    if !notes.is_empty() {
+        out.push('\n');
+        out.push_str(notes);
+        out.push('\n');
+    }
+    Ok(out)
+}
+
 /// Checks a new story key against the starter list and the story's existing
 /// keys: a usable name, an inverse exactly when it's a pair, and no clash.
 pub fn validate_new(existing: &[AttributeDef], d: &AttributeDef) -> Result<(), String> {
