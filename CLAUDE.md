@@ -28,5 +28,6 @@ chmod +x ~/.local/bin/cargo && which cargo
 ## Code
 
 - `crates/skaldsaga-core`: all logic, kept portable (file access goes through `fsio`). `crates/skaldsaga`: the thin command-line front end.
+- `plugin/`: the Claude Code plugin (manifest, marketplace file, skills, hooks, launcher). `ci/assemble-dist.sh` adds the binary to make the installable folder; CI validates and smoke-tests it on every push, and a `v*` tag publishes it to the `dist` branch. Keep `plugin.json`'s version equal to the crate version.
 - `json` wraps `serde_json` with `preserve_order`, so settings files we edit for the writer keep their key order.
 - Anything that runs automatically (status line, hooks) does nothing unless `.harness/` exists, and never shows the writer an error.

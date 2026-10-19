@@ -141,6 +141,30 @@ pub fn wire(
     Ok(WireOutcome::Wired { wrapped })
 }
 
+/// Keeps an existing meter status line pointing at the current launcher.
+///
+/// The plugin's folder changes when the plugin updates, which would leave
+/// the status line running an old path. The session-start hook calls this
+/// with the current path. It only ever updates a meter entry that is already
+/// there: it never wires the meter for a writer who hasn't set it up or who
+/// removed it. Returns true if it changed anything.
+pub fn refresh(project: &Project, command: &str) -> Result<bool, FsError> {
+    let path = project.claude_settings_path();
+    let Some(mut doc) = fsio::read_json_object(&path)? else {
+        return Ok(false);
+    };
+    let Some(mut current) = statusline_in(Some(&doc)).filter(is_meter_command) else {
+        return Ok(false);
+    };
+    if current.get("command").and_then(Value::as_str) == Some(command) {
+        return Ok(false);
+    }
+    current.set("command", command.into());
+    doc.set("statusLine", current);
+    fsio::write_json(&path, &doc)?;
+    Ok(true)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -318,5 +342,33 @@ mod tests {
             std::fs::read_to_string(project.claude_settings_path()).unwrap(),
             "{ broken"
         );
+    }
+
+    #[test]
+    fn refresh_updates_only_an_existing_meter_entry() {
+        let (_d, project) = setup();
+        let moved = "sh /plugin/v2/scripts/skaldsaga meter statusline";
+        // Nothing wired: refresh never wires the meter itself.
+        assert!(!refresh(&project, moved).unwrap());
+        assert!(!project.claude_settings_path().exists());
+
+        // The writer's own line is left alone.
+        write(
+            &project.claude_settings_path(),
+            r#"{"statusLine":{"type":"command","command":"mine"}}"#,
+        );
+        assert!(!refresh(&project, moved).unwrap());
+
+        // A meter entry with an old path is updated, once.
+        std::fs::remove_file(project.claude_settings_path()).unwrap();
+        wire(&project, CMD, None).unwrap();
+        assert!(refresh(&project, moved).unwrap());
+        assert_eq!(
+            project_statusline(&project)
+                .get("command")
+                .and_then(Value::as_str),
+            Some(moved)
+        );
+        assert!(!refresh(&project, moved).unwrap());
     }
 }

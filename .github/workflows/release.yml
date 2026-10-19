@@ -51,23 +51,20 @@ jobs:
       - name: Assemble the distribution folder
         run: |
           set -eu
-          d=dist
-          rm -rf "$d"
-          mkdir -p "$d/scripts/bin/linux-x64"
-          cp scripts/skaldsaga "$d/scripts/"
-          cp target/release/skaldsaga "$d/scripts/bin/linux-x64/"
-          chmod +x "$d/scripts/skaldsaga" "$d/scripts/bin/linux-x64/skaldsaga"
-          echo "${{ steps.version.outputs.version }}" > "$d/scripts/VERSION"
-          cp LICENSE "$d/"
-          cat > "$d/README.md" <<EOF
+          sh ci/assemble-dist.sh dist target/release/skaldsaga
+          cat > dist/README.md <<EOF
           # Skaldsaga (distribution build)
 
           Built automatically from tag ${GITHUB_REF_NAME} (commit ${GITHUB_SHA}).
           Do not edit this branch by hand; source lives on \`main\`.
+
+          Install in Claude Code:
+
+              /plugin marketplace add mgschiebel/skaldsaga#dist
+              /plugin install skaldsaga@skaldsaga
           EOF
-          # Smoke test the assembled folder before publishing it.
-          sh "$d/scripts/skaldsaga" --version
-          tar -C "$d" -czf "skaldsaga-${{ steps.version.outputs.version }}-linux-x64.tar.gz" .
+          sh dist/scripts/skaldsaga --version
+          tar -C dist -czf "skaldsaga-${{ steps.version.outputs.version }}-linux-x64.tar.gz" .
 
       - name: Publish the GitHub Release
         env:

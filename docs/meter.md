@@ -9,7 +9,7 @@ The meter tells the interviewer when the conversation's context window is gettin
    This writes `statusLine` into the project's `.claude/settings.json` (a plugin can't register it). If the writer already has a status line, in the project file or in `~/.claude/settings.json`, it is recorded in `.harness/settings.json` under `meter.wrapped_statusline` and keeps running: the writer still sees their own line.
 2. **Claude Code** runs the status line after each turn. `meter statusline` records `.harness/meter.json` and prints a line.
 3. **The interviewer** runs `skaldsaga meter check` after each saved answer and acts on `state`.
-4. **The SessionStart hook** runs `skaldsaga meter reset`, so a full reading from the last session can't end a new one early.
+4. **The SessionStart hook** (`skaldsaga hook session-start`) clears the last reading when a fresh session starts, so a full reading from the last session can't end a new one early. It also re-points the status line at the current plugin folder after a plugin update.
 
 Everything is guarded by `.harness/`: outside a Skaldsaga project, `statusline` prints an empty line and `reset` does nothing.
 
@@ -64,4 +64,4 @@ Values outside 1 to 100 fall back to the defaults, and a suggestion threshold ab
 
 ## The launcher
 
-`scripts/skaldsaga` picks `scripts/bin/<platform>/skaldsaga`, restores a missing executable bit, and (except for the status line, which must stay fast) checks the binary's version against `scripts/VERSION`. Always invoke it through `sh`, so it works even if a plugin install drops its executable bit. `SKALDSAGA_BIN` points it at another binary during development.
+`plugin/scripts/skaldsaga` (installed as `scripts/skaldsaga` in the plugin) picks `scripts/bin/<platform>/skaldsaga`, restores a missing executable bit, and (except for the status line, which must stay fast) checks the binary's version against `scripts/VERSION`. Always invoke it through `sh`, so it works even if a plugin install drops its executable bit. `SKALDSAGA_BIN` points it at another binary during development.

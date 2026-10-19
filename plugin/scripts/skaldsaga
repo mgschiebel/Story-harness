@@ -10,16 +10,20 @@
 
 here=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
 
-# The status line must never show an error to the writer.
+# The status line and hooks run automatically, in every folder, and must
+# never show an error to the writer: the status line prints an empty line,
+# a hook prints nothing.
 quiet=0
 if [ "$1" = "meter" ] && [ "$2" = "statusline" ]; then
   quiet=1
+elif [ "$1" = "hook" ]; then
+  quiet=2
 fi
 
 fail() {
-  if [ "$quiet" = 1 ]; then
+  if [ "$quiet" != 0 ]; then
     cat >/dev/null 2>&1
-    echo
+    [ "$quiet" = 1 ] && echo
     exit 0
   fi
   echo "Skaldsaga: $1" >&2
