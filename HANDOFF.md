@@ -284,9 +284,15 @@ A set of Claude Code skills (a "harness") that helps a novice aspiring author tu
 
 - **Ask about instances before principles, for everything** (*Decided October 19, 2026*, was Proposed): scenes, people and places first, then infer structural choices and confirm them back. The general form of infer-and-confirm, and matches the craft-teaching lessons (open item 19).
 
+- **Option sparks** (*Decided October 19, 2026*, was Proposed): when the writer is stuck and the interviewer offers "what if" options, they are built from the writer's own earlier answers, not generic tropes. The program shuffles them (open item 19).
+- **Brainstorming as an offering** (*Decided October 19, 2026*): the writer can ask to just throw ideas around; by default the interviewer keeps its infer-and-confirm style. It is also **offered** in a lull or when the writer hits a snag, alongside the backlog of open questions ("Want to brainstorm for a bit?"); the writer chooses.
+  - **Nothing becomes canon by brainstorming.** Ideas wait in a holding area until the writer picks one, then go through the normal check and commit. Unpicked ideas are not rejections: they go on the ruled-out list only if the writer explicitly rejects them.
+  - **What-if plot impact uses the real engine:** `check` already applies a proposal to a copy of the story without saving, so brainstorming can show what a twist would ripple into ("if Jonah is the informant, these three scenes no longer fit") before anything changes.
+  - **Scope:** plot, scenes, characters and what-ifs in phase 1 (outline level). Voice, POV voice and dialogue are prose-level, for a later phase with the style guide.
+- **Taste anchors** (*Decided October 19, 2026*, was Proposed): ask early, lightly and once, about the genre and feel the writer wants for this story and their favorite stories; never steer toward copying a favorite. The genre for this story is story meaning (spec); favorite stories are writer state. **The writer's words come first:** when they name a story, ask what they love about it. **Don't assume we know it:** when the interviewer will refer to specifics, the researcher looks up public sources (summaries, reviews, author interviews), and genre conventions are researched the same way. For copyrighted works, sources about the story, never its text; full text only for public-domain works. Pairs with the light starting check (open item 19).
+
 **Proposed**
 
-- Build option sparks from the user's own earlier answers. Ask early about favorite stories ("taste anchors").
 - At most one ripple question per answer. A no-deadlock rule: if still stuck after options, set a flagged provisional answer and keep going.
 - Hide internal terms (map, tickets, fog). Users see "what we've decided" and "things we'll get to later."
 - When momentum slows, suggest the area where confirming one provisional answer would unblock the most downstream work.
