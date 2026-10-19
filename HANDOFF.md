@@ -295,9 +295,7 @@ A set of Claude Code skills (a "harness") that helps a novice aspiring author tu
 
 - **Hide internal terms** (*Decided October 19, 2026*, was Proposed): the writer never sees any internal word from our docs or code (for example map, tickets, fog, proposal, gate, weaving, or the agent role names); they see plain phrases such as "what we've decided" and "things we'll get to later." The only exception is craft terms, which are taught through the terminology ladder.
 
-**Proposed**
-
-- When momentum slows, suggest the area where confirming one provisional answer would unblock the most downstream work.
+- **When momentum slows, offer a choice** (*Decided October 19, 2026*, was Proposed): the backlog of open questions is ranked by unblocking value (confirming which provisional answer frees the most downstream work, using the fan-out count `check` already computes), and the orchestrator offers a choice, never an order: the most useful next thing, brainstorming, or something the writer picks.
 
 ## Story-shape layer
 
