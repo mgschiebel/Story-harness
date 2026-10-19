@@ -1,6 +1,6 @@
 # Skaldsaga: Planning Handoff (v9)
 
-*Planning session summary, October 18, 2026 (late night). Supersedes v8 (October 18, night). Status: design phase, nothing built yet. Companion file: `ARCHITECTURE.md` (one-page sketch, reviewed in the v6 session). The project was called Story Harness until the v6 session; the GitHub repo has been renamed to Skaldsaga.*
+*Planning session summary, October 18, 2026 (late night). Supersedes v8 (October 18, night). Background, research on the original story-theory inspiration, and attribution live in `docs/background.md`, which build sessions should not load. Status: design phase, nothing built yet. Companion file: `ARCHITECTURE.md` (one-page sketch, reviewed in the v6 session). The project was called Story Harness until the v6 session; the GitHub repo has been renamed to Skaldsaga.*
 
 ## How to use this document
 
@@ -17,8 +17,8 @@ Labels used below:
 A grilling session on the coverage-grid stages and the weaver and outliner (open items 4 and 5). All of the following are **Decided**; details are in "Coverage grid and movements" and "Weaver, outliner and frameworks."
 
 - **Fixed four-stage grid for every thread** (closes open item 4): **Setup, Complications, Crisis, Resolution.** The grid stays framework-agnostic; frameworks layer named beats on top, so switching frameworks never invalidates answers or changes what "no empty cells" means.
-- **Stages align across a storyform's threads by default**, giving the book four shared movements. Misalignment is a soft "possible pacing issue," explained once and respected.
-- **Subplots float independently** of the main storyform but keep four aligned stages internally. A subplot's minimum is its own dramatic question, stakes, and at least one thread with all four stages; other threads accept "keep it simple."
+- **Stages align across an arc's threads by default**, giving the book four shared movements. Misalignment is a soft "possible pacing issue," explained once and respected.
+- **Subplots float independently** of the main arc but keep four aligned stages internally. A subplot's minimum is its own dramatic question, stakes, and at least one thread with all four stages; other threads accept "keep it simple."
 - **Two tiers of beats, all soft:** a small set of universal **landmarks** owned by the grid (inciting incident, midpoint, low point, climax and others), and **framework beats** supplied by the chosen framework. Inferred and confirmed, never asked cold; missing ones become suggestions, never completeness blockers.
 - **Movement boundaries are derived from landmark scenes**, never stored, so `sequence.md` stays pure.
 - **The outline is layered:** a skeleton pass across the whole book, then deepening one movement at a time, starting with Setup. Layers set the work order, not a depth limit: detail the writer raises early is captured at whatever depth it arrives and becomes a pin the skeleton builds around.
@@ -28,12 +28,12 @@ A grilling session on the coverage-grid stages and the weaver and outliner (open
 - **Fog subplots at weave time:** each is mapped, shelved, or folded into an existing thread, chosen by the writer.
 - **Promote to subplot** stays in phase 1: the reverse of fold-in, for any thread content, writer-started, using existing operations.
 - **Stage readings written for all four threads** (main plot and challenger added).
-- **Landmarks and framework beats are stored on the storyform**, one entry per landmark, not as scene tags.
+- **Landmarks and framework beats are stored on the arc**, one entry per landmark, not as scene tags.
 - **The weaver produces the skeleton directly**; no separate woven plan. The outliner only deepens.
 - **Scenes gain a "turn"** (what the POV character wants, what gets in the way, how it ends differently), which catches flat scenes and feeds cause-and-effect checks.
 - **Scene-count pacing heuristic** set (expected share from the framework; soft note when a movement is under half or over double it). Open item 5 is closed.
-- **Skaldsaga stands on its own.** Dramatica was the starting point; the shape decisions and completeness criteria are now our own, in our own words.
-- **The theme layer collapses to the thematic question.** "Where the conflict lives" and "what everyone cares about" are dropped (they were Dramatica's Domain and Concern chain, already not adopted in item 17); the root problem moves into the optional "what's really wrong" story point.
+- **Skaldsaga stands on its own.** The shape decisions and completeness criteria are our own, in our own words. Attribution and background moved to `docs/background.md`.
+- **The theme layer collapses to the thematic question.** "Where the conflict lives" and "what everyone cares about" are dropped; the root problem moves into the optional "what's really wrong" story point.
 - **The 12 shape decisions are final, worded in plain language** using the story's own names, with the craft term taught afterward (see the table in Story-shape layer). Open item 3 is closed.
 - **Optional story points need no new node types:** stakes sit with the dramatic question; strength and flaw are person facts; "what's really wrong" is a belief fact plus the truth it contradicts; pressure along the way is facts with a `role` tag; backstory is facts true before the first scene. Open item 17's node fields are settled.
 - **Soft checks split between script and model.** Countable checks run free and instant in the `complete` script; the housekeeper keeps only checks that need judgment.
@@ -44,7 +44,8 @@ A grilling session on the coverage-grid stages and the weaver and outliner (open
 - **Evals plan set:** ordinary Rust tests with fixture spec folders for everything deterministic, and seeded-defect test stories with clean controls for the housekeeper and completeness rubric, which also decide whether a cheaper model can be the default (see Testing and evals). Open item 7 is closed at plan level.
 - **Rust track settled** (closes open items 13 and 18; see Build, release and delivery): one binary with subcommands on a `skaldsaga-core` library; binaries kept out of `main`; the session meter is the pilot; binaries reach the writer through a CI-built distribution branch; launch targets, cargo-dist, shared versioning, and staged signing chosen.
 - **Phones:** no native iOS or Android binaries in phase 1. Writers on phones use cloud Claude Code sessions, which the Linux binary covers (verify plugin, hook and status line support there). `skaldsaga-core` stays portable so a native mobile app can come with the standalone app later.
-- **Research items 9 and 11 done:** the wayfinder SKILL.md has been read, with several lessons proposed for confirmation; Dramatica's licensing terms checked, with our design already on the safe side and a naming follow-up (see Research notes and Open items 9 and 11).
+- **Research items 9 and 11 done:** the wayfinder SKILL.md has been read, with several lessons proposed for confirmation; licensing for the original story-theory inspiration was checked, and our design is on the safe side (see `docs/background.md` and Open items 9 and 11).
+- **Internal "storyform" renamed to "arc"** (node type `arc`, ID prefix `a-`), and all outside story-theory terms removed from the build documents so they cannot leak into prompts, schemas or code. History, research and attribution moved to `docs/background.md`; the README keeps a plain acknowledgment.
 
 ## What changed in v8
 
@@ -76,9 +77,9 @@ This session worked through editions (open item 14) from the writer's day-to-day
 - *Superseded in v9 (removed from phase 1):* **Phase 1 ends with a suggested first edition** (closes the main question in open item 14): the outliner's last step proposes a not-published edition chosen from the writer's goal, clearly labeled as a suggestion, using a minimal edition file (breaks anchored by scene ID).
 - **IDs are random instead of counting up** (see Spec and storage), for collision safety if facts later move between projects, and so shuffled scenes never look out of order.
 - **Story-shape naming started (open item 3):** a terminology ladder (craft term, then abbreviation, then names); "main character"/MC; "challenger"; MC and POV character taught as different ideas; threads named main plot, inner journey, challenger, relationship.
-- **Dramatic and thematic questions** are tracked on every storyform, inferred rather than asked cold, and block weaving and outlining until answered at least provisionally.
+- **Dramatic and thematic questions** are tracked on every arc, inferred rather than asked cold, and block weaving and outlining until answered at least provisionally.
 - **"Keep it simple" is a valid answer** for the thematic question, three of the MC's four decisions, story driver and limit, the challenger and relationship decisions, and the challenger thread itself. Always required: the dramatic question, the stakes, whether the MC changes or holds firm, outcome and judgment.
-- **Dramatica research done** (see Research notes): the four theme questions are confirmed as a narrowing chain from a proprietary table, so our own-words theme approach stands; the full storyform (about 75 story points, 92 in one tally) was reviewed for novice value.
+- **Story-theory research done** (now in `docs/background.md`): the theme approach (our own words) and the full list of candidate story points were reviewed for novice value.
 - **Stakes join the required core**, which is now: the dramatic question, the stakes, whether the MC changes or holds firm, and the ending type (outcome and judgment). Strength and flaw, pressure along the way (costs, small wins, warning signs, required steps), want versus need, and backstory are adopted as optional depth (open item 17).
 - **Book series noted for a later phase** (see Future phases): books are story-level units, not editions; the series shape is undecided.
 
@@ -100,7 +101,7 @@ The v6 session reviewed `ARCHITECTURE.md` (open item 1, now closed) and settled 
 
 ## The project
 
-A set of Claude Code skills (a "harness") that helps a novice aspiring author turn an incomplete story idea into a well-crafted, detailed novel outline with no plot holes. The skills ask questions, build the spec in the background, and teach craft along the way. The goal is a good story, not an officially Dramatica-correct one. Dramatica is inspiration only. The harness will be distributed for use by others.
+A set of Claude Code skills (a "harness") that helps a novice aspiring author turn an incomplete story idea into a well-crafted, detailed novel outline with no plot holes. The skills ask questions, build the spec in the background, and teach craft along the way. The goal is a good story, not a theory-correct one. Where the ideas came from is recorded in `docs/background.md`. The harness will be distributed for use by others.
 
 **Decided**
 
@@ -121,7 +122,7 @@ A set of Claude Code skills (a "harness") that helps a novice aspiring author tu
   - *Saga* is Old Norse for "story" or "what is told." It keeps the name about story rather than any medium (novels, serials, comics), and everyone can spell it.
   - In modern Icelandic, *skáldsaga* (poet + story) is the everyday word for "novel."
   - Short, one word, no hyphens or apostrophes, so the command matches the name. "Harness" was dropped because it is a technical word.
-- **Names rejected and why:** any "muse" name (Subtxt, the Dramatica-based app, already has an AI coach called Muse in the same niche; Plotmuse is an existing company); bare "Skald" (existing AI writing apps Skald Writer and Skald Scribe); Gaelic pairings such as *scéal* (hard to spell, and a cross-language blend).
+- **Names rejected and why:** any "muse" name (an existing story-coaching app already has an AI coach called Muse in the same niche; Plotmuse is an existing company); bare "Skald" (existing AI writing apps Skald Writer and Skald Scribe); Gaelic pairings such as *scéal* (hard to spell, and a cross-language blend).
 
 **Research (web search only, October 18, 2026; GitHub search was not available)**
 
@@ -132,7 +133,7 @@ A set of Claude Code skills (a "harness") that helps a novice aspiring author tu
 
 **Decided**
 
-- Users have never written a story and know neither Dramatica nor writing jargon. Every prompt explains in plain English what is being asked and why it matters to the story.
+- Users have never written a story and know neither story theory nor writing jargon. Every prompt explains in plain English what is being asked and why it matters to the story.
 - Socratic style: open-ended questions that guide the writer and explain the impact on the story. Questions are teachable moments that lean into the why.
 - Ambiguous answers: record the possibilities as unresolved and let later answers collapse them. Once a question becomes frontier (the next thing worth resolving), ask a plain-language disambiguating follow-up.
 - Stuck users: if the question is not frontier, move on, track it, and re-ask when a later answer helps. If it is frontier, rephrase concretely first, then offer contrasting "what if" options.
@@ -153,31 +154,31 @@ A set of Claude Code skills (a "harness") that helps a novice aspiring author tu
 
 ## Story-shape layer
 
-The coverage grid checks that every thread has content at every stage. It does not check what the story is arguing. The story-shape layer is the set of decisions that define the story's argument and shape, matching the completeness of Dramatica's 12 essential questions.
+The coverage grid checks that every thread has content at every stage. It does not check what the story is arguing. The story-shape layer is the set of decisions that define the story's argument and shape, twelve decisions in all.
 
 **Decided**
 
 - Every shape decision must be answered at least provisionally before the outline step ("complete" requires it).
-- Translate the Dramatica jargon into our own plain-English names upfront, since the checker is our own.
+- Use our own plain-English names throughout, since the checker is our own.
 - **Terminology ladder (decided in v7):** introduce the common craft term a writer might meet in books or online, explained plainly (teaching the craft), but avoid terms that are too technical (for example "protagonist"). Once taught, shorten to the common abbreviation, then switch to the story's own names as soon as they exist. Applied to the central character: "main character" with an explanation, then "MC," then the character's name ("Does Mara change by the end?").
-- **The challenger keeps that name (decided in v7)** for the character who presses on the MC's way of seeing things (Dramatica's influence character). A teaching aside mentions the related terms a writer may meet: foil (a character who contrasts with the MC; ours actively pushes back), impact character, and antagonist (whoever opposes the MC's goal, who may or may not be the challenger).
-- **Main character and POV character are taught as different ideas (decided in v7).** The POV character is whose eyes a scene is seen through (one or many); the MC is whose inner struggle the story argues (usually one per storyform). Other POV characters' arcs may become subplots. Ladder: "point of view character," then "POV character," then names. Timing follows infer-and-confirm: each described scene notes whose eyes it is through, and a second viewpoint triggers the teaching moment and a check on which one is the MC.
+- **The challenger keeps that name (decided in v7)** for the character who presses on the MC's way of seeing things. A teaching aside mentions the related terms a writer may meet: foil (a character who contrasts with the MC; ours actively pushes back) and antagonist (whoever opposes the MC's goal, who may or may not be the challenger).
+- **Main character and POV character are taught as different ideas (decided in v7).** The POV character is whose eyes a scene is seen through (one or many); the MC is whose inner struggle the story argues (usually one per arc). Other POV characters' arcs may become subplots. Ladder: "point of view character," then "POV character," then names. Timing follows infer-and-confirm: each described scene notes whose eyes it is through, and a second viewpoint triggers the teaching moment and a check on which one is the MC.
 - **Thread names (decided in v7):** the **main plot** (the external problem and stakes; "external plot" taught as the related term), the MC's **inner journey** ("internal arc" taught as the related term), the **challenger**, and the **relationship**. Main plot and inner journey give the writer the classic outer-versus-inner split used in most craft advice. Internal kind values in the thread format may stay as they are.
-- **Two big questions, tracked on every storyform (decided in v7):**
+- **Two big questions, tracked on every arc (decided in v7):**
   - **The dramatic question:** will the MC achieve the goal? (A common craft term.) Answered by the ending's outcome.
   - **The thematic question:** what the story examines, for example "Is loyalty worth lying for?" Answered by how the ending feels (better or worse off, and at what cost). It is the writer's own words for the theme layer's central tension.
   - **The threads examine the thematic question from different sides:** the MC lives one answer, the challenger embodies another, the relationship is where they collide, and the main plot shows what each costs at scale. The coherence checker tests that every thread bears on the thematic question and that the ending answers both questions.
   - **Asked late, inferred first.** Ask directly only if the writer raises it; otherwise infer once a few scenes and choices exist and confirm ("Your story keeps circling whether Mara should trust anyone. Is that the big question?"). Never ask "what's your theme?" cold.
   - **Blocker:** both questions must be answered (at least provisionally, like other shape decisions) before weaving or outlining can start. The orchestrator steers toward them as that stage approaches. For the thematic question, "keep it simple" is a valid answer (see below).
-- **"Keep it simple" is a valid answer (decided in v7).** A writer may say they are writing a simple, fun story and do not want to deal with the deeper layers. The goal is a good story, not a Dramatica-correct one.
+- **"Keep it simple" is a valid answer (decided in v7).** A writer may say they are writing a simple, fun story and do not want to deal with the deeper layers. The goal is a good story, not a theory-correct one.
   - **What can be opted out of:** the thematic question, three of the MC's four decisions (start or stop, approach, problem-solving style) and two of the four plot decisions (story driver, story limit), all still inferred and offered when scenes make them obvious, the challenger and relationship decisions, and the challenger thread itself (some simple stories have none; without a challenger there is no relationship thread either). **Always required:** the dramatic question (even a simple story needs to know what the MC wants and whether they get it) the stakes (what happens if the MC fails), whether the MC changes or holds firm (the core of the inner journey), and the ending type: outcome (is the problem solved) and judgment (is the MC better or worse off), which together give the four classic endings.
   - **How it works:** the decision gets an explicit value (for example `not_explored`) recorded as the writer's choice, so it counts as answered and does not block weaving or completeness. Coverage-grid cells for an opted-out thread are not counted as empty.
   - **Explain once, then respect it:** Skaldsaga says briefly what the writer would gain, then stops raising it. Checks that depend on an opted-out decision are skipped, not failed. The writer can revisit it any time; if later scenes strongly suggest a theme anyway, Skaldsaga may mention it once, as an offer.
 - **Challenger and relationship decisions (draft, inferred and confirmed, never asked cold):** does the challenger change or hold firm by the end (usually the opposite of the MC); does the bond between the MC and the challenger deepen, break, or stay unresolved. Both accept "keep it simple." Final wording is decisions 11 and 12 in the table below (v9).
-- **Theme layer (collapsed in v9):** the thematic question is the theme layer's only decision, answered in the writer's own words, not from a fixed menu, with follow-ups guiding toward a non-conflicting answer. Dropped: "where the conflict lives" and "what everyone cares about" (Dramatica's Domain and Concern; their useful content appears in the main plot's setup and stakes). The root problem moved into the optional "what's really wrong versus what the MC thinks" story point.
-- **Skaldsaga's criteria stand on their own (v9).** Dramatica was the starting point; the decisions below and the completeness bar are now our own and need no Dramatica concepts.
+- **Theme layer (collapsed in v9):** the thematic question is the theme layer's only decision, answered in the writer's own words, not from a fixed menu, with follow-ups guiding toward a non-conflicting answer. Dropped: "where the conflict lives" and "what everyone cares about" (their useful content appears in the main plot's setup and stakes). The root problem moved into the optional "what's really wrong versus what the MC thinks" story point.
+- **Skaldsaga's criteria stand on their own (v9).** The decisions below and the completeness bar are our own and need no outside story theory (background in `docs/background.md`).
 - **Challenger and relationship threads:** add our own shape decisions, one or two per thread (for example: does the challenger change or hold firm; does the bond deepen, break, or stay unresolved), answered in the writer's own words with guiding follow-ups.
-- **No hard combination rules.** The checker raises soft "possible issue" warnings when story content seems to clash with a decision (for example, "your hero is steadfast, but scene 12 shows them changing their core belief; which did you mean?").
+- **No hard combination rules.** The checker raises soft "possible issue" warnings when story content seems to clash with a decision (for example, "your hero holds firm, but scene 12 shows them changing their core belief; which did you mean?").
 - **Evidence and pivot (new):** each decision records the scenes and facts its inference came from, and change-type decisions can name a pivot belief (see Node format). Character change is tied to a character learning the truth.
 
 **The 12 shape decisions (Decided in v9; wording final)**
@@ -196,19 +197,19 @@ Questions use the story's own names as soon as they exist (shown here with Mara 
 | 8 | Does Mara get what she was after? | The outcome | Required |
 | 9 | Is Mara happier or better off when it's over? | The ending's judgment; with 8, the four classic endings (happy, bittersweet, tragic, hollow win) | Required |
 | 10 | Underneath it all, what is your story wondering about? | The theme (the thematic question) | Optional |
-| 11 | Does Jonah end up seeing things Mara's way, or does he stick to his own? | The foil or impact character | Optional |
+| 11 | Does Jonah end up seeing things Mara's way, or does he stick to his own? | The foil | Optional |
 | 12 | By the end, are Mara and Jonah closer, broken apart, or still unsettled? | The relationship arc | Optional |
 
 - **Required** matches the core: changes or holds firm, dramatic question with stakes, outcome, judgment. **Optional** accepts "keep it simple" and is still inferred and offered when scenes make it obvious.
 - 11 and 12 disappear when the story has no challenger.
-- The earlier working names (Resolve, Growth, Approach, Problem-Solving Style, Driver, Limit, Outcome, Judgment) are internal history only and never shown to the writer.
+- How these map to the original inspiration is recorded in `docs/background.md` for maintainers; those names are never shown to writers or used in code.
 
 ## Completeness bar
 
 **Decided**
 
 - A "complete" outline requires: all shape decisions answered at least provisionally (including the dramatic and thematic questions, which also gate the start of weaving), no empty cells in the coverage grid, and the five plot-hole checks run clean.
-- A rough outline is allowed early, with gaps marked (so Dramatica concepts are never forced on the writer).
+- A rough outline is allowed early, with gaps marked (so story theory is never forced on the writer).
 - A complete outline may contain provisional answers. Each provisional answer gates the tasks that depend on it. Anything unresolved blocks "complete."
 
 **Proposed**
@@ -224,7 +225,7 @@ Questions use the story's own names as soon as they exist (shown here with Mara 
 - A housekeeper task that rechecks old answers for conflicts, forgotten details, idea drift, and plot changes. Full passes run as a gate before the weave and outline steps, and whenever the writer asks. Scoped passes run in the background during a topic (see Governance).
 - **Session-open pass is incremental (decided this session).** The pass at the start of each session checks only what changed since the last cleared pass (found through the review labels), not the whole spec. The housekeeper already runs as a sub-agent, so main-thread context was never at risk; the saving is token cost and time, which for a full pass grow with the size of the spec every session. *Proposed:* a full pass every N sessions (a setting) catches slow drift that incremental passes can miss, such as the premise wandering across many small answers.
 - A primitive shared by interviewer agents for consistency, worked into the question flow ("that affects X, how do you see that changing?").
-- A weaving step that combines storyforms into a plot structure. Weaving may reveal a relationship that needs its own storyform, creating a feedback loop back to the map.
+- A weaving step that combines arcs into a plot structure. Weaving may reveal a relationship that needs its own arc, creating a feedback loop back to the map.
 - The gap assessor is **not** a separate worker. It is a shared **completeness-check primitive** called directly by the orchestrator, housekeeper, and weaver. The orchestrator turns its findings into frontier questions.
 - The interviewer is a separate worker from the orchestrator. The orchestrator owns the session frame (recap, choosing the topic, wrap-up). The interviewer runs the question loop for a chosen topic.
 - **Confirmed split:**
@@ -259,8 +260,8 @@ Questions use the story's own names as soon as they exist (shown here with Mara 
 - The orchestrator recommends one default next step plus "something else."
 - Shared primitives: plain-language translation reference, impact lookup (related items via relationship facts, typed fields, the backlinks index, and rules), spec read/write with status, a harvest primitive for drafted material, and the coherence checker. (The length primitive moved to a later phase in v9.)
 - The housekeeper never edits on its own. It raises plain-language heads-ups. Keep the original premise and taste anchors as a versioned baseline, and supersede decisions with dated notes rather than overwriting.
-- Even a single storyform needs weaving, to interleave its four threads across the book.
-- When weaving surfaces a possible new storyform, add it to the map as a fog item automatically and raise it with the user only when it is ready to explore.
+- Even a single arc needs weaving, to interleave its four threads across the book.
+- When weaving surfaces a possible new arc, add it to the map as a fog item automatically and raise it with the user only when it is ready to explore.
 - The orchestrator should explain the settings change plainly ("I'm turning on a small progress meter so we know when to take a break") and let the Claude Code permission prompt act as the confirmation. If the writer declines the meter, the manual session boundary still works.
 
 ## Governance: how changes reach the spec
@@ -382,7 +383,7 @@ Every node is a Markdown file. Structured data lives in YAML front matter; the b
 
 ```yaml
 id: p-0007
-type: person        # person | place | group | item | scene | decision | thread | style | storyform (group, item added in v9)
+type: person        # person | place | group | item | scene | decision | thread | style | arc (group, item added in v9)
 name: "Mara Vance"
 aliases: ["Mara", "the courier"]
 summary: "Courier who smuggles letters past the blockade"  # index line
@@ -390,7 +391,7 @@ revision: 12        # bumped by the committer when node-level fields change
 facts: [...]        # fact entries, schema below
 ```
 
-- **No node-level links list (v5).** Relationships in the story world are facts (see below). Spec bookkeeping uses typed fields per node type (scene `pov`, `location`, `participants`, `coverage`; thread `characters`; decision `evidence`, `pivot`; storyform `threads`, `decisions`).
+- **No node-level links list (v5).** Relationships in the story world are facts (see below). Spec bookkeeping uses typed fields per node type (scene `pov`, `location`, `participants`, `coverage`; thread `characters`; decision `evidence`, `pivot`; arc `threads`, `decisions`).
 
 ### Fact entry
 
@@ -473,7 +474,7 @@ turn:                       # v9: the scene's change; inferred and confirmed
 status: outlined            # slot | outlined | drafted | reviewed | approved (slot added in v9)
 ```
 
-Writes, hints, and reveals are not stored on the scene. They are generated into `scenes.json` from facts that point at it (`true_from: {in: ...}`, reader moments, character learns). Landmark and framework-beat roles are also generated into `scenes.json`, from the storyform's `landmarks` and `beats` maps (v9).
+Writes, hints, and reveals are not stored on the scene. They are generated into `scenes.json` from facts that point at it (`true_from: {in: ...}`, reader moments, character learns). Landmark and framework-beat roles are also generated into `scenes.json`, from the arc's `landmarks` and `beats` maps (v9).
 
 - **Slots (v9):** the weaver's skeleton creates scenes with `status: slot`, holding at least `purpose` and `coverage`, and optionally a partial `turn`. Deepening fills the rest and moves them to `outlined`.
 - **The turn (v9):** goal, conflict and outcome (taught with plain names; "scene and sequel" and "value shift" are related craft terms). A scene whose end matches its beginning gets a soft "possible flat scene: what changes here?" One scene's `ends` should lead into a later scene's `wants`, which supports the cause-and-effect check.
@@ -499,7 +500,7 @@ review: unreviewed
 
 ```yaml
 kind: personal          # personal | challenger | relationship | big_picture
-storyform: sf-0001      # one per map now; future-proofs subplots
+arc: a-0001             # the arc this thread belongs to
 characters: [{who: p-0007, role: lead}]   # roles: lead, opposite, etc.
 decisions: [d-0001, d-0002]
 stages:               # always these four keys (v9)
@@ -528,7 +529,9 @@ voice_refs: []          # links into the style guide folder, later phases
 
 Each scene's `pov` resolves its style rules. Voice samples, the flag-and-confirm typo list, and voice features live in the style guide folder, not the spec.
 
-### Storyform
+### Arc
+
+An **arc** (internal name; called "storyform" before v9) is one complete argument: a dramatic question, its threads and shape decisions. The main story is one arc and each subplot is another. Writers never see the word as a node type; they hear "the main story" or "the subplot about...". Not to be confused with the craft terms "character arc" and "relationship arc," which are taught to writers and describe how a thread changes.
 
 ```yaml
 status: main            # main | fog | active | shelved (shelved Proposed in v9: fog kept out of this outline)
@@ -549,8 +552,8 @@ beats:                  # v9: tier 2, from the chosen framework; replaced when t
 characters: [p-0007, p-0002]   # fog only: who the subplot involves
 ```
 
-- **Fog subplots are real storyform nodes (v5)** with `status: fog`, holding only a one-line premise and the characters involved. They get stable IDs that scenes, facts, and the weaver can reference before they are mapped. Mapping one flips it to active and fills its threads and decisions.
-- **Landmarks live on the storyform (v9),** not on scenes: one entry per landmark makes "one inciting incident per storyform" hold by shape, avoids ambiguity when a scene is a landmark for both the main story and a subplot, lets movement boundaries be derived from one small map, and makes missing landmarks visible as empty entries.
+- **Fog subplots are real arc nodes (v5)** with `status: fog`, holding only a one-line premise and the characters involved. They get stable IDs that scenes, facts, and the weaver can reference before they are mapped. Mapping one flips it to active and fills its threads and decisions.
+- **Landmarks live on the arc (v9),** not on scenes: one entry per landmark makes "one inciting incident per arc" hold by shape, avoids ambiguity when a scene is a landmark for both the main story and a subplot, lets movement boundaries be derived from one small map, and makes missing landmarks visible as empty entries.
 - `dramatic_question` and `thematic_question` (v7; replace `central_question`) feed the argument-coherence check; `premise.history` is the versioned baseline the housekeeper uses for drift.
 
 ### Proposal
@@ -639,7 +642,7 @@ Keyed by target ID. Each entry records how the target is referenced, which the d
 
 **Script soft checks** (in `complete`, run on every commit; no model, no tokens):
 
-- Missing landmarks (empty entries in a storyform's landmark map)
+- Missing landmarks (empty entries in an arc's landmark map)
 - Scene-count pacing per movement
 - Unearned twist (a reveal with no earlier hint) and dangling setup (a hint never revealed or used)
 - Early pivot (the pivot belief ends well before the climax)
@@ -681,10 +684,10 @@ Checks tied to anything opted out with "keep it simple" are skipped. At the gate
 
 **Decided**
 
-- Build our own validation as a skill primitive rather than depend on Dramatica's licensed tooling.
-- Top priority: a "complete" story that addresses the four major throughlines per storyform.
+- Build our own validation as a skill primitive rather than depend on any licensed story-theory tooling.
+- Top priority: a "complete" story that addresses all four threads per arc.
 - Cover all five plot-hole categories: (1) continuity and timeline, (2) knowledge and motivation, (3) setups without payoffs and payoffs without setups, (4) argument coherence (the ending answers the story's central question), (5) cause-and-effect gaps between scenes.
-- One storyform per map for now. Potential subplots are recorded in the spec as fog items for future mapping sessions.
+- One arc per map for now. Potential subplots are recorded in the spec as fog items for future mapping sessions.
 - Hard timeline, knowledge ordering, and attribute uniqueness violations are caught per proposal by the dependency checker (see Governance).
 - **Reader-facing checks run per edition (v7).** Reveals, hints, setups and payoffs, and cause and effect between visible scenes depend on each edition's scene list; truth, timing and character knowledge are checked once in canon.
 - **Knowledge checks use truth and belief facts (new)**, for example "Mara acts on knowing Jonah lied in scene 9, but only learns it in scene 14." The housekeeper soft-flags false beliefs that are never corrected or paid off, and facts that end with no cause (possible cause-and-effect gap).
@@ -695,11 +698,11 @@ Checks tied to anything opted out with "keep it simple" are skipped. At the gate
 - *The coverage grid itself is Decided in v9* (see Coverage grid and movements). Still proposed: an interlock check that the climax resolves more than one thread and every thread bears on the thematic question.
 - Deterministic scripts for links, status, timelines, and a setup-and-payoff ledger. Rubric-guided model checks reported as "possible issues," not verdicts. A small argument-coherence rule set written in our own vocabulary, which tests the ending against the story-shape decisions.
 - Evals using stories with seeded plot holes to test the checker (the skill-creator skill supports evals).
-- Avoid reproducing Dramatica's proprietary terminology, dictionary, or matrices. Check the licensing page if borrowing anything specific. This is not legal advice.
+- Never reproduce any outside theory's proprietary terminology, definitions or matrices; see the practices in `docs/background.md`. This is not legal advice.
 
 ## Coverage grid and movements (new in v9; all Decided unless marked)
 
-- **Four fixed stages for every thread**, whatever framework is used. Reasons: completeness means the same thing in every story, so the checker, evals and housekeeper never change with the framework; four stages is one idea a novice can hold; it mirrors Dramatica's four signposts per throughline in our own words.
+- **Four fixed stages for every thread**, whatever framework is used. Reasons: completeness means the same thing in every story, so the checker, evals and housekeeper never change with the framework; four stages is one idea a novice can hold.
 
   | Stage (key) | Plain requirement, any thread |
   |---|---|
@@ -717,10 +720,10 @@ Checks tied to anything opted out with "keep it simple" are skipped. At the gate
   | **Inner journey** | The MC's belief and its cost. | The belief is strained. | It cracks, or is doubled down on. | The MC changes or holds firm (the pivot belief ends or survives). |
   | **Challenger** | Who they are, and how their view differs from the MC's. | Their pressure on the MC grows, through example, argument or conflict. | Their challenge peaks; the MC can't ignore it anymore. | They change or hold firm, usually the opposite of the MC. |
   | **Relationship** | How the bond stands. | It is tested. | It reaches a breaking point. | It deepens, breaks, or stays unresolved. |
-- **Alignment within a storyform:** each thread's stage N falls in roughly the same part of the book, giving four shared **movements**, each advancing every thread. Soft guidance only: a thread running early or late gets one "possible pacing issue," then the writer's choice is respected. Lined-up resolutions support the proposed interlock check.
-- **Subplots float independently** of the main storyform (they may span the whole book or only part of it), but their own threads align with each other and they get their own four movements.
-- **Subplot minimum:** its own dramatic question, stakes, and at least one thread with all four stages. Other threads accept "keep it simple"; infer-and-confirm suggests which threads the subplot really has. Every thread that exists must have all four stages filled. A subplot can grow into a full storyform by adding threads.
-- **Cross-storyform soft checks:** a subplot resolving after the main climax gets a possible pacing issue; every subplot should touch the main storyform's thematic question.
+- **Alignment within an arc:** each thread's stage N falls in roughly the same part of the book, giving four shared **movements**, each advancing every thread. Soft guidance only: a thread running early or late gets one "possible pacing issue," then the writer's choice is respected. Lined-up resolutions support the proposed interlock check.
+- **Subplots float independently** of the main arc (they may span the whole book or only part of it), but their own threads align with each other and they get their own four movements.
+- **Subplot minimum:** its own dramatic question, stakes, and at least one thread with all four stages. Other threads accept "keep it simple"; infer-and-confirm suggests which threads the subplot really has. Every thread that exists must have all four stages filled. A subplot can grow into a full arc by adding threads.
+- **Cross-arc soft checks:** a subplot resolving after the main climax gets a possible pacing issue; every subplot should touch the main arc's thematic question.
 - **Two tiers of beats, all soft (never completeness blockers):**
   - **Tier 1, landmarks (owned by the grid, every story):** Setup: show the normal world, the inciting incident, the MC commits (end of setup). Complications: rising stakes, the midpoint shift (end of complications). Crisis: things fall apart, the low point (end of crisis). Resolution: the climax, the new normal.
   - **Tier 2, framework beats:** supplied only by the chosen framework (for example "theme stated," "refusal of the call") and slotted into the same four stages.
@@ -739,13 +742,13 @@ Checks tied to anything opted out with "keep it simple" are skipped. At the gate
   - **Inferred any time.** If the writer's scenes clearly follow a framework, Skaldsaga confirms ("this looks like the hero's journey; is that what you're going for?"). A confident yes is recorded as provisional; confusion or "not sure" parks it until weave time.
   - **Recommended late,** at weave time, from taste anchors, genre and the writer's goal.
   - **Four-part is the default** if nothing points elsewhere (it maps one-to-one onto the four stages). **Switchable any time** (only tier-2 beats re-map). **"No framework" is valid** (landmarks only).
-  - Stored on the storyform node (`framework`).
+  - Stored on the arc node (`framework`).
 - **Layered outline (v9):** a **skeleton pass** across the whole book creates scene slots described by purpose, each linked to a grid cell and any landmarks; then a **deepening pass, one movement at a time, starting with Setup,** adds beats, POV, location, reads and the scene turn. One movement per session fits the clear-and-recap rhythm, keeps sub-agent work bounded, and keeps hand-back questions topical. Later movements may send revisions back to earlier ones; the housekeeper catches the ripple.
-- **The weaver produces the skeleton; no separate woven plan (v9).** The weaver chooses the framework (hand-back), resolves fog subplots, then interleaves every thread's cells, landmarks and beats into ordered slot scenes in `sequence.md`, built around pins. The outliner only deepens, one movement per dispatch. Everything weaving decides already lives in slots, their `coverage`, their order, and the storyform's landmark and beat maps, so no intermediate artifact can go stale. Split of judgment: the weaver does whole-book structure, the outliner does scene craft. Full housekeeper passes gate both the weaver and the start of deepening.
+- **The weaver produces the skeleton; no separate woven plan (v9).** The weaver chooses the framework (hand-back), resolves fog subplots, then interleaves every thread's cells, landmarks and beats into ordered slot scenes in `sequence.md`, built around pins. The outliner only deepens, one movement per dispatch. Everything weaving decides already lives in slots, their `coverage`, their order, and the arc's landmark and beat maps, so no intermediate artifact can go stale. Split of judgment: the weaver does whole-book structure, the outliner does scene craft. Full housekeeper passes gate both the weaver and the start of deepening.
 - **Layers set the work order, not a depth limit (v9).** Anything the writer raises early (a detailed climax in session two, say) is captured at whatever depth it arrives, provisional like any answer. It becomes a **pin**: the skeleton pass builds around existing detailed scenes rather than over them, and conflicts are flagged as usual. This is the outline-level version of allowing drafts before structure.
 - **The skeleton is sized by story need (v9):** at least one slot per grid cell, plus landmarks and framework beats, plus pinned scenes. No word targets.
 - **Fog subplots at weave time (v9):** before weaving, the writer chooses for each fog subplot: **map it now** (interview until it meets the subplot minimum, then weave it), **shelve it** (left out of this outline and kept for later), or **fold it in** (it is really part of an existing thread; its facts move there with `move_fact` and the fog node is deleted). The orchestrator raises these as weave time approaches, in plain words. Shelved subplots are not gaps.
-- **Promote to subplot (v9, phase 1):** the reverse of fold-in, for any thread content, including content folded in earlier. A new storyform node is created (or a shelved one revived), facts move with `move_fact` (IDs kept, so reads and links survive), and the interviewer asks about each reference as in a split. Emptied cells in the original thread are flagged by the grid; the new subplot must meet the subplot minimum before weaving. Writer-started; the only automatic part in phase 1 is a soft housekeeper note when a thread seems to carry two separate stories. Automatic promotion suggestions are deferred.
+- **Promote to subplot (v9, phase 1):** the reverse of fold-in, for any thread content, including content folded in earlier. A new arc node is created (or a shelved one revived), facts move with `move_fact` (IDs kept, so reads and links survive), and the interviewer asks about each reference as in a split. Emptied cells in the original thread are flagged by the grid; the new subplot must meet the subplot minimum before weaving. Writer-started; the only automatic part in phase 1 is a soft housekeeper note when a thread seems to carry two separate stories. Automatic promotion suggestions are deferred.
 - Authors may aim at traditional publishing, self-publishing, or just finishing a story. The skills ask the writer and adapt.
 - **Length moves out of phase 1 (v9; supersedes the v1 serial length profile in phase 1).** Word budgets belong to editions (a novel's total, a serial's per-update target), and phase 1 has no prose, so counts would be guesses. A later phase's edition step compares real length with the edition's target and drives revisions that teach why length matters (too fast here, too slow there, over or under budget). Full serial support (a parent map plus arc maps) stays deferred.
 
@@ -765,7 +768,7 @@ Checks tied to anything opted out with "keep it simple" are skipped. At the gate
 - The phase 1 version-check rule may need revisiting once parallel scene agents exist.
 - **Parallel attribute safety (new):** if two writer agents propose the same entity attribute, the single committer applies one and the other fails the uniqueness check and is re-checked. No silent drift.
 - **Series shelf (new):** unused facts carry over as material for later books.
-- **Book series (raised in v7, not designed).** A book is a story-level unit with its own arc, central question, ending and shape decisions, so book splits do not belong in edition files (an omnibus could later be an edition spanning books). Phase 1 keeps the doors open by using random IDs and keeping storyforms as separate nodes, so one storyform could later cover a range of the sequence. Questions for a later phase:
+- **Book series (raised in v7, not designed).** A book is a story-level unit with its own arc, central question, ending and shape decisions, so book splits do not belong in edition files (an omnibus could later be an edition spanning books). Phase 1 keeps the doors open by using random IDs and keeping arcs as separate nodes, so one arc could later cover a range of the sequence. Questions for a later phase:
   - One project with books as divisions of a single sequence, or one project per book sharing a fact library?
   - If separate projects, how are facts shared or migrated between them (unlike a fork, a series needs them kept in step)?
   - How a published book constrains later books (likely the same pattern as a serial in progress constraining canon changes).
@@ -790,18 +793,7 @@ Checks tied to anything opted out with "keep it simple" are skipped. At the gate
 
 ## Research notes (verify before relying)
 
-- **Dramatica.** A storyform spans four throughlines (main character, influence character, relationship, objective story). The full theory has about seventy-five objective appreciations. The 12 essential questions are four about character, four about plot, and four about theme. Eight are binary and four ask you to pick from "quads" (the thematic ones), which is roughly 65,536 combinations before the questions constrain each other. Confirmed from sources: Resolve (change or steadfast), Growth (start or stop), Approach (do-er or be-er), Problem-Solving Style (linear or holistic), Driver (action or decision), Limit (timelock or optionlock). Outcome and Judgment (success or failure, good or bad) are the other two binary ones and together give four endings. *The exact four theme questions were not listed on the pages retrieved.* The Overall Story Concern is one of them, and the Issue layer is the basis of the central theme. The community uses "story weaving" for combining storyforms, and forum posts suggest no formal weaving theory exists.
-- **Dramatica's four theme questions and full story-point list (researched in v7, October 18, 2026).**
-  - **The four thematic essential questions are a narrowing chain**, each picked from four options the previous answer allows: Domain (Universe, Physics/Activity, Mind, Psychology), then Concern, then Issue (also called Range), then Problem (storymind.com, "12 essential questions"). The choices come from Dramatica's proprietary table of story elements. Skaldsaga keeps its own-words approach instead; our thematic question corresponds roughly to the Issue and its Counterpoint.
-  - **The full storyform** is usually described as about 75 story points; a community tally of the Dramatica software's report counts 92, because counts differ in what they include (discuss.dramatica.com, "Table of Scenes & every possible story point"). Groups: overview (backstories for MC, impact character and relationship, plus synopses); audience appreciations (nature, essence, tendency, reach); per throughline (throughline, concern, issue, counterpoint, thematic conflict, problem, solution, symptom, response, benchmark, four signposts, plus unique ability and critical flaw for the two characters, catalyst and inhibitor for the other two); plot (the eight dynamics plus impact character resolve, and goal, consequence, cost, dividend, requirements, prerequisites, preconditions, forewarnings).
-  - **Plot points in plain terms** (dramatica.com theory book, chapter 17): goal (what everyone pursues), requirements (what must be done to reach it), consequence (what happens if it isn't reached), forewarnings (signs the consequence is getting close), dividends (small rewards along the way), costs (setbacks paid along the way), prerequisites (resources needed first), preconditions (strings attached by whoever controls them).
-  - **Candidate additions for Skaldsaga** are under open item 17.
-- **Dramatica licensing (checked v9, October 18, 2026; not legal advice).**
-  - **Dramatica® is a registered trademark**, and the site footer cites U.S. Patents 5,734,916 and 6,105,046. Both are 1990s patents and are very likely expired (US utility patents last 20 years from filing), *verify*. Patents would not cover our own independently built checker anyway unless it practiced the claimed method.
-  - **The Narrative Context Protocol is MIT licensed** (github.com/narrative-first/narrative-context-protocol, `governance/licensing.md`). The MIT grant covers the schema and reference code only. It explicitly excludes the **Dramatica Semantic Model** (valid combinations, private matrices, algorithms, completion, diagnosis, semantic validation, certification) and grants **no rights to Dramatica trademarks, compatibility marks or certification marks**. Third parties may publish mappings in their own namespace.
-  - **The theory book, dictionary and website text are copyrighted** like any publication, even where free to read.
-  - **What this means for Skaldsaga:** our design already sits on the safe side. We use none of the semantic model (no table of story elements, no valid-combination logic, no Domain/Concern/Issue chain), our checker is our own, and our names and wording are our own. Remaining practices: (1) never call Skaldsaga Dramatica-compatible, certified or endorsed, and don't use the name in the product name or as a selling point; a plain, factual acknowledgment ("inspired in part by ideas from Dramatica theory, by Melanie Anne Phillips and Chris Huntley; not affiliated") is ordinary nominative use, but confirm wording before release; (2) never copy definitions or passages from Dramatica texts; (3) keep Dramatica terms out of the writer-facing product and, ideally, out of public code and schemas too (see the storyform naming question in Open items).
-- **Narrative Context Protocol (NCP).** An open interchange schema on GitHub (3.0.0-rc.1 at last check). It validates structure only and does not include valid-combination logic. Dramatica's engine, semantic validation, and certification are licensed separately. Since the project is moving to its own checker, NCP is optional.
+- **Story-theory background and licensing** (the original inspiration, its terms, what we did not adopt, and licensing findings) live in `docs/background.md`, which build sessions do not load.
 - **Wayfinder (SKILL.md read, v9; mattpocock/skills, MIT licensed, commit of October 9, 2026).** A user-invoked planning skill for efforts bigger than one session. Structure: a **destination** named first (it fixes scope); a **map** that is an index, not a store (one line per decision, the detail lives once in its ticket); **decision tickets** typed grilling (HITL, default), prototype (HITL, a cheap artifact to react to), research (AFK, run by sub-agents in parallel) and task (manual work that unblocks a decision); **fog of war** ("Not yet specified"), whose test is whether a question can be *stated* precisely now, not whether it can be answered; an **out of scope** list that never graduates; the **frontier** (open, unblocked, unclaimed tickets) with claims made by assignment; refer to things by name, never bare IDs; at most one non-research ticket per session; plan, don't build. Field reports in its docs: over-charting up front goes stale (27 tickets, wrong by the 13th); agents writing their own exemptions into the map's Notes and then obeying them; a prototype agent choosing among its own variants; long, verbose questions causing decision fatigue and hiding why each question is asked; agents designing around a bad closed decision instead of challenging it. Lessons for Skaldsaga are in "Lessons from wayfinder" under Open items 9.
 - **Serial length (anecdotal).** Chapters run about 1,500 to 4,000 words, commonly 2,000 to 3,000. Royal Road rewards frequent updates, and many authors post weekly or twice weekly. Traditional and self-publishing length norms have not been researched yet.
 - **Claude Code subagents (official docs, checked October 2026).**
@@ -824,8 +816,8 @@ Checks tied to anything opted out with "keep it simple" are skipped. At the gate
 1. *Closed:* `ARCHITECTURE.md` reviewed this session (see What changed since v5).
 2. *Closed:* sub-agents that need the writer use the hand-back pattern (see Architecture).
 3. *Closed in v9:* the 12 shape decisions are final with plain-language wording (see Story-shape layer); the theme layer collapsed to the thematic question; node fields for the adopted story points are settled (see item 17).
-4. *Closed in v9:* four fixed stages (Setup, Complications, Crisis, Resolution), aligned within a storyform, with landmarks and framework beats on top (see Coverage grid and movements).
-5. *Closed in v9* (see Weaver, outliner and frameworks, and Coverage grid and movements): layered outline, weaver produces the skeleton, outliner deepens, pins, framework timing, fog subplot outcomes, promote to subplot, stage readings for all threads, storyform-level landmarks, the scene turn, and the scene-count pacing heuristic.
+4. *Closed in v9:* four fixed stages (Setup, Complications, Crisis, Resolution), aligned within an arc, with landmarks and framework beats on top (see Coverage grid and movements).
+5. *Closed in v9* (see Weaver, outliner and frameworks, and Coverage grid and movements): layered outline, weaver produces the skeleton, outliner deepens, pins, framework timing, fog subplot outcomes, promote to subplot, stage readings for all threads, arc-level landmarks, the scene turn, and the scene-count pacing heuristic.
 6. *Closed at design level in v9* (see Checks: who catches what): script versus housekeeper split, the four completeness-rubric judgments, and the flag budget. Exact prompt text, confidence scales and message wording are build work.
 7. *Closed at plan level in v9* (see Testing and evals). Remaining is build work: writing and reviewing the test stories and fixtures.
 8. *Deferred in v9 (length left phase 1):* research traditional and self-publishing length norms for the length data file, when the edition phase begins.
@@ -839,24 +831,24 @@ Checks tied to anything opted out with "keep it simple" are skipped. At the gate
     - **Already aligned:** index-not-store (our generated index), refer by name (names in front matter, IDs hidden), one topic per session, no pre-slicing the fog, the human speaks for themselves (the interviewer never answers its own questions).
     - **Possible addition (not yet discussed): research tasks.** Wayfinder's AFK research tickets suggest a Skaldsaga research sub-agent that looks up real-world facts a story depends on (a historical period, how a blockade worked) and proposes them as facts for approval.
 10. *Closed in v9 except research:* plugins cannot ship the main status line, so setup writes it into the project's `.claude/settings.json`; an existing personal status line is wrapped, not replaced; starting values for all settings are in Default settings. Still unverified: the SessionStart `initialUserMessage` field, and hook access to context usage (no longer needed).
-11. *Closed in v9 (research, not legal advice):* see Dramatica licensing under Research notes. Our design uses none of the licensed semantic model. Follow-ups: decide whether to rename the internal "storyform" (and any other Dramatica-derived internal names) before code is written; write the acknowledgment line for the README; have the trademark and patent points checked before public release.
+11. *Closed in v9 (research, not legal advice):* licensing findings, attribution and practices are in `docs/background.md`; our design uses none of the licensed material. The internal rename (storyform to arc) and the terminology scrub are done. Remaining: have the trademark and patent points checked before public release.
 12. *Closed in v9:* starter relation vocabulary and the `group` and `item` node types (see Node format); the `add_item` and `remove_item` ops are confirmed.
 13. *Closed in v9:* binaries reach the writer through a CI-built distribution branch, in `scripts/bin/<platform>/` (see Build, release and delivery). Remaining checks are listed there under To verify.
 14. *Revised in v9:* phase 1 no longer proposes a first edition. The minimal edition file format and edition rules stay decided for the later phase that builds editions, which also extends the format with cuts, alternative scenes, per-grouping release status and pins, and review snapshots.
 15. How reviewer and reader feedback is stored in `reviews/` and turned into questions about the current text (mostly later phases; the snapshot link is decided).
 16. How forking a project for a retelling works in practice (later phase; the rule is decided).
 17. *Closed in v7:* extra story points adopted, in our own words, inferred and confirmed like everything else. **Stakes are required** (part of the required core); the rest are optional depth that accepts "keep it simple." Node fields settled in v9 (no new node types; see the notes after this list):
-    - **Stakes (required):** the goal plus what happens if it fails (goal, consequence).
-    - **Pressure and payoff along the way:** costs, small wins, warning signs that the consequence is near, and the steps required to reach the goal (costs, dividends, forewarnings, requirements). Useful to the outliner for pacing.
-    - **Strength and flaw** for the MC and challenger (unique ability, critical flaw); "fatal flaw" is a familiar craft term.
-    - **What's really wrong versus what the MC thinks is wrong**, and what they try versus what would fix it (problem, symptom, response, solution). Ties to the pivot belief and to common craft ideas such as "want versus need."
+    - **Stakes (required):** the goal plus what happens if it fails.
+    - **Pressure and payoff along the way:** costs, small wins, warning signs that the consequence is near, and the steps required to reach the goal. Useful to the outliner for pacing.
+    - **Strength and flaw** for the MC and challenger; "fatal flaw" is a familiar craft term.
+    - **What's really wrong versus what the MC thinks is wrong**, and what they try versus what would fix it. Ties to the pivot belief and to common craft ideas such as "want versus need."
     - **Backstory** for the MC, the challenger and their relationship, feeding facts.
-    - Not adopted (lower value or too complex for novices): the Domain/Concern/Issue chain, thematic conflict, catalyst and inhibitor, benchmark, prerequisites and preconditions, audience appreciations, and anything tied to the table of story elements.
-    - **Storage (v9):** stakes sit with the dramatic question on the storyform (decision 5); strength and flaw are person facts with registered attributes `strength` and `flaw` (single cardinality, so they can change over time with `ends`); "what's really wrong versus what the MC thinks" is a belief fact (the mistaken idea, often the pivot belief) contradicting a truth fact (the real problem), building on decision 2; pressure along the way is facts with a `role` tag (`cost`, `small_win`, `warning`, `required_step`) linked to the main plot thread, which the outliner spreads across movements; backstory is ordinary facts whose `true_from` is before the first scene. All of them get time tracking, knowledge tracking and plot-hole checks for free.
+    - Points considered and not adopted are listed in `docs/background.md`.
+    - **Storage (v9):** stakes sit with the dramatic question on the arc (decision 5); strength and flaw are person facts with registered attributes `strength` and `flaw` (single cardinality, so they can change over time with `ends`); "what's really wrong versus what the MC thinks" is a belief fact (the mistaken idea, often the pivot belief) contradicting a truth fact (the real problem), building on decision 2; pressure along the way is facts with a `role` tag (`cost`, `small_win`, `warning`, `required_step`) linked to the main plot thread, which the outliner spreads across movements; backstory is ordinary facts whose `true_from` is before the first scene. All of them get time tracking, knowledge tracking and plot-hole checks for free.
 18. *Closed in v9:* launch targets, cargo-dist, shared versioning, staged signing, and the crate layout (see Build, release and delivery). Signing costs and services still need verifying before purchase.
 
 ## Suggested next steps
 
-Phase 1 design is complete enough to build. Suggested first build session: scaffold the Rust workspace (`skaldsaga-core` plus the command-line front end), the CI and distribution branch, and the session meter pilot, after running the To verify checks in Build, release and delivery. Remaining open items are research (9, wayfinder SKILL.md; 11, Dramatica licensing) or later phases (15, 16).
+Phase 1 design is complete enough to build. Suggested first build session: scaffold the Rust workspace (`skaldsaga-core` plus the command-line front end), the CI and distribution branch, and the session meter pilot, after running the To verify checks in Build, release and delivery. Before building, confirm the Proposed lessons from wayfinder (item 9) and decide on the possible research sub-agent. Remaining open items are later-phase work (15, 16) and a pre-release legal check (11).
 
 The Rust move (items 13 and 18) can run as a separate track: confirm the Proposed items, then build the session meter as the pilot once building starts.

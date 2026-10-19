@@ -19,7 +19,7 @@ Each sub-agent's model is a tunable default in `.harness/settings.json`: houseke
 |---|---|
 | **housekeeper** | Incremental pass at session start (changes since the last cleared pass); full pass (gate before weave and outline, on request) or scoped pass (touched nodes and facts plus their readers; rolling every N answers; immediately after a confirmed-decision change). Reads cleared state only. Never edits; returns flags. |
 | **harvester** | Reads drafts in `manuscript/`, proposes spec updates for new facts, flags drift against declared scene reads. |
-| **weaver** | Chooses a framework with the writer (via hand-back: returns questions, the interviewer asks them, the orchestrator re-dispatches), resolves fog subplots (map, shelve or fold in), then interleaves every thread's stages, landmarks and beats into the skeleton: ordered slot scenes in the sequence across the four movements (Setup, Complications, Crisis, Resolution), built around pinned scenes. No separate woven plan. May surface a new fog storyform. |
+| **weaver** | Chooses a framework with the writer (via hand-back: returns questions, the interviewer asks them, the orchestrator re-dispatches), resolves fog subplots (map, shelve or fold in), then interleaves every thread's stages, landmarks and beats into the skeleton: ordered slot scenes in the sequence across the four movements (Setup, Complications, Crisis, Resolution), built around pinned scenes. No separate woven plan. May surface a new fog arc. |
 | **outliner** | Deepens the skeleton one movement per dispatch: beats, POV, location, reads and the scene turn. Chapters and other groupings belong to editions, which are not built in phase 1 (HANDOFF open item 14). |
 | **completeness-rubric** | The deep, model-judged half of the completeness check. |
 
@@ -50,7 +50,7 @@ my-novel/
     scenes/       s-0001.md ...
     decisions/    d-0001.md ...
     threads/      t-0001.md ...
-    storyforms/   sf-0001.md ... (main, active, and fog subplots)
+    arcs/         a-0001.md ... (main story, active and fog subplots)
     sequence.md   scene IDs in reading order (the story itself)
     editions/     groupings over the sequence: chapters, acts, serial updates (Proposed)
     style.md      viewpoint and style node
@@ -101,7 +101,7 @@ Writer drops prose in `manuscript/` -> orchestrator dispatches the harvester -> 
 
 1. Orchestrator runs `complete` and, for depth, the completeness rubric. Gaps become frontier questions for the interviewer.
 2. Full housekeeper pass as a gate.
-3. Weaver (with the writer's framework choice) resolves fog subplots and plans the whole book; any new storyform goes in as fog.
+3. Weaver (with the writer's framework choice) resolves fog subplots and plans the whole book; any new arc goes in as fog.
 4. Full housekeeper pass as a gate, then the weaver writes the skeleton and the outliner deepens it one movement at a time, all as proposals.
 5. A rough outline with gaps marked is allowed at any point; "complete" requires every shape decision answered at least provisionally, no empty grid cells, and clean plot-hole checks.
 

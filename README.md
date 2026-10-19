@@ -46,7 +46,7 @@ At the end of the first phase, you have a **complete, detailed outline**:
 
 The first phase stops at the outline. Later phases are planned to help with drafting scenes in your own voice, editing, and preparing editions for publishing: an e-book, a print book, or a web serial. You stay the author throughout.
 
-Skaldsaga is inspired by story-structure ideas, including Dramatica, but it is not affiliated with Dramatica and doesn't require you to learn it. The goal is a good story, not a theory-correct one.
+Skaldsaga draws on many story-structure ideas. Its early design was inspired in part by Dramatica, the theory of story created by Melanie Anne Phillips and Chris Huntley. Skaldsaga is not affiliated with or endorsed by The Dramatica Co., uses none of its licensed tools, and doesn't ask you to learn any story theory. The goal is a good story, not a theory-correct one. Dramatica® is a registered trademark of its owner. More about where the ideas came from is in [`docs/background.md`](docs/background.md).
 
 ## For contributors
 
@@ -54,6 +54,7 @@ The project is in its planning phase. Start with:
 
 - [`HANDOFF.md`](HANDOFF.md): every decision so far, with its reasoning and open questions
 - [`ARCHITECTURE.md`](ARCHITECTURE.md): a one-page sketch of the components and how they fit together
+- [`docs/background.md`](docs/background.md): where the ideas came from, research notes and attribution (kept out of the build documents on purpose)
 
 ## License
 
