@@ -49,7 +49,7 @@ A grilling session on the coverage-grid stages and the weaver and outliner (open
 - **Lessons from wayfinder confirmed** (see Open items 9): keep questions short with the why in one sentence and more on request; a ruled-out ideas list no agent re-suggests; agents cannot loosen their own rules (settings, gates and opt-outs change only through the writer); the writer chooses among variants; the housekeeper suggests revisiting a confirmed decision when evidence against it builds; a question becomes a frontier question once it can be stated precisely.
 - **New sub-agent: researcher.** Looks up real-world facts a story depends on, only when the writer asks or accepts an offer, and files them as provisional proposals with sources. Mid-tier model. The writer can always bend history for the story.
 - **Phase 1 is not a public release, and builds only for Linux x64** (the author's development environment and the cloud sessions used from a phone). Signing, macOS and Windows move to the public-release phase; the launch-target and signing decisions stay as that phase's plan.
-- *Proposed:* a phone-friendly build pipeline: code written and tested in cloud sessions, GitHub Actions for CI, pull requests reviewed in the GitHub mobile app (see Build, release and delivery).
+- **Phase 1 uses the phone-friendly build pipeline:** code written and tested in cloud sessions, GitHub Actions for Linux CI, pull requests reviewed in the GitHub mobile app (see Build, release and delivery). Later phases move to the author's desktop Claude Code environment, reached remotely (likely Claude Code's remote-control feature; *verify the exact name and setup*). `skaldsaga-core` stays portable, but macOS and Windows runners wait until the CI/CD pipeline is built on the desktop.
 
 ## What changed in v8
 
@@ -603,14 +603,15 @@ Keyed by target ID. Each entry records how the target is referenced, which the d
 
 ## Build, release and delivery (new in v9; all Decided unless marked)
 
-**Phase 1 scope (Decided):** phase 1 is **not a public release**. It builds for **Linux x64 only**, which covers the author's Linux development environment and cloud Claude Code sessions (also Linux). No signing in phase 1. The macOS and Windows install checks move to the public-release phase. The targets, cargo-dist and signing items below are the **public-release plan**. *Proposed:* run the test suite on macOS and Windows runners occasionally (for example weekly), not as release targets, to keep `skaldsaga-core` portable.
+**Phase 1 scope (Decided):** phase 1 is **not a public release**. It builds for **Linux x64 only**, which covers the author's Linux development environment and cloud Claude Code sessions (also Linux). No signing in phase 1. The macOS and Windows install checks move to the public-release phase. The targets, cargo-dist and signing items below are the **public-release plan**. `skaldsaga-core` stays portable (no desktop-only dependencies; file and process access behind a small interface), but no macOS or Windows runners until the CI/CD pipeline is built on the author's desktop in a later phase.
 
-**Phone-friendly pipeline (Proposed):** the author may work from the Claude mobile app without a local Claude Code install for a while.
+**Phone-friendly pipeline (Decided for phase 1):** the author may work from the Claude mobile app without a local Claude Code install for a while.
 
 1. **Write and test in a cloud session:** Claude writes the Rust code in the cloud workspace (which has the Rust toolchain and push access) and runs `cargo build`, `cargo test` and `cargo clippy` before pushing. One branch per task (for example `build/meter-pilot`), never straight to `main`.
 2. **GitHub Actions:** format, lint and test on every push and pull request; on a version tag, build the Linux x64 binary, publish a GitHub Release, and assemble the distribution branch.
 3. **Review on the phone:** Claude opens a pull request with a plain-language summary; the author reviews and merges in the GitHub mobile app. Claude checks CI results and fixes failures in-session (the GitHub CLI login in the cloud workspace was failing on October 18 and may need fixing).
-4. **Needs a real machine later:** a hands-on plugin install test on the author's Linux machine (executable permission, status line meter). Cloud-session support can be partly tested from a cloud session itself.
+4. **Later phases:** work moves to the author's desktop Claude Code environment, reached remotely from the phone (likely Claude Code's remote-control feature, *verify*), where the full CI/CD pipeline will be built.
+5. **Needs a real machine later:** a hands-on plugin install test on the author's Linux machine (executable permission, status line meter). Cloud-session support can be partly tested from a cloud session itself.
 
 
 - **One binary with subcommands** (`init`, `check`, `commit`, `index`, `meter`, `complete`), built as a core library (`skaldsaga-core`) plus a thin command-line front end. One file to deliver and sign; the later standalone app reuses the core. (Confirms the v8 proposal.)
