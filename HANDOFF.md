@@ -28,9 +28,12 @@ Labels used below:
 
 **Next session (updated October 19, 08:50, end of the planning session):** the fix questions below are all settled and built in #17. In order:
 
-1. **Author:** merge #16 (this handoff) and #17 (the fixes, 0.3.1). Then the build session starts the Release workflow, the author syncs the marketplace, and a fresh phone session checks the hook line one folder down and the debug switch (set `SKALDSAGA_HOOK_DEBUG=1` in the Project's environment settings).
-2. **Build step 9 (`complete`)** in a fresh context, from "Step 9 planning" below. Still to confirm before building (*Proposed*): build all seven script soft checks now, with scene-count pacing using the default four-part framework until framework choice exists.
-3. **Triage the remaining older Proposed bullets** (Architecture, Governance, Spec and storage, Story model, Weaver, Future phases): mark those settled by later decisions as superseded with a pointer, and list the few that are genuinely open. Audience principles and the completeness bar were settled on October 19.
+*Update, October 19, 13:05 (planning session):* #16 and #17 are merged and **release 0.3.1 is published** (started 10:15 Mountain). Step 9's remaining design questions are settled (see "Step 9 planning"), so **step 9 is ready to build**. The author's story-map idea is parked as open item 20, the next planning topic.
+
+1. **Author:** sync the marketplace, then a fresh phone session checks the hook line one folder down and the debug switch (set `SKALDSAGA_HOOK_DEBUG=1` in the Project's environment settings). *(Merges and the 0.3.1 release are done.)*
+2. **Build step 9 (`complete`)** in a fresh context, from "Step 9 planning" below. Nothing left to confirm first.
+3. **Planning: open item 20** (story map in the session-start recap). First question already posed: map plus one recommendation (Claude's lean), map then open choice, or map only on request or at milestones.
+4. **Triage the remaining older Proposed bullets** (Architecture, Governance, Spec and storage, Story model, Weaver, Future phases): mark those settled by later decisions as superseded with a pointer, and list the few that are genuinely open. Audience principles and the completeness bar were settled on October 19.
 
 1. *Decided (October 19, 2026):* **the meter's status line goes in `.claude/settings.local.json`,** with the absolute plugin path the hook keeps current. Reasons: a status line is a shell command Claude Code runs automatically, so a committed one would run for anyone who clones the story (a supply-chain path), and the absolute path leaks the username and machine layout; a portable run-time lookup was set aside because it runs whatever matches a pattern. No true relative path exists (the plugin lives outside the story folder). Each machine wires its own meter, which the hook already does. **`init` also writes a `.gitignore`** (appending missing lines to an existing one, never replacing it) and returns it in `commit_paths`:
 
