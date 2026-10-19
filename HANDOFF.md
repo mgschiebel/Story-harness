@@ -28,7 +28,23 @@ Labels used below:
 
 **Next session:** settle the fixes below with the author, one short question at a time, build them on one fix branch (with a release, since hook and skill changes are testable from the phone), then continue with step 9 (`complete`). Open questions, in the order planned:
 
-1. Where the meter's status line setting lives (`.claude/settings.local.json`, the shared `.claude/settings.json` with a portable command, or left untracked and documented), and whether setup's snapshot includes it.
+1. *Decided (October 19, 2026):* **the meter's status line goes in `.claude/settings.local.json`,** with the absolute plugin path the hook keeps current. Reasons: a status line is a shell command Claude Code runs automatically, so a committed one would run for anyone who clones the story (a supply-chain path), and the absolute path leaks the username and machine layout; a portable run-time lookup was set aside because it runs whatever matches a pattern. No true relative path exists (the plugin lives outside the story folder). Each machine wires its own meter, which the hook already does. **`init` also writes a `.gitignore`** (appending missing lines to an existing one, never replacing it) and returns it in `commit_paths`:
+
+    ```gitignore
+    # Skaldsaga: personal or secret files, never shared
+    .claude/settings.local.json
+    .claude/*.local.*
+    CLAUDE.local.md
+    .env
+    .env.*
+    *.pem
+    *.key
+    # System clutter
+    .DS_Store
+    Thumbs.db
+    ```
+
+    Reason: `settings.local.json` can hold secrets (an `env` block with API keys, `apiKeyHelper`, permissions), and whether Claude Code ignores it automatically when another tool creates it is unverified. The real guard stays the skill committing only `commit_paths`; the `.gitignore` is the backstop. The Skaldsaga source repo gets the same personal and secret lines. Build notes: the hook's re-pointing and the status-line precedence logic in `statusline.rs` move to the local file; a writer's existing personal status line is still wrapped, not replaced; projects already wired in `.claude/settings.json` (the test repo) should be migrated or at least not double-wired.
 2. Whether to fix the hook's folder lookup at all, given cloud sessions are the author's testing only, and if so the rule (look one level down only when exactly one child folder has `.harness/`? also look upward from a subfolder?), shared with skill step 0.
 3. A debug switch for the hook (for example `SKALDSAGA_HOOK_DEBUG=1`) so a silent hook can explain itself.
 4. The skill's summary wording about when the hook runs.
