@@ -263,14 +263,25 @@ fn commit_message(proposal: &Proposal) -> String {
         .filter(|a| !a.is_empty())
         .map(|a| a.lines().next().unwrap_or(a).to_string());
     match words {
-        Some(mut a) => {
-            if a.chars().count() > 72 {
-                a = a.chars().take(69).collect::<String>() + "...";
-            }
-            format!("Skaldsaga: {a}")
-        }
+        Some(a) => format!("Skaldsaga: {}", shorten(&a, 72)),
         None => format!("Skaldsaga: answer {}", proposal.id),
     }
+}
+
+/// Shortens `text` to at most `max` characters, cutting at the last space
+/// so no word is split, and marking the cut with "...". A single word longer
+/// than the limit is cut where it must be.
+fn shorten(text: &str, max: usize) -> String {
+    if text.chars().count() <= max {
+        return text.to_string();
+    }
+    let head: String = text.chars().take(max - 3).collect();
+    // Only cut at a space if it leaves a reasonable amount of text.
+    let cut = match head.rfind(' ') {
+        Some(i) if i >= head.len() / 2 => &head[..i],
+        _ => head.as_str(),
+    };
+    format!("{}...", cut.trim_end_matches([' ', ',', ';', ':']))
 }
 
 /// Sets the review and confidence labels on everything the proposal wrote.
@@ -689,5 +700,21 @@ mod tests {
             commit(&project, "pr-badbadba", CommitOptions::default()).unwrap(),
             Outcome::Unreadable(_)
         ));
+    }
+
+    #[test]
+    fn long_messages_are_cut_at_a_word_boundary() {
+        let text = "Mara Vance is a dock clerk who learns her brother Jonah was arrested after she crosses the checkpoint";
+        let short = shorten(text, 72);
+        assert!(short.chars().count() <= 72, "{short}");
+        assert!(short.ends_with("..."));
+        assert!(text.starts_with(short.trim_end_matches("...")));
+        let before = short.trim_end_matches("...");
+        // The next character in the original is a space: no word was split.
+        assert_eq!(text[before.len()..].chars().next(), Some(' '));
+        assert_eq!(shorten("short enough", 72), "short enough");
+        // One very long word is still cut.
+        let long = "x".repeat(100);
+        assert_eq!(shorten(&long, 72).chars().count(), 72);
     }
 }

@@ -43,13 +43,14 @@ Look for a `.harness` folder at the top of the current project.
 Read the JSON it prints:
 
 - `existing_files`: the folder already holds the person's own files (`existing` lists some of them). Say that bringing in writing they already have isn't built yet, and suggest opening an empty folder for now. Nothing was changed. Stop here.
-- `already_set_up`: everything was in place. Skip to step 4.
+- `already_set_up`: everything was in place. Skip to step 4, unless `meter.cleaned` lists a file; then do step 3 for that file only.
 - `created`: setup added the folders. Continue with step 3.
 
 The `meter` part says what happened to the session meter:
 
 - `wired`: the meter is on. If `wrapped` isn't null, mention that their own status line still shows.
 - `already_wired` or `updated`: the meter was already on.
+- `cleaned` lists files an earlier version changed by mistake: it had put the meter's setting in the shared settings file, which goes into git. Setup has taken it out. Mention it in one short line.
 
 The meter's setting is kept in a personal file that never goes into git; setup's `.gitignore` keeps it (and other personal or secret files) out.
 
@@ -64,10 +65,16 @@ Skaldsaga keeps its history in git, so the person can always go back.
    git add -- <each path in commit_paths>
    ```
 
-3. If anything is staged (`git diff --cached --quiet` exits non-zero), commit it:
+   For each file in `meter.cleaned`, stage the change only if git already tracks that file (it may have been edited or removed):
 
    ```sh
-   git commit -q -m "Skaldsaga: set up the story folders"
+   git ls-files --error-unmatch -- <path> >/dev/null 2>&1 && git add -A -- <path>
+   ```
+
+3. If anything is staged (`git diff --cached --quiet` exits non-zero), commit it. Use "Skaldsaga: set up the story folders" when setup added folders, or "Skaldsaga: move the session meter to personal settings" when only `meter.cleaned` changed:
+
+   ```sh
+   git commit -q -m "<message>"
    ```
 
 If git is missing or the commit fails (for example, git doesn't know the person's name yet), explain the problem in one plain sentence and say the folders are set up anyway; the snapshot can be saved later. Don't change git settings without asking.

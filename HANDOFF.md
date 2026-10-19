@@ -30,6 +30,17 @@ Labels used below:
 
 *Update, October 19, 13:05 (planning session):* #16 and #17 are merged and **release 0.3.1 is published** (started 10:15 Mountain). Step 9's remaining design questions are settled (see "Step 9 planning"), so **step 9 is ready to build**. The author's story-map idea is parked as open item 20, the next planning topic.
 
+*Update, October 19, 14:10 (build session): 0.3.1 tested, fixes in 0.3.2.* Reports: `docs/tests/2026-10-19-0.3.1-phone-test.md` (mobile app: everything 0.3.1 ships worked) and `docs/tests/2026-10-19-0.3.1-web-retest.md` (claude.ai/code on the web). **New finding: the two surfaces start sessions in different places.** The mobile app starts in `/home/claude` with the repository one level down; claude.ai/code on the web starts *inside* the attached repository (`/home/user/<repo>`). The hook handles both. Hook stderr is not shown to Claude at session start, so the debug switch was invisible. Fix pull request (branch `fix/phone-test-0.3.1`, version 0.3.2):
+
+- **Old shared meter entry moved:** `init` and `meter wire` now take a meter status line that 0.3.0 left in the tracked `.claude/settings.json` out of that file (removing the file if nothing else is in it; the writer's own status line and other settings are never touched) and list it under `meter.cleaned`. The skill stages that file only if git already tracks it, and still makes a snapshot when setup was otherwise already done. This was the "migrate or at least not double-wire" note under decision 1, missed in #17.
+- **`locate` ignores loose files** when looking for a lone repository to suggest; another visible folder still blocks the guess (the skill always asks before using it).
+- **Commit messages are shortened at a word boundary.**
+- **Debug reasons reach Claude:** with `SKALDSAGA_HOOK_DEBUG=1`, the hook also puts its reason into the context (appended to the found line, or as its own line when it stays silent). The silent-case line never contains "Skaldsaga project", the phrase the skill looks for; the "several" reason now says "several story folders".
+- **`ci/cloud-setup.sh` no longer creates `/home/claude/.harness`** (it made a stray, empty project) or wires a meter there; it only installs the cargo wrapper. **Author: paste the new script into the Project's environment settings** (or clear the old one).
+- *Not changed:* a `.harness/` without `settings.json` still counts as a project. Requiring it was suggested in the re-test; with the setup script fixed it isn't needed, and it would change the "once `.harness/` exists, setup proceeds" rule.
+
+**Next phone test (0.3.2):** after merge, release and Sync, run the re-test's prepared orphan branches in `mgschiebel/skaldsaga-test` on the web (`test/empty-orphan`: expect only a debug line; `test/orphan-one-level-down`: expect the one-level-down line plus its debug reason), and on `main` run `/skaldsaga` once to confirm the old `.claude/settings.json` is removed and committed. Then step 9.
+
 1. **Author:** sync the marketplace, then a fresh phone session checks the hook line one folder down and the debug switch (set `SKALDSAGA_HOOK_DEBUG=1` in the Project's environment settings). *(Merges and the 0.3.1 release are done.)*
 2. **Build step 9 (`complete`)** in a fresh context, from "Step 9 planning" below. Nothing left to confirm first.
 3. **Planning: open item 20** (story map in the session-start recap). First question already posed: map plus one recommendation (Claude's lean), map then open choice, or map only on request or at milestones.

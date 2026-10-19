@@ -163,14 +163,28 @@ fn finds_a_story_one_level_below_the_session_folder() {
 #[test]
 fn debug_switch_explains_a_silent_hook() {
     let dir = TempDir::new();
+    // Without the switch: nothing at all.
+    let o = hook_with(Some(dir.path()), r#"{"source":"startup"}"#, None, false);
+    assert_eq!(stdout(&o), "");
+    assert_eq!(stderr(&o), "");
+
+    // With it: the reason on stderr and in Claude's context, which is the
+    // only place Claude sees it at session start.
     let o = hook_with(Some(dir.path()), r#"{"source":"startup"}"#, None, true);
     assert!(o.status.success());
-    assert_eq!(stdout(&o), "");
     assert!(stderr(&o).contains("no .harness folder"), "{}", stderr(&o));
+    assert!(
+        stdout(&o).contains("Skaldsaga hook debug:"),
+        "{}",
+        stdout(&o)
+    );
+    assert!(stdout(&o).contains("no .harness folder"), "{}", stdout(&o));
+    assert!(!stdout(&o).contains("Skaldsaga project"), "{}", stdout(&o));
 
     std::fs::create_dir_all(dir.path().join("a/.harness")).unwrap();
     std::fs::create_dir_all(dir.path().join("b/.harness")).unwrap();
     let o = hook_with(Some(dir.path()), r#"{"source":"startup"}"#, None, true);
-    assert_eq!(stdout(&o), "");
     assert!(stderr(&o).contains("not guessing"), "{}", stderr(&o));
+    assert!(stdout(&o).contains("not guessing"), "{}", stdout(&o));
+    assert!(!stdout(&o).contains("Skaldsaga project"), "{}", stdout(&o));
 }

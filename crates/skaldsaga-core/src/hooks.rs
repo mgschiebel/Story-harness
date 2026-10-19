@@ -26,6 +26,26 @@ pub struct SessionStart {
     pub reason: String,
 }
 
+impl SessionStart {
+    /// The context to add for Claude. With the debug switch on, the reason
+    /// is added too, and a silent hook says why it stayed silent: hook stderr
+    /// doesn't reach Claude at session start, so context is the only place a
+    /// tester can see it. The silent-case line never contains "Skaldsaga
+    /// project", the phrase the skill looks for to tell that a story was found.
+    pub fn context_for(&self, debug: bool) -> Option<String> {
+        match (&self.context, debug) {
+            (context, false) => context.clone(),
+            (Some(context), true) => {
+                Some(format!("{context} [Skaldsaga hook debug: {}]", self.reason))
+            }
+            (None, true) => Some(format!(
+                "Skaldsaga hook debug: the session-start hook ran and found no story folder to use ({}).",
+                self.reason
+            )),
+        }
+    }
+}
+
 /// Runs the session-start work for a session that starts in `start`.
 ///
 /// * `source` is Claude Code's reason for the hook: `startup`, `resume`,
@@ -70,7 +90,7 @@ pub fn session_start(start: &Path, source: &str, plugin_root: Option<&str>) -> S
         Location::Several(names) => SessionStart {
             context: None,
             reason: format!(
-                "several Skaldsaga projects one level down ({}); not guessing",
+                "several story folders one level down ({}); not guessing",
                 names.join(", ")
             ),
         },
@@ -175,6 +195,35 @@ mod tests {
             "{}",
             out.reason
         );
+    }
+
+    #[test]
+    fn debug_puts_the_reason_in_context() {
+        let dir = TempDir::new();
+        // Silent without debug, explained with it.
+        let out = session_start(dir.path(), "startup", None);
+        assert_eq!(out.context_for(false), None);
+        let debug = out.context_for(true).unwrap();
+        assert!(debug.starts_with("Skaldsaga hook debug:"), "{debug}");
+        assert!(debug.contains("no .harness folder"), "{debug}");
+        assert!(!debug.contains("Skaldsaga project"), "{debug}");
+
+        // Two stories below: the "not guessing" reason, still no found-phrase.
+        project_with_reading(&dir.path().join("a"));
+        project_with_reading(&dir.path().join("b"));
+        let debug = session_start(dir.path(), "startup", None)
+            .context_for(true)
+            .unwrap();
+        assert!(debug.contains("not guessing"), "{debug}");
+        assert!(!debug.contains("Skaldsaga project"), "{debug}");
+
+        // Found: the usual line plus the reason.
+        let story = TempDir::new();
+        project_with_reading(story.path());
+        let out = session_start(story.path(), "resume", None);
+        let debug = out.context_for(true).unwrap();
+        assert!(debug.starts_with("This folder is a Skaldsaga project"));
+        assert!(debug.ends_with(&format!("[Skaldsaga hook debug: {}]", out.reason)));
     }
 
     #[test]
