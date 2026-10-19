@@ -47,6 +47,7 @@ A grilling session on the coverage-grid stages and the weaver and outliner (open
 - **Research items 9 and 11 done:** the wayfinder SKILL.md has been read, with several lessons proposed for confirmation; licensing for the original story-theory inspiration was checked, and our design is on the safe side (see `docs/background.md` and Open items 9 and 11).
 - **Internal "storyform" renamed to "arc"** (node type `arc`, ID prefix `a-`), and all outside story-theory terms removed from the build documents so they cannot leak into prompts, schemas or code. History, research and attribution moved to `docs/background.md`; the README keeps a plain acknowledgment.
 - **Lessons from wayfinder confirmed** (see Open items 9): keep questions short with the why in one sentence and more on request; a ruled-out ideas list no agent re-suggests; agents cannot loosen their own rules (settings, gates and opt-outs change only through the writer); the writer chooses among variants; the housekeeper suggests revisiting a confirmed decision when evidence against it builds; a question becomes a frontier question once it can be stated precisely.
+- **New sub-agent: researcher.** Looks up real-world facts a story depends on, only when the writer asks or accepts an offer, and files them as provisional proposals with sources. Mid-tier model. The writer can always bend history for the story.
 
 ## What changed in v8
 
@@ -231,7 +232,7 @@ Questions use the story's own names as soon as they exist (shown here with Mara 
 - The interviewer is a separate worker from the orchestrator. The orchestrator owns the session frame (recap, choosing the topic, wrap-up). The interviewer runs the question loop for a chosen topic.
 - **Confirmed split:**
   - **Main thread:** the orchestrator (index-only reads, recap) and the interviewer skill (the live conversation).
-  - **Sub-agents (non-interactive, short summaries back):** housekeeper, harvester for drafts, weaver, outliner.
+  - **Sub-agents (non-interactive, short summaries back):** housekeeper, harvester for drafts, weaver, outliner, researcher (v9).
   - **Scripts:** deterministic checks (dependency checker, links, status, timelines, setup-and-payoff ledger), the committer, and the index rebuild.
   - **Completeness check:** a primitive with a script half and a rubric half; the rubric half runs as a sub-agent for deep passes.
 - **Session boundaries:** each topic ends at a deliberate boundary. The writer clears the chat and the next session opens with the orchestrator's recap. State is saved to disk after every confirmed answer, so nothing lives only in the chat.
@@ -239,10 +240,11 @@ Questions use the story's own names as soon as they exist (shown here with Mara 
 - **Models per sub-agent are settings (decided this session).** Each sub-agent's model is a default in `.harness/settings.json` that the writer can tune, so a writer on a budget can turn things down and newer models can be adopted without a code change. Starting defaults:
   - **Scripts:** no model, no tokens.
   - **Housekeeper (all passes) and completeness rubric:** the strong model. The housekeeper is not the deterministic part (the scripts are); it does judgment work such as unearned twists, uncorrected beliefs and premise drift. A cheap pass that misses something still marks facts cleared, and strict-lane agents trust cleared state.
-  - **Harvester:** mid-tier. It is mostly careful extraction, and adopting an existing project can mean reading a whole manuscript, so this is where tiering clearly saves.
+  - **Harvester and researcher:** mid-tier (the researcher does careful lookup, not creative work). It is mostly careful extraction, and adopting an existing project can mean reading a whole manuscript, so this is where tiering clearly saves.
   - **Weaver and outliner:** strong (creative structural work).
   - **Orchestrator and interviewer:** run in the main conversation on whatever model the writer has selected. A skill's `model` field only lasts one turn, so it cannot pin these (see Research notes).
   - **Lowering a default needs evidence.** The seeded-plot-hole evals (open item 7) test whether a cheaper model catches enough in scoped housekeeper passes; only then is that default lowered.
+- **Researcher (v9).** Looks up real-world facts the story depends on (how a 1920s blockade worked, what a courier could carry, travel time between two cities). Started only when the writer asks, or when Skaldsaga offers ("Want me to look up how blockades actually worked back then?") and the writer accepts; never automatic. Findings go to the inbox as ordinary proposals, marked provisional, with sources recorded on each fact, and pass the normal checks; canon is never changed silently. If the writer wants history bent for the story, that is their call and the fact records it as their choice. Reason: settings and plausibility are a common novice weak spot, and a wrong real-world detail is its own kind of plot hole. Inspired by wayfinder's research tickets.
 - **Hand-back pattern for sub-agents that need the writer.** Sub-agents cannot talk to the writer, but the weaver (framework choice) and the outliner may need answers. Such a sub-agent stops and returns a short list of plain-language questions. The interviewer asks them in the main conversation and saves the answers as normal proposals. The orchestrator then re-dispatches the sub-agent, which finds the answers in the spec. Rejected alternative: running the weaver as a main-thread skill, which would fill the chat's context with weaving work and shorten sessions.
 - **Scripts are written in Rust (decided in v8, replacing Node from v6).** Source in the repo; the writer gets compiled binaries for their operating system, so no runtime has to be installed (a fresh Claude Code install includes neither Node nor Python; see Research notes). Rust also gives fast status line startup, typed spec structures, and a path to a single standalone binary in later phases. A local web viewer for the manuscript, the reason Node was picked, can be served from Rust as well. One binary with subcommands (`init`, `check`, `commit`, `index`, `meter`, `complete`), built as a core library plus a thin command-line front end (confirmed in v9). Delivery and the release pipeline are in Build, release and delivery (v9).
 - Scripts can ship inside skill folders (a skill is a folder with a markdown file plus scripts). For compiled binaries this means a per-platform executable inside the plugin, never in a top-level `bin/` folder (see Research notes).
@@ -419,7 +421,7 @@ facts: [...]        # fact entries, schema below
   links: [p-0002]          # other entities this fact involves
   confidence: provisional  # confirmed | provisional | unresolved
   review: unreviewed       # unreviewed | cleared
-  source: interview        # interview | harvest:<file> | placeholder
+  source: interview        # interview | harvest:<file> | research:<url or citation> | placeholder
   role: null               # v9, optional: cost | small_win | warning | required_step (pressure along the way)
 ```
 
@@ -830,7 +832,7 @@ Checks tied to anything opted out with "keep it simple" are skipped. At the gate
     - **Challenge, don't design around.** Agents tend to build around a closed decision that has started to look wrong. The housekeeper's soft clash check should explicitly suggest revisiting a confirmed decision when evidence against it accumulates.
     - **Fog versus question test.** Something becomes a frontier question when it can be *stated* precisely, even if it can't be answered yet; until then it stays a loose "things we'll get to later" note. This matches our unresolved facts versus fog subplots.
     - **Already aligned:** index-not-store (our generated index), refer by name (names in front matter, IDs hidden), one topic per session, no pre-slicing the fog, the human speaks for themselves (the interviewer never answers its own questions).
-    - *Proposed, under discussion:* **research tasks.** Wayfinder's AFK research tickets suggest a Skaldsaga research sub-agent that looks up real-world facts a story depends on (a historical period, how a blockade worked) and proposes them as facts for approval.
+    - **Research sub-agent (Decided in v9):** see Architecture.
 10. *Closed in v9 except research:* plugins cannot ship the main status line, so setup writes it into the project's `.claude/settings.json`; an existing personal status line is wrapped, not replaced; starting values for all settings are in Default settings. Still unverified: the SessionStart `initialUserMessage` field, and hook access to context usage (no longer needed).
 11. *Closed in v9 (research, not legal advice):* licensing findings, attribution and practices are in `docs/background.md`; our design uses none of the licensed material. The internal rename (storyform to arc) and the terminology scrub are done. Remaining: have the trademark and patent points checked before public release.
 12. *Closed in v9:* starter relation vocabulary and the `group` and `item` node types (see Node format); the `add_item` and `remove_item` ops are confirmed.
@@ -850,6 +852,6 @@ Checks tied to anything opted out with "keep it simple" are skipped. At the gate
 
 ## Suggested next steps
 
-Phase 1 design is complete enough to build. Suggested first build session: scaffold the Rust workspace (`skaldsaga-core` plus the command-line front end), the CI and distribution branch, and the session meter pilot, after running the To verify checks in Build, release and delivery. Before building, decide on the possible research sub-agent (item 9). Remaining open items are later-phase work (15, 16) and a pre-release legal check (11).
+Phase 1 design is complete enough to build. Suggested first build session: scaffold the Rust workspace (`skaldsaga-core` plus the command-line front end), the CI and distribution branch, and the session meter pilot, after running the To verify checks in Build, release and delivery.  Remaining open items are later-phase work (15, 16) and a pre-release legal check (11).
 
 The Rust move (items 13 and 18) can run as a separate track: confirm the Proposed items, then build the session meter as the pilot once building starts.

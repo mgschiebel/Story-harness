@@ -13,7 +13,7 @@
 
 ### Sub-agents (no writer contact; short summary back)
 
-Each sub-agent's model is a tunable default in `.harness/settings.json`: housekeeper, completeness rubric, weaver and outliner start on the strong model; the harvester on mid-tier.
+Each sub-agent's model is a tunable default in `.harness/settings.json`: housekeeper, completeness rubric, weaver and outliner start on the strong model; the harvester and researcher on mid-tier.
 
 | Sub-agent | Job |
 |---|---|
@@ -21,6 +21,7 @@ Each sub-agent's model is a tunable default in `.harness/settings.json`: houseke
 | **harvester** | Reads drafts in `manuscript/`, proposes spec updates for new facts, flags drift against declared scene reads. |
 | **weaver** | Chooses a framework with the writer (via hand-back: returns questions, the interviewer asks them, the orchestrator re-dispatches), resolves fog subplots (map, shelve or fold in), then interleaves every thread's stages, landmarks and beats into the skeleton: ordered slot scenes in the sequence across the four movements (Setup, Complications, Crisis, Resolution), built around pinned scenes. No separate woven plan. May surface a new fog arc. |
 | **outliner** | Deepens the skeleton one movement per dispatch: beats, POV, location, reads and the scene turn. Chapters and other groupings belong to editions, which are not built in phase 1 (HANDOFF open item 14). |
+| **researcher** | Looks up real-world facts the story depends on, when the writer asks or accepts an offer; files provisional proposals with sources. Mid-tier model. |
 | **completeness-rubric** | The deep, model-judged half of the completeness check. |
 
 ### Scripts (deterministic; written in Rust, compiled binaries ship with the plugin)
