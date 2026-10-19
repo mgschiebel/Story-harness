@@ -46,6 +46,7 @@ A grilling session on the coverage-grid stages and the weaver and outliner (open
 - **Phones:** no native iOS or Android binaries in phase 1. Writers on phones use cloud Claude Code sessions, which the Linux binary covers (verify plugin, hook and status line support there). `skaldsaga-core` stays portable so a native mobile app can come with the standalone app later.
 - **Research items 9 and 11 done:** the wayfinder SKILL.md has been read, with several lessons proposed for confirmation; licensing for the original story-theory inspiration was checked, and our design is on the safe side (see `docs/background.md` and Open items 9 and 11).
 - **Internal "storyform" renamed to "arc"** (node type `arc`, ID prefix `a-`), and all outside story-theory terms removed from the build documents so they cannot leak into prompts, schemas or code. History, research and attribution moved to `docs/background.md`; the README keeps a plain acknowledgment.
+- **Lessons from wayfinder confirmed** (see Open items 9): keep questions short with the why in one sentence and more on request; a ruled-out ideas list no agent re-suggests; agents cannot loosen their own rules (settings, gates and opt-outs change only through the writer); the writer chooses among variants; the housekeeper suggests revisiting a confirmed decision when evidence against it builds; a question becomes a frontier question once it can be stated precisely.
 
 ## What changed in v8
 
@@ -821,7 +822,7 @@ Checks tied to anything opted out with "keep it simple" are skipped. At the gate
 6. *Closed at design level in v9* (see Checks: who catches what): script versus housekeeper split, the four completeness-rubric judgments, and the flag budget. Exact prompt text, confidence scales and message wording are build work.
 7. *Closed at plan level in v9* (see Testing and evals). Remaining is build work: writing and reviewing the test stories and fixtures.
 8. *Deferred in v9 (length left phase 1):* research traditional and self-publishing length norms for the length data file, when the edition phase begins.
-9. *Closed in v9 (research):* wayfinder SKILL.md read (see Research notes). **Lessons from wayfinder**, all *Proposed* for confirmation:
+9. *Closed in v9 (research):* wayfinder SKILL.md read (see Research notes). **Lessons from wayfinder** (confirmed by the author, so all Decided except the last bullet):
     - **Keep questions short.** Wayfinder's sharpest user complaint is long, verbose questions causing decision fatigue and hiding why each is asked. Skaldsaga's teaching asides make this a bigger risk for us: one short question, one sentence of why, and the longer teaching only on request ("want to know more about why this matters?").
     - **Ruled-out ideas list.** Wayfinder's out-of-scope list never graduates. Skaldsaga equivalent: ideas the writer has explicitly rejected are recorded so no agent suggests them again (different from shelved subplots, which may return).
     - **Agents cannot loosen their own rules.** Wayfinder agents wrote exemptions into the map's Notes and then obeyed them. In Skaldsaga, only the writer (through the orchestrator) changes settings, gates or opt-outs; a sub-agent proposal that touches settings or governance is a hard failure.
@@ -829,7 +830,7 @@ Checks tied to anything opted out with "keep it simple" are skipped. At the gate
     - **Challenge, don't design around.** Agents tend to build around a closed decision that has started to look wrong. The housekeeper's soft clash check should explicitly suggest revisiting a confirmed decision when evidence against it accumulates.
     - **Fog versus question test.** Something becomes a frontier question when it can be *stated* precisely, even if it can't be answered yet; until then it stays a loose "things we'll get to later" note. This matches our unresolved facts versus fog subplots.
     - **Already aligned:** index-not-store (our generated index), refer by name (names in front matter, IDs hidden), one topic per session, no pre-slicing the fog, the human speaks for themselves (the interviewer never answers its own questions).
-    - **Possible addition (not yet discussed): research tasks.** Wayfinder's AFK research tickets suggest a Skaldsaga research sub-agent that looks up real-world facts a story depends on (a historical period, how a blockade worked) and proposes them as facts for approval.
+    - *Proposed, under discussion:* **research tasks.** Wayfinder's AFK research tickets suggest a Skaldsaga research sub-agent that looks up real-world facts a story depends on (a historical period, how a blockade worked) and proposes them as facts for approval.
 10. *Closed in v9 except research:* plugins cannot ship the main status line, so setup writes it into the project's `.claude/settings.json`; an existing personal status line is wrapped, not replaced; starting values for all settings are in Default settings. Still unverified: the SessionStart `initialUserMessage` field, and hook access to context usage (no longer needed).
 11. *Closed in v9 (research, not legal advice):* licensing findings, attribution and practices are in `docs/background.md`; our design uses none of the licensed material. The internal rename (storyform to arc) and the terminology scrub are done. Remaining: have the trademark and patent points checked before public release.
 12. *Closed in v9:* starter relation vocabulary and the `group` and `item` node types (see Node format); the `add_item` and `remove_item` ops are confirmed.
@@ -849,6 +850,6 @@ Checks tied to anything opted out with "keep it simple" are skipped. At the gate
 
 ## Suggested next steps
 
-Phase 1 design is complete enough to build. Suggested first build session: scaffold the Rust workspace (`skaldsaga-core` plus the command-line front end), the CI and distribution branch, and the session meter pilot, after running the To verify checks in Build, release and delivery. Before building, confirm the Proposed lessons from wayfinder (item 9) and decide on the possible research sub-agent. Remaining open items are later-phase work (15, 16) and a pre-release legal check (11).
+Phase 1 design is complete enough to build. Suggested first build session: scaffold the Rust workspace (`skaldsaga-core` plus the command-line front end), the CI and distribution branch, and the session meter pilot, after running the To verify checks in Build, release and delivery. Before building, decide on the possible research sub-agent (item 9). Remaining open items are later-phase work (15, 16) and a pre-release legal check (11).
 
 The Rust move (items 13 and 18) can run as a separate track: confirm the Proposed items, then build the session meter as the pilot once building starts.
