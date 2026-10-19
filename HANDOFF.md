@@ -852,6 +852,6 @@ Checks tied to anything opted out with "keep it simple" are skipped. At the gate
 
 ## Suggested next steps
 
-Phase 1 design is complete enough to build. Suggested first build session: scaffold the Rust workspace (`skaldsaga-core` plus the command-line front end), the CI and distribution branch, and the session meter pilot, after running the To verify checks in Build, release and delivery.  Remaining open items are later-phase work (15, 16) and a pre-release legal check (11).
+Phase 1 design is complete enough to build. Suggested first build session: scaffold the Rust workspace (`skaldsaga-core` plus the command-line front end), the CI and distribution branch, and the session meter pilot, after running the To verify checks in Build, release and delivery. Remaining open items are later-phase work (15, 16) and a pre-release legal check (11).
 
 The Rust move (items 13 and 18) can run as a separate track: confirm the Proposed items, then build the session meter as the pilot once building starts.
