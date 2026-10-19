@@ -1,6 +1,6 @@
 # Skaldsaga: Planning Handoff (v9)
 
-*Planning session summary, October 18, 2026 (late night; last updated October 18, 23:55, after release 0.3.0). Supersedes v8 (October 18, night). Background, research on the original story-theory inspiration, and attribution live in `docs/background.md`, which build sessions should not load. Status: phase 1 design complete; build steps 1 to 8 done (step 5, the spec model and first-run setup, is release 0.2.0; steps 6 and 7, the generated index and the dependency checker, are internal; step 8, the committer and the demo, is release 0.3.0), and the installed plugin is tested from a phone at each testable milestone (see Current stage). Companion file: `ARCHITECTURE.md` (one-page sketch, reviewed in the v6 session). The project was called Story Harness until the v6 session; the GitHub repo has been renamed to Skaldsaga.*
+*Planning session summary, October 18, 2026 (late night; last updated October 19, 07:00, after the 0.3.0 phone test). Supersedes v8 (October 18, night). Background, research on the original story-theory inspiration, and attribution live in `docs/background.md`, which build sessions should not load. Status: phase 1 design complete; build steps 1 to 8 done (step 5, the spec model and first-run setup, is release 0.2.0; steps 6 and 7, the generated index and the dependency checker, are internal; step 8, the committer and the demo, is release 0.3.0), and the installed plugin is tested from a phone at each testable milestone (see Current stage). Companion file: `ARCHITECTURE.md` (one-page sketch, reviewed in the v6 session). The project was called Story Harness until the v6 session; the GitHub repo has been renamed to Skaldsaga.*
 
 ## How to use this document
 
@@ -16,23 +16,28 @@ Labels used below:
 
 **Build steps and GitHub numbers (Decided, October 18, 2026):** the build plan is counted in **steps** (Step 1, Step 2 …), not pull requests. Each step cites its GitHub pull request number and branch, for example "Step 6 (#11, branch `build/index`)", so the number matches what the GitHub app shows. Small fix and doc pull requests don't get a step number and are cited by GitHub number only when they matter. Reason: GitHub counts every pull request, so the two numbers drift apart; a step number can also be named before its pull request exists.
 
-## Current stage: waiting for the 0.3.0 phone test results (October 18, 2026)
+## Current stage: 0.3.0 phone test done; reviewing fixes before step 9 (October 19, 2026)
 
-**Next session: start by asking the author for the 0.3.0 phone test results**, one short question at a time, before building anything. Steps 1 to 8 are merged and **release 0.3.0** (tag `v0.3.0`, `dist` branch at 0.3.0) was published on October 18 at about 23:50 Mountain time, after step 8 (#14). The author then planned to sync the marketplace, add a new empty test repository to the Project, and run `/skaldsaga demo` (plan and expected results in "Next phone test (0.3.0 …)" below). Questions worth asking, in order:
+**The 0.3.0 phone test passed on everything step 8 delivers.** Full report: `docs/tests/2026-10-19-0.3.0-phone-test.md` (two runs on October 19, in the empty repository `mgschiebel/skaldsaga-test`). Summary:
 
-1. Did the session report 0.3.0? (If 0.2.0: the manual marketplace Sync didn't take.)
-2. Did the skill ask to use the test repository's folder, and did setup and its snapshot succeed there?
-3. Did the first sample answer pass, commit and save to git, and was the second refused (`learns_before_true`) and deleted?
-4. Did the push to GitHub work, and do the files look right there?
-5. Anything confusing in the wording?
+- **Passed:** version 0.3.0 reported (the manual Sync took); `init` in the empty repository (`created`, meter `wired`) and its snapshot; `demo` filed both sample answers; `pr-demstart` passed, committed and saved to git; `pr-demmixup` failed with `learns_before_true` and was held, then deleted; the push to GitHub worked. `spec/_index/` stayed out of git as designed. An empty repository (no commits) caused no trouble for Skaldsaga.
+- **Found 1: setup leaves `.claude/settings.json` untracked.** `init` writes the meter's status line there but doesn't return it in `commit_paths`, so the folder isn't clean after setup (the cloud session's stop hook asked about it). The file holds an absolute plugin path tied to one machine or session, so committing it (done in the test, commit `ca500b5`) breaks the meter elsewhere. This affects writers on local Claude Code too, not just testing.
+- **Found 2: the session-start hook stays silent when the story folder is one level below the session folder,** which is always the case in cloud sessions (session in `/home/claude`, repository in `/home/claude/<repo>`). Run by hand with the repository as `cwd`, it works. Correction to the report: the hook reads `CLAUDE_PROJECT_DIR` first and falls back to the payload's `cwd`; cloud sessions leave `CLAUDE_PROJECT_DIR` empty. It never looks down a level (skill step 0 does) or up from a subfolder. The skill's summary also wrongly promises the hook "will run next session."
+- **Found 3: the meter still has no reading.** Likely cause: Claude Code reads project settings from the session folder, so the repository's `.claude/settings.json` (and its status line) is never loaded in cloud sessions. Meter testing stays paused, as decided earlier.
+- **Environment notes:** the clone helper mentions a `register_repo_root` tool that cloud sessions didn't have (October 19: also missing in the build session), so a repository's `CLAUDE.md`, skills and plugins aren't loaded automatically. GitHub now reports the test repository as `Skaldsaga-test`; pushes still work.
 
-Record the results here (replacing this checklist with what was found), fix anything broken on a branch, then continue with step 9 (`complete`).
+**Next session:** settle the fixes below with the author, one short question at a time, build them on one fix branch (with a release, since hook and skill changes are testable from the phone), then continue with step 9 (`complete`). Open questions, in the order planned:
+
+1. Where the meter's status line setting lives (`.claude/settings.local.json`, the shared `.claude/settings.json` with a portable command, or left untracked and documented), and whether setup's snapshot includes it.
+2. Whether to fix the hook's folder lookup at all, given cloud sessions are the author's testing only, and if so the rule (look one level down only when exactly one child folder has `.harness/`? also look upward from a subfolder?), shared with skill step 0.
+3. A debug switch for the hook (for example `SKALDSAGA_HOOK_DEBUG=1`) so a silent hook can explain itself.
+4. The skill's summary wording about when the hook runs.
 
 **Read this if you are a session started from the "skaldsaga design project" Claude Code Project.** Sessions opened there may be **test sessions**: the author types `/skaldsaga` or `/skaldsaga demo` to check that the installed pieces work. Do not start building unless asked. Earlier test notes follow.
 
 What a test session checks, and what to expect:
 
-- **Program:** `/skaldsaga` reports the version (0.1.1 and 0.2.0 worked; 0.3.0 untested yet).
+- **Program:** `/skaldsaga` reports the version (0.1.1, 0.2.0 and 0.3.0 worked).
 - **Session-start hook:** the context should contain a line starting "This folder is a Skaldsaga project". If it's missing, check whether `/home/claude/.harness` existed *before* the session started (`stat -c %w`): the hook is guarded and stays silent without it.
 - **Meter:** `meter check` reports a state. `unknown` with "no meter reading yet" means the status line hasn't run; whether it runs in cloud sessions at all is still unconfirmed.
 
@@ -967,4 +972,4 @@ Checks tied to anything opted out with "keep it simple" are skipped. At the gate
 
 ## Suggested next steps
 
-Build order for the deterministic half of phase 1: `index` (step 6, done), `check` with the proposal format and the operation engine (step 7, done), `commit` (step 8, done: the single committer with the version check, reusing the engine, plus the demo), then step 9: `complete` with the script soft checks. Each step that adds something testable from the phone gets a release (see Current stage). After that come the interviewer and orchestrator prompts and the sub-agents. Remaining open items are later-phase work (15, 16) and a pre-release legal check (11).
+Build order for the deterministic half of phase 1: `index` (step 6, done), `check` with the proposal format and the operation engine (step 7, done), `commit` (step 8, done: the single committer with the version check, reusing the engine, plus the demo), then a fix pull request for the 0.3.0 phone-test findings (see Current stage), then step 9: `complete` with the script soft checks. Each step that adds something testable from the phone gets a release (see Current stage). After that come the interviewer and orchestrator prompts and the sub-agents. Remaining open items are later-phase work (15, 16) and a pre-release legal check (11).
