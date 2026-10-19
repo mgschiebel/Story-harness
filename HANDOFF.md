@@ -357,9 +357,7 @@ Questions use the story's own names as soon as they exist (shown here with Mara 
 - A rough outline is allowed early, with gaps marked (so story theory is never forced on the writer).
 - A complete outline may contain provisional answers. Each provisional answer gates the tasks that depend on it. Anything unresolved blocks "complete."
 
-**Proposed**
-
-- A complete outline lists its provisional items as "assumptions to confirm," each with a note on what would settle it.
+- **A complete outline lists its provisional items as "assumptions to confirm,"** each with what would settle it (*Decided October 19, 2026*, was Proposed). `complete` reports them as codes and IDs like its other blockers ("not sure yet" answers already carry an open assumption in `.harness/committed/`), and the orchestrator words each plainly ("We're still assuming Jonah never learns the truth; one scene showing his reaction would settle it").
 
 ## Architecture
 
