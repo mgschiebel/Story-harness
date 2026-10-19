@@ -5,7 +5,7 @@
 //!
 //! - the **starter vocabulary**, built into Skaldsaga, and
 //! - **the story's own keys**, kept in `spec/attributes.md` (decided in the
-//!   PR 6 session). They are story vocabulary, so they live in canon next to
+//!   build step 6 session). They are story vocabulary, so they live in canon next to
 //!   the facts that use them, and go back in history with them. The file is
 //!   changed only through proposals, like any other spec file.
 //!
