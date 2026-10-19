@@ -8,7 +8,7 @@
 # The binaries live in scripts/bin/<platform>/ on the distribution branch;
 # main holds source only. SKALDSAGA_BIN overrides the binary (development).
 
-here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+here=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
 
 # The status line must never show an error to the writer.
 quiet=0

@@ -37,7 +37,11 @@ jobs:
         run: cargo build --release --locked
 
       - name: Check the launcher script
-        run: shellcheck scripts/skaldsaga
+        # Findings are turned into annotations so they show on the pull request.
+        run: |
+          set -o pipefail
+          shellcheck -f gcc scripts/skaldsaga \
+            | sed -E 's/^([^:]+):([0-9]+):([0-9]+): (.*)$/::error file=\1,line=\2,col=\3::\4/'
 
       - name: Launcher smoke test
         run: |
