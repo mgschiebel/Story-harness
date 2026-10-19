@@ -291,9 +291,10 @@ A set of Claude Code skills (a "harness") that helps a novice aspiring author tu
   - **Scope:** plot, scenes, characters and what-ifs in phase 1 (outline level). Voice, POV voice and dialogue are prose-level, for a later phase with the style guide.
 - **Taste anchors** (*Decided October 19, 2026*, was Proposed): ask early, lightly and once, about the genre and feel the writer wants for this story and their favorite stories; never steer toward copying a favorite. The genre for this story is story meaning (spec); favorite stories are writer state. **The writer's words come first:** when they name a story, ask what they love about it. **Don't assume we know it:** when the interviewer will refer to specifics, the researcher looks up public sources (summaries, reviews, author interviews), and genre conventions are researched the same way. For copyrighted works, sources about the story, never its text; full text only for public-domain works. Pairs with the light starting check (open item 19).
 
+- **At most one ripple question per answer, and no deadlock** (*Decided October 19, 2026*, was Proposed): when an answer affects other parts of the story, the interviewer asks at most one follow-up right away; anything more joins the flag queue. If the writer is still stuck after the what-if options and the brainstorming offer, the interviewer records a flagged provisional answer and moves on, so a session never stalls on one question. Fits the flag budget and the provisional-answer rule.
+
 **Proposed**
 
-- At most one ripple question per answer. A no-deadlock rule: if still stuck after options, set a flagged provisional answer and keep going.
 - Hide internal terms (map, tickets, fog). Users see "what we've decided" and "things we'll get to later."
 - When momentum slows, suggest the area where confirming one provisional answer would unblock the most downstream work.
 
