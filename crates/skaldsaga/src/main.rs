@@ -1,7 +1,7 @@
 //! `skaldsaga`: the command-line front end for Skaldsaga's deterministic scripts.
 //!
-//! One binary with subcommands. Only the session meter is built so far; the
-//! other subcommands are reserved and say so.
+//! One binary with subcommands. The session meter and the session-start hook
+//! are built so far; the other subcommands are reserved and say so.
 
 mod wrapped;
 
@@ -10,6 +10,7 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use skaldsaga_core::hooks;
 use skaldsaga_core::json::{self, Value, ValueExt as _};
 use skaldsaga_core::meter::{self, StatusInput};
 use skaldsaga_core::project::Project;
@@ -28,6 +29,9 @@ Usage:
                                      Clears the last reading (for a new session)
   skaldsaga meter wire --command CMD [--project DIR] [--user-settings FILE]
                                      Wires the meter into the project's status line
+  skaldsaga hook session-start       SessionStart hook: reads Claude Code's JSON on stdin;
+                                     in a Skaldsaga project, prepares the session and adds
+                                     context for Claude. Elsewhere it prints nothing
   skaldsaga --version                Prints the version
 
 Not built yet: init, check, commit, index, complete
@@ -61,6 +65,7 @@ fn main() -> ExitCode {
         ["meter", "check", rest @ ..] => run(meter_check(rest)),
         ["meter", "reset", rest @ ..] => run(meter_reset(rest)),
         ["meter", "wire", rest @ ..] => run(meter_wire(rest)),
+        ["hook", "session-start", ..] => hook_session_start(),
         [
             cmd @ ("init" | "check" | "commit" | "index" | "complete"),
             ..,
@@ -252,4 +257,43 @@ fn meter_wire(rest: &[&str]) -> Result<(), CliError> {
         }
     }
     print_json(&v)
+}
+
+/// The SessionStart hook. Like the status line, it must never get in the
+/// writer's way: it always exits successfully, and prints nothing outside a
+/// Skaldsaga project.
+fn hook_session_start() -> ExitCode {
+    let mut raw = String::new();
+    let _ = io::stdin().lock().take(MAX_STDIN).read_to_string(&mut raw);
+    let input = json::parse(&raw).ok();
+    let field = |key: &str| {
+        input
+            .as_ref()
+            .and_then(|v| v.get(key))
+            .and_then(Value::as_str)
+            .filter(|s| !s.is_empty())
+            .map(str::to_string)
+    };
+
+    // Claude Code exports CLAUDE_PROJECT_DIR to hooks; fall back to the cwd it reports.
+    let project_dir = std::env::var_os("CLAUDE_PROJECT_DIR")
+        .filter(|v| !v.is_empty())
+        .map(PathBuf::from)
+        .or_else(|| field("cwd").map(PathBuf::from))
+        .unwrap_or_else(default_project_dir);
+    let source = field("source").unwrap_or_else(|| "startup".to_string());
+    let plugin_root = std::env::var("CLAUDE_PLUGIN_ROOT").ok();
+
+    let Some(context) =
+        hooks::session_start(&Project::new(project_dir), &source, plugin_root.as_deref())
+    else {
+        return ExitCode::SUCCESS;
+    };
+    let mut specific = json::object();
+    specific.set("hookEventName", "SessionStart".into());
+    specific.set("additionalContext", context.into());
+    let mut out = json::object();
+    out.set("hookSpecificOutput", specific);
+    println!("{}", out.to_compact_string());
+    ExitCode::SUCCESS
 }

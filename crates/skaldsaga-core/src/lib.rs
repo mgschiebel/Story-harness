@@ -6,9 +6,11 @@
 //! stays portable: no desktop-only dependencies, and file access goes through
 //! [`fsio`].
 //!
-//! Built so far: the session meter (the pilot) and status line wiring.
+//! Built so far: the session meter (the pilot), status line wiring, and the
+//! session-start hook.
 
 pub mod fsio;
+pub mod hooks;
 pub mod json;
 pub mod meter;
 pub mod project;

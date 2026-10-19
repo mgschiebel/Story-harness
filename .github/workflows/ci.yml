@@ -36,27 +36,46 @@ jobs:
       - name: Build release binary
         run: cargo build --release --locked
 
-      - name: Check the launcher script
+      - name: Check the shell scripts
         # Findings are turned into annotations so they show on the pull request.
         run: |
           set -o pipefail
-          shellcheck -f gcc scripts/skaldsaga \
+          shellcheck -f gcc plugin/scripts/skaldsaga ci/assemble-dist.sh \
             | sed -E 's/^([^:]+):([0-9]+):([0-9]+): (.*)$/::error file=\1,line=\2,col=\3::\4/'
 
-      - name: Launcher smoke test
+      - name: Assemble the plugin
+        run: sh ci/assemble-dist.sh dist target/release/skaldsaga
+
+      - name: Validate the plugin
+        run: |
+          npm install --global --silent @anthropic-ai/claude-code
+          claude plugin validate --strict dist
+          claude plugin validate --strict dist/.claude-plugin/plugin.json
+
+      - name: Smoke test the assembled plugin
         run: |
           set -eu
+          d=$PWD/dist
           t=$(mktemp -d)
-          mkdir -p "$t/scripts/bin/linux-x64" "$t/novel/.harness"
-          cp scripts/skaldsaga "$t/scripts/"
-          cp target/release/skaldsaga "$t/scripts/bin/linux-x64/"
-          chmod -x "$t/scripts/bin/linux-x64/skaldsaga"   # simulate a plugin install that drops the bit
-          cargo metadata --no-deps --format-version 1 \
-            | python3 -c 'import json,sys; print([p["version"] for p in json.load(sys.stdin)["packages"] if p["name"]=="skaldsaga"][0])' \
-            > "$t/scripts/VERSION"
-          sh "$t/scripts/skaldsaga" --version
+          mkdir -p "$t/novel/.harness" "$t/elsewhere"
+          chmod -x "$d/scripts/skaldsaga" "$d/scripts/bin/linux-x64/skaldsaga"   # simulate an install that drops the bits
+          sh "$d/scripts/skaldsaga" --version
+
+          # Status line
           out=$(printf '{"session_id":"ci","workspace":{"project_dir":"%s"},"context_window":{"used_percentage":72}}' "$t/novel" \
-            | sh "$t/scripts/skaldsaga" meter statusline)
+            | sh "$d/scripts/skaldsaga" meter statusline)
           echo "$out"
           test "$out" = "Skaldsaga · session 72% full · time to wrap up"
-          sh "$t/scripts/skaldsaga" meter check --project "$t/novel" | grep -q '"state": "wrap_up"'
+          sh "$d/scripts/skaldsaga" meter check --project "$t/novel" | grep -q '"state": "wrap_up"'
+
+          # Session-start hook: silent elsewhere, adds context in a project
+          out=$(echo '{"source":"startup"}' | CLAUDE_PROJECT_DIR="$t/elsewhere" CLAUDE_PLUGIN_ROOT="$d" sh "$d/scripts/skaldsaga" hook session-start)
+          test -z "$out"
+          echo '{"source":"startup"}' | CLAUDE_PROJECT_DIR="$t/novel" CLAUDE_PLUGIN_ROOT="$d" sh "$d/scripts/skaldsaga" hook session-start \
+            | grep -q '"additionalContext"'
+          test ! -e "$t/novel/.harness/meter.json"
+
+          # A missing binary must stay silent in the hook and the status line
+          rm "$d/scripts/bin/linux-x64/skaldsaga"
+          test -z "$(echo '{}' | sh "$d/scripts/skaldsaga" hook session-start)"
+          test "$(echo '{}' | sh "$d/scripts/skaldsaga" meter statusline)" = ""
