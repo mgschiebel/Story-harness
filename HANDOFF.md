@@ -1014,7 +1014,8 @@ Checks tied to anything opted out with "keep it simple" are skipped. At the gate
       - **A light starting check** of the writer's experience (have they written before, read craft books?), since `teach`'s most common complaint is assuming knowledge with no assessment. **Never use a term before it's taught.**
       - **Stop teaching a concept once the writer uses its term unprompted.**
       - **The program shuffles writer-choice options** (what-if variants and any multiple-option question). In `teach`, correct quiz answers kept landing in the first slot and prompt wording didn't fix it; only shuffling in code did. Position must not sway the writer's choice.
-      - **Still to discuss:** practicing by applying rather than quizzing; concept explanations written once, reviewed and built into the program rather than improvised; recording teaching preferences ("less explaining, please"). Skipped for phase 1: timed spaced repetition, and pointing writers to communities (fits the later reviews phase).
+      - **Practice by applying, never quizzing.** After a concept is taught, the interviewer later asks the writer to place it in their own story ("Which scene feels like Mara's lowest point?"), and later still uses the term without explaining it to see whether it stuck; each counts as evidence toward demonstrated. Guard: only when the question is useful to the story anyway, never a check for its own sake.
+      - **Still to discuss:** concept explanations written once, reviewed and built into the program rather than improvised; recording teaching preferences ("less explaining, please"). Skipped for phase 1: timed spaced repetition, and pointing writers to communities (fits the later reviews phase).
 
 ## Suggested next steps
 
