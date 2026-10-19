@@ -13,7 +13,14 @@ Below, `skaldsaga` means `sh "${CLAUDE_PLUGIN_ROOT}/scripts/skaldsaga"`, and `ME
 
 ## 0. Find the story folder
 
-The story folder is normally the current folder. But if the current folder has no `.harness` folder and holds exactly one visible folder that is a git repository (it contains `.git`), with nothing else visible, the person probably means that folder (in cloud sessions, a repository is cloned one level down). Ask one question: "Should I use the `<name>` folder for your story?" On a yes, add `--project <full path of that folder>` to every `skaldsaga` command below, and run every `git` command inside that folder. On a no, use the current folder.
+Run `skaldsaga locate` and read `found` (in cloud sessions, a repository is cloned one level below the current folder):
+
+- `here` or `nothing`: use the current folder.
+- `below`: the story folder is `name`, one level down. Use it, and say so in one short line.
+- `candidate`: no story yet, but the current folder holds only one git repository, `name`. Ask one question: "Should I use the `<name>` folder for your story?" On a no, use the current folder.
+- `several`: more than one story folder is one level down (listed in `several`). Ask which one to use.
+
+When you use a folder other than the current one, add `--project <its path>` (the `path` field) to every `skaldsaga` command below, and run every `git` command inside that folder.
 
 ## 1. Check the program
 
@@ -43,7 +50,8 @@ The `meter` part says what happened to the session meter:
 
 - `wired`: the meter is on. If `wrapped` isn't null, mention that their own status line still shows.
 - `already_wired` or `updated`: the meter was already on.
-- `overridden_by_local`: their personal status line setting would hide the meter; nothing was changed. Ask before touching that file.
+
+The meter's setting is kept in a personal file that never goes into git; setup's `.gitignore` keeps it (and other personal or secret files) out.
 
 ## 3. Save a first snapshot with git
 
@@ -77,7 +85,7 @@ In three or four short lines, say:
 - the program version;
 - what setup did (folders added, or already in place) and whether the snapshot was saved;
 - the meter state;
-- whether the session-start hook ran: it adds a line to your context starting "This folder is a Skaldsaga project". Say yes or no; don't quote it. (It only runs when a session starts, so right after first-time setup it's normal for it to be missing; it will run next session.)
+- whether the session-start hook ran: it adds a line to your context containing "Skaldsaga project". Say yes or no; don't quote it. (It only runs when a session starts. Right after first-time setup it's normal for it to be missing; it runs in the next session that starts in the story folder or the folder just above it.)
 
 ## Demo
 

@@ -12,12 +12,13 @@ PROJECT=/home/claude
 # 1. Make the folder a Skaldsaga test project (what the hook looks for).
 mkdir -p "$PROJECT/.harness"
 
-# 2. Wire the session meter into the project's status line.
+# 2. Wire the session meter into the project's personal status line
+#    (.claude/settings.local.json, which stays out of git).
 #    The plugin may not be synced yet when this runs, so the command finds the
 #    launcher at run time. The session-start hook then rewrites it to the exact
 #    plugin path (it updates any status line containing "meter statusline").
 mkdir -p "$PROJECT/.claude"
-SETTINGS="$PROJECT/.claude/settings.json"
+SETTINGS="$PROJECT/.claude/settings.local.json"
 if [ ! -s "$SETTINGS" ]; then
   cat > "$SETTINGS" <<'EOF'
 {

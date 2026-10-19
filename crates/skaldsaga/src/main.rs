@@ -19,7 +19,7 @@ use skaldsaga_core::index;
 use skaldsaga_core::init::{self, InitOutcome, InitReport};
 use skaldsaga_core::json::{self, Value, ValueExt as _};
 use skaldsaga_core::meter::{self, StatusInput};
-use skaldsaga_core::project::Project;
+use skaldsaga_core::project::{self, Location, Project};
 use skaldsaga_core::settings::MeterSettings;
 use skaldsaga_core::statusline::{self, WireError, WireOutcome};
 
@@ -39,10 +39,14 @@ Usage:
   skaldsaga meter reset [--project DIR]
                                      Clears the last reading (for a new session)
   skaldsaga meter wire --command CMD [--project DIR] [--user-settings FILE]
-                                     Wires the meter into the project's status line
+                                     Wires the meter into the project's personal status line
+                                     (.claude/settings.local.json)
+  skaldsaga locate [--project DIR]   Finds the story folder: DIR itself, or the one child
+                                     folder that is a project. Prints JSON
   skaldsaga hook session-start       SessionStart hook: reads Claude Code's JSON on stdin;
                                      in a Skaldsaga project, prepares the session and adds
-                                     context for Claude. Elsewhere it prints nothing
+                                     context for Claude. Elsewhere it prints nothing. With
+                                     SKALDSAGA_HOOK_DEBUG=1, says why on stderr
   skaldsaga check [--project DIR] [--proposal ID]...
                                      Checks pending proposals in .harness/inbox (all, or the
                                      ones named) against the spec and writes each verdict into
@@ -89,6 +93,7 @@ fn main() -> ExitCode {
         ["meter", "reset", rest @ ..] => run(meter_reset(rest)),
         ["meter", "wire", rest @ ..] => run(meter_wire(rest)),
         ["hook", "session-start", ..] => hook_session_start(),
+        ["locate", rest @ ..] => run(locate_cmd(rest)),
         ["init", rest @ ..] => run(init_cmd(rest)),
         ["index", rest @ ..] => run(index_cmd(rest)),
         ["check", rest @ ..] => run(check_cmd(rest)),
@@ -284,10 +289,6 @@ fn wire_meter(
         WireOutcome::Wired { wrapped } => {
             v.set("outcome", "wired".into());
             v.set("wrapped", wrapped.unwrap_or(Value::Null));
-        }
-        WireOutcome::OverriddenByLocal { existing } => {
-            v.set("outcome", "overridden_by_local".into());
-            v.set("existing", existing);
         }
     }
     Ok(v)
@@ -512,9 +513,36 @@ fn demo_cmd(rest: &[&str]) -> Result<(), CliError> {
     print_json(&v)
 }
 
+/// Finds the story folder from the session's folder (or `--project`), with
+/// the same rule the session-start hook uses.
+fn locate_cmd(rest: &[&str]) -> Result<(), CliError> {
+    let parsed = flags(rest, &["--project"])?;
+    let start = flag(&parsed, "--project").map_or_else(default_project_dir, PathBuf::from);
+    let found = project::locate(&start);
+    let mut v = json::object();
+    v.set("found", found.as_str().into());
+    let (path, name) = match &found {
+        Location::Here(p) => (Some(p.clone()), None),
+        Location::Below { path, name } | Location::Candidate { path, name } => {
+            (Some(path.clone()), Some(name.clone()))
+        }
+        Location::Several(_) | Location::Nothing => (None, None),
+    };
+    v.set(
+        "path",
+        path.map_or(Value::Null, |p| p.display().to_string().into()),
+    );
+    v.set("name", name.map_or(Value::Null, Value::from));
+    if let Location::Several(names) = &found {
+        v.set("several", strings(names));
+    }
+    print_json(&v)
+}
+
 /// The SessionStart hook. Like the status line, it must never get in the
 /// writer's way: it always exits successfully, and prints nothing outside a
-/// Skaldsaga project.
+/// Skaldsaga project. With `SKALDSAGA_HOOK_DEBUG=1` it also says on stderr
+/// what it found or why it stayed silent.
 fn hook_session_start() -> ExitCode {
     let mut raw = String::new();
     let _ = io::stdin().lock().take(MAX_STDIN).read_to_string(&mut raw);
@@ -529,7 +557,7 @@ fn hook_session_start() -> ExitCode {
     };
 
     // Claude Code exports CLAUDE_PROJECT_DIR to hooks; fall back to the cwd it reports.
-    let project_dir = std::env::var_os("CLAUDE_PROJECT_DIR")
+    let start = std::env::var_os("CLAUDE_PROJECT_DIR")
         .filter(|v| !v.is_empty())
         .map(PathBuf::from)
         .or_else(|| field("cwd").map(PathBuf::from))
@@ -537,9 +565,11 @@ fn hook_session_start() -> ExitCode {
     let source = field("source").unwrap_or_else(|| "startup".to_string());
     let plugin_root = std::env::var("CLAUDE_PLUGIN_ROOT").ok();
 
-    let Some(context) =
-        hooks::session_start(&Project::new(project_dir), &source, plugin_root.as_deref())
-    else {
+    let result = hooks::session_start(&start, &source, plugin_root.as_deref());
+    if std::env::var_os("SKALDSAGA_HOOK_DEBUG").is_some_and(|v| v == "1") {
+        eprintln!("skaldsaga hook: {}", result.reason);
+    }
+    let Some(context) = result.context else {
         return ExitCode::SUCCESS;
     };
     let mut specific = json::object();

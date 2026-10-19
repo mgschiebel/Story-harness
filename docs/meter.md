@@ -6,10 +6,10 @@ The meter tells the interviewer when the conversation's context window is gettin
 
 1. **First-run setup** wires the status line once:
    `skaldsaga meter wire --command "sh <plugin>/scripts/skaldsaga meter statusline"`
-   This writes `statusLine` into the project's `.claude/settings.json` (a plugin can't register it). If the writer already has a status line, in the project file or in `~/.claude/settings.json`, it is recorded in `.harness/settings.json` under `meter.wrapped_statusline` and keeps running: the writer still sees their own line.
+   This writes `statusLine` into the project's personal settings, `.claude/settings.local.json` (a plugin can't register it). That file stays out of git (setup's `.gitignore` lists it): the entry holds a path tied to this computer, and a status line is a command Claude Code runs on its own, so a shared one would run for anyone who clones the story. The shared `.claude/settings.json` is never edited. If the writer already has a status line, in either project file or in `~/.claude/settings.json` (looked for in that order), it is recorded in `.harness/settings.json` under `meter.wrapped_statusline` and keeps running: the writer still sees their own line. A meter entry left in the shared file by version 0.3.0 or earlier is not wrapped; the personal file overrides it.
 2. **Claude Code** runs the status line after each turn. `meter statusline` records `.harness/meter.json` and prints a line.
 3. **The interviewer** runs `skaldsaga meter check` after each saved answer and acts on `state`.
-4. **The SessionStart hook** (`skaldsaga hook session-start`) clears the last reading when a fresh session starts, so a full reading from the last session can't end a new one early. It also re-points the status line at the current plugin folder after a plugin update.
+4. **The SessionStart hook** (`skaldsaga hook session-start`) clears the last reading when a fresh session starts, so a full reading from the last session can't end a new one early. It also re-points the personal status line at the current plugin folder after a plugin update. When the story is one level below the session folder (cloud sessions), it adds its context line only and touches nothing, since that folder's settings don't load. `SKALDSAGA_HOOK_DEBUG=1` makes it say on stderr what it found or why it stayed silent.
 
 Everything is guarded by `.harness/`: outside a Skaldsaga project, `statusline` prints an empty line and `reset` does nothing.
 
@@ -20,7 +20,7 @@ Everything is guarded by `.harness/`: outside a Skaldsaga project, `statusline` 
 | `meter statusline` | One status line | Reads Claude Code's JSON on stdin. Never fails visibly: always exits 0. |
 | `meter check [--session ID] [--project DIR]` | JSON (below) | `--session` ignores a reading left by another session. |
 | `meter reset [--project DIR]` | Nothing | Deletes `.harness/meter.json`. |
-| `meter wire --command CMD [--project DIR] [--user-settings FILE]` | JSON `outcome` | `wired`, `updated`, `already_wired`, or `overridden_by_local`. |
+| `meter wire --command CMD [--project DIR] [--user-settings FILE]` | JSON `outcome` | `wired`, `updated`, or `already_wired`. |
 
 `DIR` defaults to `$CLAUDE_PROJECT_DIR`, then the current folder. Exit codes: 0 success, 1 failure, 64 usage mistake, 69 subcommand not built yet.
 
@@ -43,10 +43,6 @@ Everything is guarded by `.harness/`: outside a Skaldsaga project, `statusline` 
 | `suggest_wrap_up` | Recommends wrapping up at the next natural pause; the writer may decline once. |
 | `wrap_up` | Finishes the current question, saves, writes the recap, and tells the writer to start fresh. |
 | `unknown` | Carries on; `note` says why (no reading yet, usage not reported yet, or a different session). The manual session boundary still works. |
-
-### `overridden_by_local`
-
-A status line in `.claude/settings.local.json` overrides the project file, so wiring changes nothing and reports the existing line. Setup should explain this in one plain sentence and ask the writer before touching their personal file.
 
 ## Settings (`.harness/settings.json`)
 

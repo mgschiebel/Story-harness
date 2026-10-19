@@ -63,10 +63,17 @@ fn sets_up_then_reports_already_set_up() {
         .collect();
     assert_eq!(
         commit,
-        [".harness", "spec", "manuscript", "reviews", "style-guide"]
+        [
+            ".harness",
+            ".gitignore",
+            "spec",
+            "manuscript",
+            "reviews",
+            "style-guide"
+        ]
     );
     for p in commit {
-        assert!(dir.path().join(p).is_dir(), "{p}");
+        assert!(dir.path().join(p).exists(), "{p}");
     }
 
     let v = json_of(&init(dir.path(), &[]));
@@ -89,8 +96,12 @@ fn wires_the_meter_when_asked() {
     ));
     assert_eq!(v["outcome"], "created");
     assert_eq!(v["meter"]["outcome"], "wired");
-    let settings = std::fs::read_to_string(dir.path().join(".claude/settings.json")).unwrap();
+    // The meter goes in the personal settings, which the new .gitignore keeps out of git.
+    let settings = std::fs::read_to_string(dir.path().join(".claude/settings.local.json")).unwrap();
     assert!(settings.contains("meter statusline"));
+    assert!(!dir.path().join(".claude/settings.json").exists());
+    let ignore = std::fs::read_to_string(dir.path().join(".gitignore")).unwrap();
+    assert!(ignore.lines().any(|l| l == ".claude/settings.local.json"));
 }
 
 #[test]

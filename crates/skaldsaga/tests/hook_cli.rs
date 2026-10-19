@@ -31,15 +31,33 @@ impl Drop for TempDir {
 }
 
 fn hook(project: &Path, stdin: &str, plugin_root: Option<&str>) -> Output {
+    hook_with(Some(project), stdin, plugin_root, false)
+}
+
+/// Runs the hook. `project` sets CLAUDE_PROJECT_DIR (None leaves it empty,
+/// as cloud sessions do, so the hook falls back to the payload's `cwd`).
+fn hook_with(
+    project: Option<&Path>,
+    stdin: &str,
+    plugin_root: Option<&str>,
+    debug: bool,
+) -> Output {
     let mut cmd = Command::new(env!("CARGO_BIN_EXE_skaldsaga"));
     cmd.args(["hook", "session-start"])
-        .env("CLAUDE_PROJECT_DIR", project)
+        .env(
+            "CLAUDE_PROJECT_DIR",
+            project.map_or("".into(), |p| p.to_path_buf()),
+        )
         .env_remove("CLAUDE_PLUGIN_ROOT")
+        .env_remove("SKALDSAGA_HOOK_DEBUG")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
     if let Some(root) = plugin_root {
         cmd.env("CLAUDE_PLUGIN_ROOT", root);
+    }
+    if debug {
+        cmd.env("SKALDSAGA_HOOK_DEBUG", "1");
     }
     let mut child = cmd.spawn().unwrap();
     child
@@ -98,13 +116,13 @@ fn refreshes_the_status_line_after_a_plugin_update() {
     std::fs::create_dir_all(dir.path().join(".harness")).unwrap();
     std::fs::create_dir_all(dir.path().join(".claude")).unwrap();
     std::fs::write(
-        dir.path().join(".claude/settings.json"),
+        dir.path().join(".claude/settings.local.json"),
         r#"{"statusLine":{"type":"command","command":"sh \"/old/scripts/skaldsaga\" meter statusline"}}"#,
     )
     .unwrap();
     let o = hook(dir.path(), r#"{"source":"startup"}"#, Some("/new"));
     assert!(o.status.success());
-    let settings = std::fs::read_to_string(dir.path().join(".claude/settings.json")).unwrap();
+    let settings = std::fs::read_to_string(dir.path().join(".claude/settings.local.json")).unwrap();
     assert!(settings.contains(r#"/new/scripts/skaldsaga"#), "{settings}");
 }
 
@@ -117,4 +135,42 @@ fn garbage_input_still_succeeds() {
         assert!(o.status.success(), "{input:?}");
         assert!(stdout(&o).contains("additionalContext"), "{input:?}");
     }
+}
+
+fn stderr(o: &Output) -> String {
+    String::from_utf8_lossy(&o.stderr).into_owned()
+}
+
+/// The cloud-session case from the 0.3.0 phone test: the session starts one
+/// folder above the story and CLAUDE_PROJECT_DIR is empty.
+#[test]
+fn finds_a_story_one_level_below_the_session_folder() {
+    let dir = TempDir::new();
+    let story = dir.path().join("skaldsaga-test");
+    std::fs::create_dir_all(story.join(".harness")).unwrap();
+    let payload = format!(
+        r#"{{"source":"startup","cwd":{}}}"#,
+        serde_json::Value::from(dir.path().to_str().unwrap())
+    );
+    let o = hook_with(None, &payload, Some("/plugin"), false);
+    assert!(o.status.success());
+    assert!(stdout(&o).contains("Skaldsaga project found in the `skaldsaga-test` folder"));
+    assert_eq!(stderr(&o), "", "quiet without the debug switch");
+    // Context only: nothing written into the story.
+    assert!(!story.join(".claude").exists());
+}
+
+#[test]
+fn debug_switch_explains_a_silent_hook() {
+    let dir = TempDir::new();
+    let o = hook_with(Some(dir.path()), r#"{"source":"startup"}"#, None, true);
+    assert!(o.status.success());
+    assert_eq!(stdout(&o), "");
+    assert!(stderr(&o).contains("no .harness folder"), "{}", stderr(&o));
+
+    std::fs::create_dir_all(dir.path().join("a/.harness")).unwrap();
+    std::fs::create_dir_all(dir.path().join("b/.harness")).unwrap();
+    let o = hook_with(Some(dir.path()), r#"{"source":"startup"}"#, None, true);
+    assert_eq!(stdout(&o), "");
+    assert!(stderr(&o).contains("not guessing"), "{}", stderr(&o));
 }
