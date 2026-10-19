@@ -520,7 +520,7 @@ pub struct Framework {
 }
 
 /// The tier 1 landmark keys on an arc, in story order (HANDOFF, Coverage grid
-/// and movements; the key names were chosen in PR 6).
+/// and movements; the key names were chosen in build step 6).
 pub const LANDMARKS: [&str; 9] = [
     "normal_world",
     "inciting_incident",

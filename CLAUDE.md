@@ -20,6 +20,7 @@ chmod +x ~/.local/bin/cargo && which cargo
 ## Pipeline (phase 1)
 
 - One branch per task (for example `build/meter-pilot`); never push to `main`.
+- HANDOFF counts the build plan in **steps**, not pull requests. When a step's pull request is opened, cite its GitHub number and branch next to the step ("Step 7 (#12, branch `build/check`)"). Fix and doc pull requests get no step number.
 - Before every push: `cargo fmt --all`, `cargo clippy --all-targets --locked -- -D warnings`, `cargo test --locked`.
 - Open pull requests with the REST API (`gh api repos/mgschiebel/skaldsaga/pulls --method POST ...`); GraphQL, and so `gh pr create`, is blocked from cloud sessions. The PR summary is in plain language; the author reviews on a phone.
 - After pushing, check CI with `gh api repos/mgschiebel/skaldsaga/commits/<sha>/check-runs` and fix failures in the session. Job logs can't be downloaded from here; read check-run annotations instead.

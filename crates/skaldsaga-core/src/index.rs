@@ -4,7 +4,7 @@
 //! can load just the view it needs instead of reading whole nodes:
 //!
 //! - `backlinks.json`: for every node, fact and scene, what points at it and
-//!   through which field. Keyed by whatever is referenced (decided in PR 6:
+//!   through which field. Keyed by whatever is referenced (decided in build step 6:
 //!   a fact naming a scene in its reader moments is listed under the scene;
 //!   the fact itself already lists its scenes). The delete check, the
 //!   housekeeper's scope and the impact lookup all read this.
@@ -18,7 +18,7 @@
 //!   problems and references to IDs that don't exist.
 //!
 //! Nothing here is ever hand-edited: deleting the folder and rebuilding
-//! always restores it. The folder ignores itself in git (decided in PR 6),
+//! always restores it. The folder ignores itself in git (decided in build step 6),
 //! so history only holds what the writer decided. Output is deterministic
 //! (no timestamps, sorted keys), so the same spec always gives the same files.
 

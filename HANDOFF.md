@@ -1,10 +1,10 @@
 # Skaldsaga: Planning Handoff (v9)
 
-*Planning session summary, October 18, 2026 (late night). Supersedes v8 (October 18, night). Background, research on the original story-theory inspiration, and attribution live in `docs/background.md`, which build sessions should not load. Status: phase 1 design complete; PRs 1 to 6 built (PR 5, the spec model and first-run setup, is release 0.2.0; PR 6, the generated index, is internal and has no release), and the installed plugin is tested from a phone at each testable milestone (see Current stage). Companion file: `ARCHITECTURE.md` (one-page sketch, reviewed in the v6 session). The project was called Story Harness until the v6 session; the GitHub repo has been renamed to Skaldsaga.*
+*Planning session summary, October 18, 2026 (late night). Supersedes v8 (October 18, night). Background, research on the original story-theory inspiration, and attribution live in `docs/background.md`, which build sessions should not load. Status: phase 1 design complete; build steps 1 to 6 done (step 5, the spec model and first-run setup, is release 0.2.0; step 6, the generated index, is internal and has no release), and the installed plugin is tested from a phone at each testable milestone (see Current stage). Companion file: `ARCHITECTURE.md` (one-page sketch, reviewed in the v6 session). The project was called Story Harness until the v6 session; the GitHub repo has been renamed to Skaldsaga.*
 
 ## How to use this document
 
-Drop it in the project root (for example as `HANDOFF.md`) and reference it at the start of a Claude Code session, or paste or upload it into a chat session. Suggested opening prompt for the first build session: "Read HANDOFF.md and ARCHITECTURE.md (not docs/background.md). We're starting phase 1 building with the phone-friendly pipeline. Run the To verify checks under Build, release and delivery, then build the first pull request: the Rust workspace (skaldsaga-core plus the command-line front end), Linux x64 CI on GitHub Actions, and the session meter pilot. Ask me before any decision the handoff doesn't cover, one short question at a time."
+Drop it in the project root (for example as `HANDOFF.md`) and reference it at the start of a Claude Code session, or paste or upload it into a chat session. Suggested opening prompt for the first build session: "Read HANDOFF.md and ARCHITECTURE.md (not docs/background.md). We're starting phase 1 building with the phone-friendly pipeline. Run the To verify checks under Build, release and delivery, then build step 1: the Rust workspace (skaldsaga-core plus the command-line front end), Linux x64 CI on GitHub Actions, and the session meter pilot. Ask me before any decision the handoff doesn't cover, one short question at a time."
 
 For a planning session instead: "Read HANDOFF.md. Continue from the open items, and grill me one question at a time before we build anything."
 
@@ -14,9 +14,11 @@ Labels used below:
 - **Proposed**: suggested in discussion, not yet explicitly confirmed.
 - **Research**: from web searches or documentation; verify before relying on it. Items marked *unverified* have not been checked at all.
 
+**Build steps and GitHub numbers (Decided, October 18, 2026):** the build plan is counted in **steps** (Step 1, Step 2 …), not pull requests. Each step cites its GitHub pull request number and branch, for example "Step 6 (#11, branch `build/index`)", so the number matches what the GitHub app shows. Small fix and doc pull requests don't get a step number and are cited by GitHub number only when they matter. Reason: GitHub counts every pull request, so the two numbers drift apart; a step number can also be named before its pull request exists.
+
 ## Current stage: testing the installed plugin from a phone (October 18, 2026)
 
-**Read this first if you are a session started from the "skaldsaga design project" Claude Code Project.** PRs 1 to 3 are merged and release 0.1.1 is installed into the Project as a plugin. Sessions opened there are usually **test sessions**: the author types `/skaldsaga` to check that the installed pieces work. Do not start building unless asked.
+**Read this first if you are a session started from the "skaldsaga design project" Claude Code Project.** Steps 1 to 3 (#1 to #3) are merged and release 0.1.1 is installed into the Project as a plugin. Sessions opened there are usually **test sessions**: the author types `/skaldsaga` to check that the installed pieces work. Do not start building unless asked.
 
 What a test session checks, and what to expect:
 
@@ -30,21 +32,21 @@ What a test session checks, and what to expect:
 
 **Finding (October 18, 2026, release 0.2.0): the Project doesn't pick up a new release right away.** After the release, new sessions still reported 0.1.1 even though the marketplace was set to sync automatically. Opening the Project's plugin settings, choosing *Manage Marketplaces* and clicking *Sync* brought in 0.2.0. **For now, every phone-test release ends with a manual Sync** before starting the test session. *Open check:* how often automatic sync runs (possibly daily); if it's ever confirmed to be quick, the manual step can go.
 
-**Next phone test (0.2.0, once PR 5 is merged and released):** in a fresh session, type `/skaldsaga`. Expect it to set up the folder (four folders: `spec`, `manuscript`, `reviews`, `style-guide`, plus `.harness/settings.json`), save a first git snapshot of only those paths, and report the meter. Typing `/skaldsaga` again should say everything is already in place. If the session has no `.harness` (setup script not run) and the repo was cloned into the home folder, setup correctly refuses because the folder holds other files; that is the existing-project path, not built yet.
+**Next phone test (0.2.0, once step 5 (#9) is merged and released):** in a fresh session, type `/skaldsaga`. Expect it to set up the folder (four folders: `spec`, `manuscript`, `reviews`, `style-guide`, plus `.harness/settings.json`), save a first git snapshot of only those paths, and report the meter. Typing `/skaldsaga` again should say everything is already in place. If the session has no `.harness` (setup script not run) and the repo was cloned into the home folder, setup correctly refuses because the folder holds other files; that is the existing-project path, not built yet.
 
 **Second test session (October 18, late night): meter testing paused.** The setup script's effects were all missing (no `.harness/`, no status line in `.claude/settings.json`, no cargo wrapper), so either it wasn't saved in the Project's environment settings or setup scripts didn't run for that session; the hook stayed silent as designed. Checked by hand in a scratch project with `.harness/`, everything worked on Linux: the hook printed its context line, the setup script's status-line command found the installed plugin (under `/root/.claude/plugins/synced/…/skaldsaga`) and wrote a reading, the hook re-pointed the status line at the exact plugin path, and a new session ID cleared the stale reading. **Decided:** a passing Linux check is enough for now. Whether the status line runs in phone or cloud sessions stays unconfirmed, and phone testing resumes later in the build, once there are more commands to test. Test sessions should not repeat the meter check until then. (Note: `/skaldsaga:meter` does not exist; the plugin ships only the `/skaldsaga` skill.)
 
 ## Build progress
 
-**PR 1 (branch `build/meter-pilot`, October 18, 2026):** Rust workspace (`skaldsaga-core` library plus the `skaldsaga` command-line front end), the session meter pilot (`meter statusline`, `check`, `reset`, `wire`), the launcher `scripts/skaldsaga`, Linux x64 CI, and a tag-triggered release workflow that publishes a GitHub Release and rebuilds the `dist` branch. Interface notes in `docs/meter.md`. `init`, `check`, `commit`, `index` and `complete` are reserved subcommands that say "not built yet."
+**Step 1 (#1, branch `build/meter-pilot`, October 18, 2026):** Rust workspace (`skaldsaga-core` library plus the `skaldsaga` command-line front end), the session meter pilot (`meter statusline`, `check`, `reset`, `wire`), the launcher `scripts/skaldsaga`, Linux x64 CI, and a tag-triggered release workflow that publishes a GitHub Release and rebuilds the `dist` branch. Interface notes in `docs/meter.md`. `init`, `check`, `commit`, `index` and `complete` are reserved subcommands that say "not built yet."
 
-**PR 2:** `serde_json` replaces the stand-in JSON reader; `CLAUDE.md` holds build-session notes (cargo wrapper for cloud sessions, pipeline rules).
+**Step 2 (#2, branch `build/serde`):** `serde_json` replaces the stand-in JSON reader; `CLAUDE.md` holds build-session notes (cargo wrapper for cloud sessions, pipeline rules).
 
-**PR 3 (branch `build/plugin`):** a minimal installable plugin in `plugin/`: manifest, marketplace file, a test-build `skaldsaga` skill, and a guarded SessionStart hook (`skaldsaga hook session-start`: silent outside a project; in one, clears a stale meter reading on a fresh session, keeps the status line pointing at the current plugin folder, and adds a line of context). CI assembles, validates (`claude plugin validate --strict`) and smoke-tests the same folder a release ships. Install from the `dist` branch: `/plugin marketplace add mgschiebel/skaldsaga#dist`, then `/plugin install skaldsaga@skaldsaga`.
+**Step 3 (#3, branch `build/plugin`):** (fixes followed in #4 `build/release-button`, #5 `build/fix-dist` and #6 `build/root-marketplace`) a minimal installable plugin in `plugin/`: manifest, marketplace file, a test-build `skaldsaga` skill, and a guarded SessionStart hook (`skaldsaga hook session-start`: silent outside a project; in one, clears a stale meter reading on a fresh session, keeps the status line pointing at the current plugin folder, and adds a line of context). CI assembles, validates (`claude plugin validate --strict`) and smoke-tests the same folder a release ships. Install from the `dist` branch: `/plugin marketplace add mgschiebel/skaldsaga#dist`, then `/plugin install skaldsaga@skaldsaga`.
 
-**PR 4 (branch `test/cloud-setup`):** `ci/cloud-setup.sh` for the testing Project, and the "Current stage" section above.
+**Step 4 (#7, branch `test/cloud-setup`):** `ci/cloud-setup.sh` for the testing Project, and the "Current stage" section above.
 
-**PR 5 (branch `build/spec-init`, release 0.2.0):** the typed spec model and `skaldsaga init`.
+**Step 5 (#9, branch `build/spec-init`, release 0.2.0):** the typed spec model and `skaldsaga init`.
 
 - **IDs** (`ids`): random, type-prefixed, 8 characters from a 32-character alphabet without look-alikes. **Decided:** group `g-`, item `i-`, and the viewpoint and style node `st-` (the two-letter prefix follows `pr-` for proposals). Other prefixes as already used: `p-` person, `l-` place, `s-` scene, `d-` decision, `t-` thread, `a-` arc, `f-` fact, `e-` edition, `pr-` proposal.
 - **Model** (`model`, `node_file`): every node type and the fact entry as typed Rust structures, read and written as Markdown with YAML front matter (via `serde_norway`, the maintained fork of `serde_yaml`). Unknown keys are rejected, so a hand-edit typo is reported instead of silently dropped on rewrite. Written files use a fixed key order and leave out empty optional fields. Threads must have the four stages in order.
@@ -53,7 +55,7 @@ What a test session checks, and what to expect:
 - **Decided: the skill runs git, not the program,** so problems (git missing, no name configured) are explained in plain words. The skill commits only the paths `init` returns in `commit_paths`, never anything else in the folder.
 - **Prerequisites** added to the README: Claude Code, a Claude account that includes it, and git. A GitHub account is not needed to install.
 
-**PR 6 (branch `build/index`, no release: nothing visible to try from the phone yet):** `skaldsaga index` rebuilds `spec/_index/` (interface notes in `docs/index.md`). All Decided in the PR 6 session:
+**Step 6 (#11, branch `build/index`, no release: nothing visible to try from the phone yet):** `skaldsaga index` rebuilds `spec/_index/` (interface notes in `docs/index.md`). All Decided in the step 6 session:
 
 - **The story's own attribute keys live in `spec/attributes.md`**, Markdown with YAML front matter listing each key's relation (`property`, `symmetric`, `inverse`, `one_way`, `related`), inverse name for pairs, cardinality (one value, or a map by node type such as `located_in`: single for a person, many for a place) and a plain summary. Reason: custom keys are story vocabulary, so they belong in canon next to the facts that use them and go back in history with them; settings are tunable behavior and changing them shouldn't change what the story means. The starter vocabulary is built into the program. Only proposals change the file, once the committer exists; a missing file means no custom keys. Bad entries are reported as loading problems and skipped.
 - **`_index/` stays out of git.** The folder writes its own `.gitignore`, so history holds only what the writer decided and diffs stay clean; it's rebuilt on demand.
@@ -69,7 +71,7 @@ What a test session checks, and what to expect:
 - **Cloud sessions do not install plugins declared in a repo's `.claude/settings.json`;** Claude Code Projects do load plugins added in their settings. Settled by the decision above: cloud use is the author's testing only.
 - **`/clear` is not available in cloud sessions** ("start a new session from the sidebar instead"). The session-boundary wording must say "start a new session" there; the SessionStart hook's `startup` matcher still covers it.
 - **Status line in cloud sessions:** not documented either way (the docs describe a terminal status bar). Likely unavailable; the meter already degrades to `unknown` and the manual boundary. Test from a phone session once a project is wired.
-- **crates.io from cloud sessions:** blocked at first; fixed by allowlisting `index.crates.io`, `static.crates.io` and `crates.io` in the environment settings, plus a small cargo wrapper each session (see `CLAUDE.md`). PR 2 replaced the stand-in JSON reader with `serde_json`.
+- **crates.io from cloud sessions:** blocked at first; fixed by allowlisting `index.crates.io`, `static.crates.io` and `crates.io` in the environment settings, plus a small cargo wrapper each session (see `CLAUDE.md`). Step 2 replaced the stand-in JSON reader with `serde_json`.
 
 ## What changed since v8
 
@@ -384,11 +386,11 @@ Two separate concerns, kept distinct:
 
 - Plain files in the project folder, as a folder hierarchy where higher-level index files link to node Markdown files, to minimize context bloat. Not a flat file, and no issue tracker.
 - **Organized by story element:** people, places, scenes, shape decisions, threads, each holding one small node per entity. The coverage grid and map are generated index views linking to those nodes. Reason: structure changes a lot during planning and entities mostly do not, so the layout should not be keyed to the most volatile thing.
-- **Four top-level folders created at first run:** spec, manuscript (prose), reviews (findings per editor type), and style guide (folder `style-guide`, decided in PR 5). Empty folders get a one-line README explaining what goes there later. Drafts a writer brings in before any structure exists go in the manuscript folder, where the harvest step reads them.
+- **Four top-level folders created at first run:** spec, manuscript (prose), reviews (findings per editor type), and style guide (folder `style-guide`, decided in step 5). Empty folders get a one-line README explaining what goes there later. Drafts a writer brings in before any structure exists go in the manuscript folder, where the harvest step reads them.
 - **Stable IDs are opaque and type-prefixed:** for example `people/p-0007.md`, `scenes/s-0042.md`, facts `f-0031`. Names live in front matter and index lines, so renaming a character touches one field and breaks no links. IDs never change.
 - **IDs are random, not counting up (decided in v7).** Reasons: collision safety if facts later move between projects (series, forks); no implied order, so shuffled scenes never look "out of order"; and agents can create IDs without a shared counter, so a proposal can name a new node before it is committed. The committer rejects duplicates. *Proposed format:* type prefix plus 8 lowercase characters from an alphabet without look-alikes (no `0/o`, `1/l`), for example `s-7kq2xmhd`. The sequential IDs used as examples elsewhere in this document are illustrative only.
-- **Generated index folder (new):** `spec/_index/` holds `backlinks.json`, `attributes.json`, `grid.json`, `scenes.json`, and `status.json`. One script rebuilds all of them after every commit. Nothing in it is ever hand-edited; deleting the folder and re-running the script always restores it. Agents load only the file they need. Nodes store only their outgoing references (relationship facts and typed fields); backlinks are generated. *Built in PR 6* (shapes in `docs/index.md`); the folder ignores itself in git.
-- **The story's own attribute keys (PR 6):** `spec/attributes.md`, canon, changed only through proposals (see Build progress, PR 6).
+- **Generated index folder (new):** `spec/_index/` holds `backlinks.json`, `attributes.json`, `grid.json`, `scenes.json`, and `status.json`. One script rebuilds all of them after every commit. Nothing in it is ever hand-edited; deleting the folder and re-running the script always restores it. Agents load only the file they need. Nodes store only their outgoing references (relationship facts and typed fields); backlinks are generated. *Built in step 6* (shapes in `docs/index.md`); the folder ignores itself in git.
+- **The story's own attribute keys (step 6):** `spec/attributes.md`, canon, changed only through proposals (see Build progress, step 6).
 - **Facts are ID'd entries inside entity nodes:** each entity node holds a list of its facts (schema in Node format). A fact involving two entities is stored once on one home node; the generated index shows it from the other side. Scene reads, the setup-and-payoff ledger, and the ordering checks reference fact IDs. Each fact has its own revision (updated in v5), so editing one fact does not stale readers of other facts on the same node.
 - **Labels per fact, node status derived:** writer confidence and review state sit on each fact (and on each shape decision's value). A node's status in the index is computed, never stored (for example "2 provisional, 1 unreviewed"). A quarantined fact does not quarantine its whole entity, and readiness can gate on exactly the facts a scene reads.
 - **The spec is the source of truth. Flow is one-way (spec to draft).** If a draft introduces a new fact, the harvest step proposes a spec update for the writer's approval, never changing canon silently.
@@ -519,7 +521,7 @@ No extra fields beyond the common core. Facts (including relationship facts) cov
 | `owns` / `owned_by` | Inverse pair (person or group to item or place) | Many |
 | `related` | Fallback; `statement` describes the connection | Many |
 
-Non-relation attributes registered so far: `strength`, `flaw` (single). New relations are added to the registry as stories need them, in `spec/attributes.md` (PR 6); a new key resembling an existing one is soft-flagged.
+Non-relation attributes registered so far: `strength`, `flaw` (single). New relations are added to the registry as stories need them, in `spec/attributes.md` (step 6); a new key resembling an existing one is soft-flagged.
 
 ### Scene
 
@@ -661,7 +663,7 @@ Facts are addressed by ID (`node#fact.field`), never by list position, so parall
 }
 ```
 
-Keyed by target ID: whatever is referenced (corrected in PR 6; an earlier version listed the reader hint under the fact). Each entry records how the target is referenced, which the delete check, housekeeper scope, and impact lookup all need. A reference from inside a fact is recorded from the fact's home node, with the fact ID in `via`.
+Keyed by target ID: whatever is referenced (corrected in step 6; an earlier version listed the reader hint under the fact). Each entry records how the target is referenced, which the delete check, housekeeper scope, and impact lookup all need. A reference from inside a fact is recorded from the fact's home node, with the fact ID in `via`.
 
 ## Build, release and delivery (new in v9; all Decided unless marked)
 
@@ -927,4 +929,4 @@ Checks tied to anything opted out with "keep it simple" are skipped. At the gate
 
 ## Suggested next steps
 
-Build order for the deterministic half of phase 1: `index` (done in PR 6), then `check` with the proposal format, then `commit` (the single committer, with the version check), then `complete` with the script soft checks. Each PR that adds something testable from the phone gets a release (see Current stage). After that come the interviewer and orchestrator prompts and the sub-agents. Remaining open items are later-phase work (15, 16) and a pre-release legal check (11).
+Build order for the deterministic half of phase 1: `index` (step 6, done), then step 7: `check` with the proposal format, then `commit` (the single committer, with the version check), then `complete` with the script soft checks. Each step that adds something testable from the phone gets a release (see Current stage). After that come the interviewer and orchestrator prompts and the sub-agents. Remaining open items are later-phase work (15, 16) and a pre-release legal check (11).
