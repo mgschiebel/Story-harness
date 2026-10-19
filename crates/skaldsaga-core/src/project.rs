@@ -50,13 +50,177 @@ impl Project {
         self.harness_dir().join("meter.json")
     }
 
-    /// Claude Code's shared project settings, where the status line is wired.
+    /// Claude Code's shared project settings. Skaldsaga never edits this file;
+    /// it only reads it to find a status line the writer shares with others.
     pub fn claude_settings_path(&self) -> PathBuf {
         self.root.join(".claude").join("settings.json")
     }
 
     /// Claude Code's personal project settings, which override the shared file.
+    /// The meter's status line is wired here: it holds a machine-specific
+    /// path and runs a command, so it must never be shared through git.
     pub fn claude_local_settings_path(&self) -> PathBuf {
         self.root.join(".claude").join("settings.local.json")
+    }
+
+    /// The project's top-level `.gitignore`.
+    pub fn gitignore_path(&self) -> PathBuf {
+        self.root.join(".gitignore")
+    }
+}
+
+/// Where the story folder is, seen from a starting folder (the session's
+/// folder). The hook and the skill share this lookup so their rules can't
+/// drift apart (HANDOFF, Current stage, decision 2).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Location {
+    /// The starting folder is a Skaldsaga project.
+    Here(PathBuf),
+    /// Exactly one visible child folder is a Skaldsaga project. Cloud
+    /// sessions clone a repository one level below the session folder.
+    Below { path: PathBuf, name: String },
+    /// Several child folders are projects; the lookup never guesses.
+    Several(Vec<String>),
+    /// No project yet, but the starting folder holds nothing visible except
+    /// one git repository: probably the folder to set up.
+    Candidate { path: PathBuf, name: String },
+    /// No project here or one level down.
+    Nothing,
+}
+
+impl Location {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Location::Here(_) => "here",
+            Location::Below { .. } => "below",
+            Location::Several(_) => "several",
+            Location::Candidate { .. } => "candidate",
+            Location::Nothing => "nothing",
+        }
+    }
+
+    /// The project found, if exactly one was.
+    pub fn project(&self) -> Option<Project> {
+        match self {
+            Location::Here(p) | Location::Below { path: p, .. } => Some(Project::new(p.clone())),
+            _ => None,
+        }
+    }
+}
+
+/// Looks for a Skaldsaga project in `start`, then one level down. Never
+/// looks upward: local sessions name the project folder directly.
+pub fn locate(start: &Path) -> Location {
+    if Project::new(start).is_initialized() {
+        return Location::Here(start.to_path_buf());
+    }
+    let entries: Vec<_> = crate::fsio::list_dir(start)
+        .unwrap_or_default()
+        .into_iter()
+        .filter(|e| !e.name.starts_with('.'))
+        .collect();
+    let stories: Vec<&str> = entries
+        .iter()
+        .filter(|e| e.is_dir && start.join(&e.name).join(HARNESS_DIR).is_dir())
+        .map(|e| e.name.as_str())
+        .collect();
+    match stories.as_slice() {
+        [name] => {
+            return Location::Below {
+                path: start.join(name),
+                name: name.to_string(),
+            };
+        }
+        [] => {}
+        many => return Location::Several(many.iter().map(|s| s.to_string()).collect()),
+    }
+    match entries.as_slice() {
+        [only] if only.is_dir && start.join(&only.name).join(".git").exists() => {
+            Location::Candidate {
+                path: start.join(&only.name),
+                name: only.name.clone(),
+            }
+        }
+        _ => Location::Nothing,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::testutil::TempDir;
+
+    fn mkdir(path: &Path) {
+        std::fs::create_dir_all(path).unwrap();
+    }
+
+    #[test]
+    fn finds_a_project_here_first() {
+        let dir = TempDir::new();
+        mkdir(&dir.path().join(".harness"));
+        mkdir(&dir.path().join("child/.harness"));
+        assert_eq!(locate(dir.path()), Location::Here(dir.path().to_path_buf()));
+    }
+
+    #[test]
+    fn finds_exactly_one_project_below() {
+        let dir = TempDir::new();
+        mkdir(&dir.path().join("story/.harness"));
+        mkdir(&dir.path().join("other"));
+        std::fs::write(dir.path().join("notes.txt"), "").unwrap();
+        let found = locate(dir.path());
+        assert_eq!(
+            found,
+            Location::Below {
+                path: dir.path().join("story"),
+                name: "story".into()
+            }
+        );
+        assert!(found.project().is_some());
+    }
+
+    #[test]
+    fn never_guesses_between_several() {
+        let dir = TempDir::new();
+        mkdir(&dir.path().join("a/.harness"));
+        mkdir(&dir.path().join("b/.harness"));
+        assert_eq!(
+            locate(dir.path()),
+            Location::Several(vec!["a".into(), "b".into()])
+        );
+    }
+
+    #[test]
+    fn hidden_children_and_subfolders_dont_count() {
+        let dir = TempDir::new();
+        mkdir(&dir.path().join(".hidden/.harness"));
+        assert_eq!(locate(dir.path()), Location::Nothing);
+        // A subfolder of a story doesn't look upward.
+        let story = TempDir::new();
+        mkdir(&story.path().join(".harness"));
+        mkdir(&story.path().join("spec"));
+        assert_eq!(locate(&story.path().join("spec")), Location::Nothing);
+    }
+
+    #[test]
+    fn a_lone_repository_is_a_candidate() {
+        let dir = TempDir::new();
+        mkdir(&dir.path().join("repo/.git"));
+        assert_eq!(
+            locate(dir.path()),
+            Location::Candidate {
+                path: dir.path().join("repo"),
+                name: "repo".into()
+            }
+        );
+        // Anything else visible beside it: no guess.
+        std::fs::write(dir.path().join("readme.md"), "").unwrap();
+        assert_eq!(locate(dir.path()), Location::Nothing);
+    }
+
+    #[test]
+    fn missing_folder_is_nothing() {
+        let dir = TempDir::new();
+        assert_eq!(locate(&dir.path().join("gone")), Location::Nothing);
     }
 }

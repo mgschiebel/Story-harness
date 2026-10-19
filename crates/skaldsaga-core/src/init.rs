@@ -45,6 +45,53 @@ const HARNESS_GITIGNORE: &str = "\
 meter.json
 ";
 
+/// What the story folder's top-level `.gitignore` keeps out of git: personal
+/// or secret files (HANDOFF, Current stage, decision 1). The meter's status
+/// line lives in `.claude/settings.local.json`, which holds a path tied to
+/// this computer and may hold the writer's own secrets.
+const ROOT_GITIGNORE_HEADER: &str = "# Skaldsaga: personal or secret files, never shared";
+const ROOT_GITIGNORE: [&str; 9] = [
+    ".claude/settings.local.json",
+    ".claude/*.local.*",
+    "CLAUDE.local.md",
+    ".env",
+    ".env.*",
+    "*.pem",
+    "*.key",
+    ".DS_Store",
+    "Thumbs.db",
+];
+
+/// Adds the lines from `ROOT_GITIGNORE` that `existing` lacks. Never removes
+/// or reorders the writer's own lines. Returns the new text, or `None` when
+/// nothing is missing.
+fn merged_gitignore(existing: Option<&str>) -> Option<String> {
+    let have: std::collections::HashSet<&str> =
+        existing.unwrap_or("").lines().map(str::trim).collect();
+    let missing: Vec<&str> = ROOT_GITIGNORE
+        .iter()
+        .copied()
+        .filter(|l| !have.contains(l))
+        .collect();
+    if missing.is_empty() {
+        return None;
+    }
+    let mut text = existing.unwrap_or("").to_string();
+    if !text.is_empty() {
+        if !text.ends_with('\n') {
+            text.push('\n');
+        }
+        text.push('\n');
+    }
+    text.push_str(ROOT_GITIGNORE_HEADER);
+    text.push('\n');
+    for line in missing {
+        text.push_str(line);
+        text.push('\n');
+    }
+    Some(text)
+}
+
 /// Files that don't make a folder count as holding the writer's work.
 const IGNORED_FILES: [&str; 2] = ["Thumbs.db", "desktop.ini"];
 
@@ -88,7 +135,8 @@ impl InitReport {
     /// The paths the skill should commit after setup: only Skaldsaga's own,
     /// so nothing else in the folder ends up in the writer's history.
     pub fn commit_paths() -> Vec<String> {
-        std::iter::once(crate::project::HARNESS_DIR)
+        [crate::project::HARNESS_DIR, ".gitignore"]
+            .into_iter()
             .chain(FOLDERS.iter().map(|(name, _)| *name))
             .map(str::to_string)
             .collect()
@@ -150,6 +198,12 @@ pub fn init(project: &Project) -> Result<InitReport, FsError> {
         fsio::write_if_missing(&project.harness_dir().join(".gitignore"), HARNESS_GITIGNORE)?,
         ".harness/.gitignore",
     );
+
+    let gitignore = project.gitignore_path();
+    if let Some(text) = merged_gitignore(fsio::read_optional(&gitignore)?.as_deref()) {
+        fsio::write_atomic(&gitignore, &text)?;
+        note(true, ".gitignore");
+    }
 
     for (name, text) in FOLDERS {
         let dir = root.join(name);
@@ -300,7 +354,42 @@ mod tests {
     fn commit_paths_are_only_skaldsagas() {
         assert_eq!(
             InitReport::commit_paths(),
-            vec![".harness", "spec", "manuscript", "reviews", "style-guide"]
+            vec![
+                ".harness",
+                ".gitignore",
+                "spec",
+                "manuscript",
+                "reviews",
+                "style-guide"
+            ]
         );
+    }
+
+    #[test]
+    fn writes_a_gitignore_for_personal_files() {
+        let dir = TempDir::new();
+        let report = init(&Project::new(dir.path())).unwrap();
+        assert!(report.created.contains(&".gitignore".to_string()));
+        let text = std::fs::read_to_string(dir.path().join(".gitignore")).unwrap();
+        assert!(text.starts_with(ROOT_GITIGNORE_HEADER));
+        for line in ROOT_GITIGNORE {
+            assert!(text.lines().any(|l| l == line), "{line}");
+        }
+    }
+
+    #[test]
+    fn appends_only_missing_lines_to_an_existing_gitignore() {
+        let dir = TempDir::new();
+        let path = dir.path().join(".gitignore");
+        std::fs::write(&path, "build/\n.env").unwrap();
+        init(&Project::new(dir.path())).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        assert!(text.starts_with("build/\n.env\n\n"), "{text}");
+        assert_eq!(text.lines().filter(|l| *l == ".env").count(), 1);
+        assert!(text.lines().any(|l| l == ".claude/settings.local.json"));
+        // Running again adds nothing.
+        let report = init(&Project::new(dir.path())).unwrap();
+        assert!(!report.created.contains(&".gitignore".to_string()));
+        assert_eq!(std::fs::read_to_string(&path).unwrap(), text);
     }
 }

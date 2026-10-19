@@ -1,15 +1,19 @@
 //! Wiring the meter into Claude Code's status line.
 //!
 //! A plugin cannot register the main status line, so first-run setup writes
-//! it into the project's `.claude/settings.json`. If the writer already has a
-//! status line of their own, the meter wraps it: their command keeps running
-//! and its output is what they see, while the meter records usage quietly.
+//! it into the project's personal settings, `.claude/settings.local.json`
+//! (HANDOFF, Current stage, decision 1). That file stays out of git: the
+//! entry holds a path tied to this computer, and a status line is a command
+//! Claude Code runs on its own, so a shared one would run for anyone who
+//! clones the story. If the writer already has a status line of their own,
+//! the meter wraps it: their command keeps running and its output is what
+//! they see, while the meter records usage quietly.
 //!
 //! Claude Code reads settings in this order (highest first): managed, command
 //! line, `.claude/settings.local.json`, `.claude/settings.json`, then
-//! `~/.claude/settings.json`. A personal status line in the local project file
-//! would hide ours, so wiring stops and reports it instead of touching that
-//! file; setup then asks the writer what to do.
+//! `~/.claude/settings.json`. The writer's own line is looked for in that
+//! order too. The shared `.claude/settings.json` is never edited; a meter
+//! entry left there by an earlier version is simply overridden.
 
 use std::path::Path;
 
@@ -40,9 +44,6 @@ pub enum WireOutcome {
     /// The meter is now wired. `wrapped` holds the writer's own status line,
     /// if there was one, which the meter now runs.
     Wired { wrapped: Option<Value> },
-    /// A status line in `.claude/settings.local.json` overrides the project
-    /// file, so nothing was changed. Setup should ask the writer.
-    OverriddenByLocal { existing: Value },
 }
 
 /// Errors from wiring.
@@ -79,7 +80,7 @@ fn statusline_in(doc: Option<&Value>) -> Option<Value> {
         .cloned()
 }
 
-/// Wires the meter into the project's status line.
+/// Wires the meter into the project's personal status line.
 ///
 /// * `command` is the shell command Claude Code should run (the launcher plus
 ///   `meter statusline`).
@@ -94,14 +95,9 @@ pub fn wire(
         return Err(WireError::NotInitialized);
     }
 
-    let local = fsio::read_json_object(&project.claude_local_settings_path())?;
-    if let Some(existing) = statusline_in(local.as_ref()).filter(|s| !is_meter_command(s)) {
-        return Ok(WireOutcome::OverriddenByLocal { existing });
-    }
-
-    let project_path = project.claude_settings_path();
-    let mut project_doc = fsio::read_json_object(&project_path)?.unwrap_or_else(json::object);
-    let current = statusline_in(Some(&project_doc));
+    let local_path = project.claude_local_settings_path();
+    let mut local_doc = fsio::read_json_object(&local_path)?.unwrap_or_else(json::object);
+    let current = statusline_in(Some(&local_doc));
 
     if let Some(current) = current.as_ref().filter(|s| is_meter_command(s)) {
         if current.get("command").and_then(Value::as_str) == Some(command) {
@@ -109,23 +105,32 @@ pub fn wire(
         }
         let mut updated = current.clone();
         updated.set("command", command.into());
-        project_doc.set("statusLine", updated);
-        fsio::write_json(&project_path, &project_doc)?;
+        local_doc.set("statusLine", updated);
+        fsio::write_json(&local_path, &local_doc)?;
         return Ok(WireOutcome::Updated);
     }
 
-    // The writer's own line: the project's first, else their personal one.
+    // The writer's own line, in Claude Code's order: personal project file,
+    // shared project file, then their personal settings.
     let wrapped = match current {
         Some(line) => Some(line),
-        None => match user_settings {
-            Some(path) => statusline_in(fsio::read_json_object(path)?.as_ref())
-                .filter(|s| !is_meter_command(s)),
-            None => None,
-        },
+        None => {
+            let shared = fsio::read_json_object(&project.claude_settings_path())?;
+            match statusline_in(shared.as_ref()) {
+                // A meter entry from an earlier version: ours, never wrapped.
+                Some(line) if is_meter_command(&line) => None,
+                Some(line) => Some(line),
+                None => match user_settings {
+                    Some(path) => statusline_in(fsio::read_json_object(path)?.as_ref())
+                        .filter(|s| !is_meter_command(s)),
+                    None => None,
+                },
+            }
+        }
     };
 
-    // Record the wrapped line first: if writing the project settings then
-    // fails, nothing visible has changed.
+    // Record the wrapped line first: if writing the settings then fails,
+    // nothing visible has changed.
     if wrapped.is_some() {
         settings::store_wrapped_statusline(project, wrapped.clone())?;
     }
@@ -136,8 +141,8 @@ pub fn wire(
     if let Some(padding) = wrapped.as_ref().and_then(|w| w.get("padding")).cloned() {
         ours.set("padding", padding);
     }
-    project_doc.set("statusLine", ours);
-    fsio::write_json(&project_path, &project_doc)?;
+    local_doc.set("statusLine", ours);
+    fsio::write_json(&local_path, &local_doc)?;
     Ok(WireOutcome::Wired { wrapped })
 }
 
@@ -146,10 +151,11 @@ pub fn wire(
 /// The plugin's folder changes when the plugin updates, which would leave
 /// the status line running an old path. The session-start hook calls this
 /// with the current path. It only ever updates a meter entry that is already
-/// there: it never wires the meter for a writer who hasn't set it up or who
-/// removed it. Returns true if it changed anything.
+/// in the personal settings: it never wires the meter for a writer who
+/// hasn't set it up or who removed it, and never edits the shared file.
+/// Returns true if it changed anything.
 pub fn refresh(project: &Project, command: &str) -> Result<bool, FsError> {
-    let path = project.claude_settings_path();
+    let path = project.claude_local_settings_path();
     let Some(mut doc) = fsio::read_json_object(&path)? else {
         return Ok(false);
     };
@@ -187,7 +193,7 @@ mod tests {
     }
 
     fn project_statusline(project: &Project) -> Value {
-        fsio::read_json_object(&project.claude_settings_path())
+        fsio::read_json_object(&project.claude_local_settings_path())
             .unwrap()
             .unwrap()
             .get("statusLine")
@@ -223,14 +229,14 @@ mod tests {
     }
 
     #[test]
-    fn keeps_other_project_settings() {
+    fn keeps_other_personal_settings() {
         let (_d, project) = setup();
         write(
-            &project.claude_settings_path(),
+            &project.claude_local_settings_path(),
             r#"{"permissions":{"allow":["Read"]},"model":"opus"}"#,
         );
         wire(&project, CMD, None).unwrap();
-        let doc = fsio::read_json_object(&project.claude_settings_path())
+        let doc = fsio::read_json_object(&project.claude_local_settings_path())
             .unwrap()
             .unwrap();
         assert!(doc.get("permissions").is_some());
@@ -238,12 +244,10 @@ mod tests {
     }
 
     #[test]
-    fn wraps_a_project_status_line() {
+    fn wraps_a_shared_project_status_line_without_editing_it() {
         let (_d, project) = setup();
-        write(
-            &project.claude_settings_path(),
-            r#"{"statusLine":{"type":"command","command":"my-line","padding":2}}"#,
-        );
+        let shared = r#"{"statusLine":{"type":"command","command":"my-line","padding":2}}"#;
+        write(&project.claude_settings_path(), shared);
         let outcome = wire(&project, CMD, None).unwrap();
         let mine = parse(r#"{"type":"command","command":"my-line","padding":2}"#).unwrap();
         assert_eq!(
@@ -259,6 +263,10 @@ mod tests {
         assert_eq!(
             project_statusline(&project).get("padding"),
             Some(&Value::from(2))
+        );
+        assert_eq!(
+            std::fs::read_to_string(project.claude_settings_path()).unwrap(),
+            shared
         );
     }
 
@@ -295,28 +303,37 @@ mod tests {
     }
 
     #[test]
-    fn local_override_is_reported_not_touched() {
+    fn wraps_a_personal_project_status_line() {
         let (_d, project) = setup();
         write(
             &project.claude_local_settings_path(),
             r#"{"statusLine":{"type":"command","command":"private"}}"#,
         );
         let outcome = wire(&project, CMD, None).unwrap();
-        assert!(matches!(outcome, WireOutcome::OverriddenByLocal { .. }));
+        assert!(matches!(outcome, WireOutcome::Wired { wrapped: Some(_) }));
+        assert_eq!(
+            project_statusline(&project)
+                .get("command")
+                .and_then(Value::as_str),
+            Some(CMD)
+        );
         assert!(!project.claude_settings_path().exists());
     }
 
     #[test]
-    fn local_meter_entry_is_not_an_override() {
+    fn an_old_shared_meter_entry_is_left_alone_and_not_wrapped() {
         let (_d, project) = setup();
-        write(
-            &project.claude_local_settings_path(),
-            &format!(r#"{{"statusLine":{{"command":"{CMD}"}}}}"#),
-        );
-        assert!(matches!(
+        let old =
+            r#"{"statusLine":{"type":"command","command":"sh /old/skaldsaga meter statusline"}}"#;
+        write(&project.claude_settings_path(), old);
+        assert_eq!(
             wire(&project, CMD, None).unwrap(),
-            WireOutcome::Wired { .. }
-        ));
+            WireOutcome::Wired { wrapped: None }
+        );
+        assert_eq!(
+            std::fs::read_to_string(project.claude_settings_path()).unwrap(),
+            old
+        );
     }
 
     #[test]
@@ -334,12 +351,12 @@ mod tests {
     }
 
     #[test]
-    fn bad_project_settings_are_an_error_and_untouched() {
+    fn bad_personal_settings_are_an_error_and_untouched() {
         let (_d, project) = setup();
-        write(&project.claude_settings_path(), "{ broken");
+        write(&project.claude_local_settings_path(), "{ broken");
         assert!(matches!(wire(&project, CMD, None), Err(WireError::Fs(_))));
         assert_eq!(
-            std::fs::read_to_string(project.claude_settings_path()).unwrap(),
+            std::fs::read_to_string(project.claude_local_settings_path()).unwrap(),
             "{ broken"
         );
     }
@@ -350,17 +367,17 @@ mod tests {
         let moved = "sh /plugin/v2/scripts/skaldsaga meter statusline";
         // Nothing wired: refresh never wires the meter itself.
         assert!(!refresh(&project, moved).unwrap());
-        assert!(!project.claude_settings_path().exists());
+        assert!(!project.claude_local_settings_path().exists());
 
         // The writer's own line is left alone.
         write(
-            &project.claude_settings_path(),
+            &project.claude_local_settings_path(),
             r#"{"statusLine":{"type":"command","command":"mine"}}"#,
         );
         assert!(!refresh(&project, moved).unwrap());
 
         // A meter entry with an old path is updated, once.
-        std::fs::remove_file(project.claude_settings_path()).unwrap();
+        std::fs::remove_file(project.claude_local_settings_path()).unwrap();
         wire(&project, CMD, None).unwrap();
         assert!(refresh(&project, moved).unwrap());
         assert_eq!(

@@ -281,7 +281,8 @@ fn wraps_the_writers_status_line() {
     );
     assert!(o.status.success(), "{}", String::from_utf8_lossy(&o.stderr));
     assert!(stdout(&o).contains(r#""outcome": "wired""#));
-    let project_settings = std::fs::read_to_string(project.join(".claude/settings.json")).unwrap();
+    let project_settings =
+        std::fs::read_to_string(project.join(".claude/settings.local.json")).unwrap();
     assert!(project_settings.contains("meter statusline"));
 
     let line = run(
