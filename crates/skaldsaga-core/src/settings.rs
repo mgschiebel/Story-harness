@@ -91,6 +91,43 @@ pub fn default_meter_section() -> Value {
     meter
 }
 
+/// Default: a proposal read by this many other nodes goes through the strict
+/// lane (decided in build step 7).
+pub const DEFAULT_STRICT_FAN_OUT: usize = 10;
+
+/// How the dependency checker routes proposals.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RoutingSettings {
+    /// Fan-out at which a proposal escalates to the strict lane.
+    pub strict_fan_out: usize,
+}
+
+impl Default for RoutingSettings {
+    fn default() -> Self {
+        RoutingSettings {
+            strict_fan_out: DEFAULT_STRICT_FAN_OUT,
+        }
+    }
+}
+
+impl RoutingSettings {
+    /// Reads `routing` from a whole settings document, falling back to the
+    /// default for anything missing or unusable.
+    pub fn from_settings(doc: Option<&Value>) -> Self {
+        let strict_fan_out = doc
+            .and_then(|d| d.get_path(&["routing", "strict_fan_out"]))
+            .and_then(Value::as_u64)
+            .filter(|n| *n >= 1)
+            .map_or(DEFAULT_STRICT_FAN_OUT, |n| n as usize);
+        RoutingSettings { strict_fan_out }
+    }
+
+    pub fn load(project: &Project) -> Result<Self, FsError> {
+        let doc = fsio::read_json_object(&project.settings_path())?;
+        Ok(Self::from_settings(doc.as_ref()))
+    }
+}
+
 /// The whole settings file as first-run setup writes it (HANDOFF, Default
 /// settings, and the models per sub-agent in Architecture). Every value is a
 /// starting point the writer can tune. `format` lets later versions migrate
@@ -107,6 +144,9 @@ const DEFAULT_SETTINGS: &str = r#"{
     "full_pass_every_sessions": 10
   },
   "flags_per_pause": 2,
+  "routing": {
+    "strict_fan_out": 10
+  },
   "pacing": {
     "under_share": 0.5,
     "over_share": 2.0
@@ -282,6 +322,34 @@ mod tests {
                 .unwrap()
                 .wrapped_statusline
                 .is_none()
+        );
+    }
+}
+
+#[cfg(test)]
+mod routing_tests {
+    use super::*;
+
+    #[test]
+    fn routing_reads_the_threshold_and_falls_back() {
+        let doc = |s: &str| json::parse(s).unwrap();
+        assert_eq!(RoutingSettings::from_settings(None).strict_fan_out, 10);
+        let d = doc(r#"{"routing": {"strict_fan_out": 4}}"#);
+        assert_eq!(RoutingSettings::from_settings(Some(&d)).strict_fan_out, 4);
+        for bad in [
+            r#"{"routing": {"strict_fan_out": 0}}"#,
+            r#"{"routing": {"strict_fan_out": "x"}}"#,
+        ] {
+            assert_eq!(
+                RoutingSettings::from_settings(Some(&doc(bad))).strict_fan_out,
+                10
+            );
+        }
+        // First-run setup writes the same default.
+        let defaults = doc(DEFAULT_SETTINGS);
+        assert_eq!(
+            RoutingSettings::from_settings(Some(&defaults)).strict_fan_out,
+            10
         );
     }
 }

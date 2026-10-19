@@ -226,7 +226,7 @@ fn anchor_target(anchor: &TimeAnchor) -> Option<&str> {
 }
 
 /// Every stored reference in the spec, as (target, from, via).
-fn references(spec: &Spec) -> Vec<(String, String, String)> {
+pub(crate) fn references(spec: &Spec) -> Vec<(String, String, String)> {
     let mut out = Vec::new();
     for node in &spec.nodes {
         let from = node.id.as_str();
@@ -350,6 +350,19 @@ fn references(spec: &Spec) -> Vec<(String, String, String)> {
             SEQUENCE_FILE.to_string(),
             "sequence".to_string(),
         ));
+    }
+    out
+}
+
+/// The `from` used for references made by `sequence.md`.
+pub const SEQUENCE_FROM: &str = SEQUENCE_FILE;
+
+/// For every referenced ID, who references it and through which field
+/// (the same data as `backlinks.json`, for in-memory use).
+pub fn readers(spec: &Spec) -> HashMap<String, Vec<(String, String)>> {
+    let mut out: HashMap<String, Vec<(String, String)>> = HashMap::new();
+    for (target, from, via) in references(spec) {
+        out.entry(target).or_default().push((from, via));
     }
     out
 }

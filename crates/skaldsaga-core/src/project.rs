@@ -37,6 +37,11 @@ impl Project {
         self.root.join("spec")
     }
 
+    /// Pending proposals, one JSON file each.
+    pub fn inbox_dir(&self) -> PathBuf {
+        self.harness_dir().join("inbox")
+    }
+
     pub fn settings_path(&self) -> PathBuf {
         self.harness_dir().join("settings.json")
     }

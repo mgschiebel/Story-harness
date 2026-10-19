@@ -1,8 +1,8 @@
 //! `skaldsaga`: the command-line front end for Skaldsaga's deterministic scripts.
 //!
 //! One binary with subcommands. First-run setup, the session meter, the
-//! session-start hook and the index rebuild are built so far; the other
-//! subcommands are reserved and say so.
+//! session-start hook, the index rebuild and the dependency checker are built
+//! so far; the other subcommands are reserved and say so.
 
 mod wrapped;
 
@@ -11,6 +11,7 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use skaldsaga_core::check::{self, InboxEntry};
 use skaldsaga_core::hooks;
 use skaldsaga_core::index;
 use skaldsaga_core::init::{self, InitOutcome, InitReport};
@@ -40,11 +41,15 @@ Usage:
   skaldsaga hook session-start       SessionStart hook: reads Claude Code's JSON on stdin;
                                      in a Skaldsaga project, prepares the session and adds
                                      context for Claude. Elsewhere it prints nothing
+  skaldsaga check [--project DIR] [--proposal ID]...
+                                     Checks pending proposals in .harness/inbox (all, or the
+                                     ones named) against the spec and writes each verdict into
+                                     its file. Changes nothing in the spec. Prints JSON
   skaldsaga index [--project DIR]    Rebuilds the generated index in spec/_index (backlinks,
                                      attributes, grid, scenes, status). Prints a summary as JSON
   skaldsaga --version                Prints the version
 
-Not built yet: check, commit, complete
+Not built yet: commit, complete
 
 DIR defaults to $CLAUDE_PROJECT_DIR, then the current folder.
 ";
@@ -78,7 +83,8 @@ fn main() -> ExitCode {
         ["hook", "session-start", ..] => hook_session_start(),
         ["init", rest @ ..] => run(init_cmd(rest)),
         ["index", rest @ ..] => run(index_cmd(rest)),
-        [cmd @ ("check" | "commit" | "complete"), ..] => {
+        ["check", rest @ ..] => run(check_cmd(rest)),
+        [cmd @ ("commit" | "complete"), ..] => {
             eprintln!("skaldsaga {cmd}: not built yet");
             ExitCode::from(NOT_BUILT)
         }
@@ -335,6 +341,65 @@ fn index_cmd(rest: &[&str]) -> Result<(), CliError> {
     v.set("nodes", Value::from(rebuilt.nodes));
     v.set("problems", Value::from(rebuilt.problems));
     v.set("broken_references", Value::from(rebuilt.broken_references));
+    print_json(&v)
+}
+
+/// Checks pending proposals. Refuses outside a Skaldsaga project.
+fn check_cmd(rest: &[&str]) -> Result<(), CliError> {
+    let parsed = flags(rest, &["--project", "--proposal"])?;
+    let project = project_from(&parsed);
+    if !project.is_initialized() {
+        return Err(CliError::Failed(
+            "this folder isn't set up for Skaldsaga yet (no .harness folder)".into(),
+        ));
+    }
+    let only: Vec<String> = parsed
+        .iter()
+        .filter(|(f, _)| *f == "--proposal")
+        .map(|(_, v)| v.to_string())
+        .collect();
+    let report =
+        check::check_inbox(&project, &only).map_err(|e| CliError::Failed(e.to_string()))?;
+    let mut list = Vec::new();
+    for entry in &report.entries {
+        let mut v = json::object();
+        match entry {
+            InboxEntry::Checked { id, report } => {
+                v.set("id", id.as_str().into());
+                let r = report.to_value();
+                for key in ["status", "lane", "fan_out", "touches_confirmed", "findings"] {
+                    v.set(key, r[key].clone());
+                }
+            }
+            InboxEntry::Unreadable { file, message } => {
+                v.set("file", file.as_str().into());
+                v.set("status", "unreadable".into());
+                v.set("message", message.as_str().into());
+            }
+        }
+        list.push(v);
+    }
+    let missing: Vec<&String> = only
+        .iter()
+        .filter(|id| {
+            !report.entries.iter().any(|e| match e {
+                InboxEntry::Checked { id: got, .. } => got == *id,
+                InboxEntry::Unreadable { file, .. } => {
+                    file.strip_suffix(".json") == Some(id.as_str())
+                }
+            })
+        })
+        .collect();
+    let mut v = json::object();
+    v.set("outcome", "checked".into());
+    v.set("spec_problems", Value::from(report.spec_problems));
+    v.set("proposals", Value::Array(list));
+    if !missing.is_empty() {
+        v.set(
+            "not_found",
+            Value::Array(missing.iter().map(|s| Value::from(s.as_str())).collect()),
+        );
+    }
     print_json(&v)
 }
 
