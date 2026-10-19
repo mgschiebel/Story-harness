@@ -4,7 +4,7 @@
 
 A *skald* was a Norse poet-storyteller, and *saga* means "story" (in modern Icelandic, *skáldsaga* is the everyday word for a novel). Skaldsaga is an open-source set of skills for [Claude Code](https://code.claude.com) that acts like an experienced writing mentor. It asks you questions about your story, quietly keeps track of everything you decide, catches contradictions and loose ends, and teaches craft as you go.
 
-> **Status: early build.** Only the first internal piece (a session meter) exists; nothing is installable yet. This README describes how Skaldsaga is meant to work. The design lives in [`HANDOFF.md`](HANDOFF.md) and [`ARCHITECTURE.md`](ARCHITECTURE.md).
+> **Status: early test build.** You can install it and it will set up a story folder, but the story conversation itself isn't built yet. This README describes how Skaldsaga is meant to work. The design lives in [`HANDOFF.md`](HANDOFF.md) and [`ARCHITECTURE.md`](ARCHITECTURE.md).
 
 ## Who it's for
 
@@ -28,9 +28,19 @@ At the end of the first phase, you have a **complete, detailed outline**:
 4. **The ending answers the story's question.**
 5. **Cause and effect:** each scene follows from what came before.
 
+## Before you start
+
+You'll need:
+
+- **Claude Code**, Anthropic's coding assistant, installed on your computer. Skaldsaga runs inside it. Test builds run on Linux; Mac and Windows come with the first public release.
+- **A Claude account that includes Claude Code**, such as a paid Claude plan or a Claude Console (API) account. Skaldsaga uses your Claude account for the conversation; there's nothing else to pay for.
+- **Git**, the free tool Skaldsaga uses to keep a history of your story so you can always go back. Many computers already have it; Skaldsaga tells you if it's missing.
+
+You don't need a GitHub account: Skaldsaga installs from its public page on GitHub without signing in.
+
 ## How it works
 
-1. **Install** Skaldsaga as a Claude Code plugin. Install steps will appear here once it's built.
+1. **Install** Skaldsaga as a Claude Code plugin. In Claude Code, type `/plugin marketplace add mgschiebel/skaldsaga#dist`, then `/plugin install skaldsaga@skaldsaga`.
 2. **Open a folder** for your story in Claude Code and type `/skaldsaga`. That's the only command you need to remember.
 3. **Talk about your story.** Skaldsaga asks about concrete things, such as a scene you can picture or a character you know, and works out the bigger structure from your answers. It always checks with you ("It sounds like your hero ends up changing. Is that right?").
 4. **Take breaks whenever you like.** Everything is saved after each answer you confirm. When it's time for a fresh start, Skaldsaga tells you. Next time, open the folder and it greets you with a recap of where you left off.

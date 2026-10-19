@@ -114,6 +114,55 @@ pub fn remove_optional(path: &Path) -> Result<bool, FsError> {
     }
 }
 
+/// One entry in a folder.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DirEntry {
+    pub name: String,
+    pub is_dir: bool,
+}
+
+/// Lists a folder, sorted by name. A missing folder lists as empty.
+pub fn list_dir(path: &Path) -> Result<Vec<DirEntry>, FsError> {
+    let read = match std::fs::read_dir(path) {
+        Ok(r) => r,
+        Err(e) if e.kind() == io::ErrorKind::NotFound => return Ok(Vec::new()),
+        Err(e) => return Err(io_err(path, e)),
+    };
+    let mut out = Vec::new();
+    for entry in read {
+        let entry = entry.map_err(|e| io_err(path, e))?;
+        let is_dir = entry
+            .file_type()
+            .map(|t| t.is_dir())
+            .map_err(|e| io_err(&entry.path(), e))?;
+        out.push(DirEntry {
+            name: entry.file_name().to_string_lossy().into_owned(),
+            is_dir,
+        });
+    }
+    out.sort_by(|a, b| a.name.cmp(&b.name));
+    Ok(out)
+}
+
+/// Creates a folder (and its parents). Returns true if it didn't exist.
+pub fn ensure_dir(path: &Path) -> Result<bool, FsError> {
+    if path.is_dir() {
+        return Ok(false);
+    }
+    std::fs::create_dir_all(path).map_err(|e| io_err(path, e))?;
+    Ok(true)
+}
+
+/// Writes a file only if nothing is there yet. Returns true if it wrote.
+/// Never replaces an existing file, so setup can't overwrite the writer's work.
+pub fn write_if_missing(path: &Path, contents: &str) -> Result<bool, FsError> {
+    if path.exists() {
+        return Ok(false);
+    }
+    write_atomic(path, contents)?;
+    Ok(true)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

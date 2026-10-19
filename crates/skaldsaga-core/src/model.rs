@@ -1,0 +1,608 @@
+//! The typed spec model: nodes, facts and the fields each node type adds.
+//!
+//! Field names and values follow HANDOFF, Node format. Every type rejects
+//! unknown keys, so a typo in a hand-edited file is reported instead of being
+//! silently dropped the next time the committer rewrites the file. Optional
+//! fields that are empty are left out when written, which keeps node files
+//! short enough for a writer to read.
+
+use indexmap::IndexMap;
+use serde::{Deserialize, Serialize};
+
+// ---------------------------------------------------------------------------
+// Shared labels
+
+/// How sure the writer is (HANDOFF, Governance: two independent labels).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Confidence {
+    Confirmed,
+    Provisional,
+    Unresolved,
+}
+
+/// Whether the housekeeper has cleared it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Review {
+    Unreviewed,
+    Cleared,
+}
+
+/// The four stages every thread moves through (HANDOFF, Coverage grid).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Stage {
+    Setup,
+    Complications,
+    Crisis,
+    Resolution,
+}
+
+impl Stage {
+    pub const ALL: [Stage; 4] = [
+        Stage::Setup,
+        Stage::Complications,
+        Stage::Crisis,
+        Stage::Resolution,
+    ];
+}
+
+// ---------------------------------------------------------------------------
+// In-world time
+
+/// How exact a time offset is.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Precision {
+    Exact,
+    Approx,
+}
+
+/// The bare word `unknown`, for a time nobody has pinned down yet.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum UnknownTime {
+    Unknown,
+}
+
+/// A point in in-world time. Relative by default: anchored to a fact or a
+/// scene, with an optional offset. An absolute date is used only when the
+/// writer gives one.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum TimeAnchor {
+    /// `unknown`
+    Unknown(UnknownTime),
+    /// `{after: f-…, offset: "3 days", precision: approx}`; `after` may name a fact or a scene.
+    After(AfterAnchor),
+    /// `{in: s-…}`: during that scene.
+    In(InAnchor),
+    /// `{at: f-…}`: at the same moment as that fact (used by `ends`).
+    At(AtAnchor),
+    /// `{date: "1923-04-02"}`
+    Date(DateAnchor),
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AfterAnchor {
+    pub after: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub offset: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub precision: Option<Precision>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct InAnchor {
+    #[serde(rename = "in")]
+    pub scene: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AtAnchor {
+    pub at: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct DateAnchor {
+    pub date: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub precision: Option<Precision>,
+}
+
+// ---------------------------------------------------------------------------
+// Facts
+
+/// A truth about the story world, or someone's belief about it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum FactKind {
+    Truth,
+    Belief,
+}
+
+/// How far a reader moment goes.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RevealLevel {
+    Hinted,
+    Revealed,
+}
+
+/// A scene where the reader is hinted at, or told, a fact.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ReaderMoment {
+    pub scene: String,
+    pub level: RevealLevel,
+}
+
+/// How a character learns a fact.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum LearnedHow {
+    Saw,
+    Told,
+    WorkedOut,
+}
+
+/// A character learning a fact in a scene.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct CharacterLearns {
+    pub who: String,
+    pub learns_in: String,
+    pub how: LearnedHow,
+}
+
+/// Pressure along the way (HANDOFF, open item 17).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum FactRole {
+    Cost,
+    SmallWin,
+    Warning,
+    RequiredStep,
+}
+
+/// One ID'd fact inside an entity node.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Fact {
+    pub id: String,
+    pub kind: FactKind,
+    /// Bumped by the committer whenever this fact changes.
+    pub revision: u32,
+    pub statement: String,
+    /// Property key (`eye_color`) or relation (`sibling_of`).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub attribute: Option<String>,
+    /// Property value, or the other entity's ID for a relation.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub value: Option<String>,
+    /// Beliefs only: a person ID, or `reader`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub holder: Option<String>,
+    /// Beliefs only: the truth this belief contradicts.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub contradicts: Option<String>,
+    /// Unresolved only: what's undecided, in plain words.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub question: Option<String>,
+    /// Unresolved only: the candidate answers; empty means to be decided.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub options: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub true_from: Option<TimeAnchor>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ends: Option<TimeAnchor>,
+    /// The fact that replaced this one in the story.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ended_by: Option<String>,
+    /// At most one reveal (checked by the dependency checker).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub reader: Vec<ReaderMoment>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub characters: Vec<CharacterLearns>,
+    /// Other entities this fact involves.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub links: Vec<String>,
+    pub confidence: Confidence,
+    pub review: Review,
+    /// `interview`, `harvest:<file>`, `research:<source>` or `placeholder`.
+    pub source: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub role: Option<FactRole>,
+}
+
+// ---------------------------------------------------------------------------
+// Node types
+
+/// The `type` field of a node.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum NodeType {
+    Person,
+    Place,
+    Group,
+    Item,
+    Scene,
+    Decision,
+    Thread,
+    Style,
+    Arc,
+}
+
+impl NodeType {
+    pub const ALL: [NodeType; 9] = [
+        NodeType::Person,
+        NodeType::Place,
+        NodeType::Group,
+        NodeType::Item,
+        NodeType::Scene,
+        NodeType::Decision,
+        NodeType::Thread,
+        NodeType::Style,
+        NodeType::Arc,
+    ];
+
+    /// The ID kind nodes of this type use.
+    pub fn id_kind(self) -> crate::ids::IdKind {
+        use crate::ids::IdKind;
+        match self {
+            NodeType::Person => IdKind::Person,
+            NodeType::Place => IdKind::Place,
+            NodeType::Group => IdKind::Group,
+            NodeType::Item => IdKind::Item,
+            NodeType::Scene => IdKind::Scene,
+            NodeType::Decision => IdKind::Decision,
+            NodeType::Thread => IdKind::Thread,
+            NodeType::Style => IdKind::Style,
+            NodeType::Arc => IdKind::Arc,
+        }
+    }
+
+    /// The folder under `spec/` that holds nodes of this type.
+    pub fn folder(self) -> &'static str {
+        match self {
+            NodeType::Person => "people",
+            NodeType::Place => "places",
+            NodeType::Group => "groups",
+            NodeType::Item => "items",
+            NodeType::Scene => "scenes",
+            NodeType::Decision => "decisions",
+            NodeType::Thread => "threads",
+            NodeType::Style => "style",
+            NodeType::Arc => "arcs",
+        }
+    }
+
+    pub fn from_folder(folder: &str) -> Option<NodeType> {
+        NodeType::ALL.into_iter().find(|t| t.folder() == folder)
+    }
+
+    pub fn as_str(self) -> &'static str {
+        match self {
+            NodeType::Person => "person",
+            NodeType::Place => "place",
+            NodeType::Group => "group",
+            NodeType::Item => "item",
+            NodeType::Scene => "scene",
+            NodeType::Decision => "decision",
+            NodeType::Thread => "thread",
+            NodeType::Style => "style",
+            NodeType::Arc => "arc",
+        }
+    }
+}
+
+/// Which thread and stage a scene covers.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Coverage {
+    pub thread: String,
+    pub stage: Stage,
+}
+
+/// The scene's change: what the POV character wants, what gets in the way,
+/// and how it ends differently than it began.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Turn {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub wants: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub against: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ends: Option<String>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum SceneStatus {
+    Slot,
+    Outlined,
+    Drafted,
+    Reviewed,
+    Approved,
+}
+
+/// Fields a scene adds. Writes, hints and reveals are not stored here; they
+/// are generated from the facts that point at the scene.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Scene {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pov: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub location: Option<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub participants: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub coverage: Option<Coverage>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub purpose: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub when: Option<TimeAnchor>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub beats: Vec<String>,
+    /// Facts this scene relies on (declared).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub reads: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub turn: Option<Turn>,
+    pub status: SceneStatus,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum DecisionArea {
+    Hero,
+    Plot,
+    Theme,
+    Challenger,
+    Relationship,
+}
+
+/// Fields a shape decision adds.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Decision {
+    pub question: String,
+    pub area: DecisionArea,
+    /// Empty means the writer answers in their own words.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub choices: Vec<String>,
+    /// The answer; `not_explored` records a "keep it simple" choice.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub value: Option<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub options: Vec<String>,
+    /// Scenes and facts the inference came from.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub evidence: Vec<String>,
+    /// The belief whose ending marks the change.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pivot: Option<String>,
+    pub confidence: Confidence,
+    pub review: Review,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ThreadKind {
+    Personal,
+    Challenger,
+    Relationship,
+    BigPicture,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ThreadCharacter {
+    pub who: String,
+    pub role: String,
+}
+
+/// One stage of a thread. A missing summary is an empty grid cell.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct StageEntry {
+    pub stage: Stage,
+    #[serde(default)]
+    pub summary: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub confidence: Option<Confidence>,
+}
+
+/// Fields a thread adds.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Thread {
+    pub kind: ThreadKind,
+    pub arc: String,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub characters: Vec<ThreadCharacter>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub decisions: Vec<String>,
+    /// Always the four stages, in order (checked when loading).
+    pub stages: Vec<StageEntry>,
+}
+
+impl Thread {
+    /// Four empty stages, for a new thread.
+    pub fn empty_stages() -> Vec<StageEntry> {
+        Stage::ALL
+            .into_iter()
+            .map(|stage| StageEntry {
+                stage,
+                summary: None,
+                confidence: None,
+            })
+            .collect()
+    }
+}
+
+/// Viewpoint and style settings, used as defaults and per-viewpoint overrides.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct StyleRules {
+    /// `first`, `second` or `third`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub person: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tense: Option<String>,
+    /// `close`, `distant` or `omniscient`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub distance: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tone: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Viewpoint {
+    pub who: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub overrides: Option<StyleRules>,
+}
+
+/// Fields the viewpoint and style node adds.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Style {
+    #[serde(default)]
+    pub defaults: StyleRules,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub taste_anchors: Vec<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub viewpoints: Vec<Viewpoint>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub voice_refs: Vec<String>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ArcStatus {
+    Main,
+    Fog,
+    Active,
+    Shelved,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct PremiseVersion {
+    pub date: String,
+    pub text: String,
+}
+
+/// The premise in the writer's own words, versioned for drift checks.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Premise {
+    pub current: String,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub history: Vec<PremiseVersion>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Framework {
+    /// A framework name, `undecided`, or `none`.
+    pub value: String,
+    pub confidence: Confidence,
+}
+
+/// A landmark or framework beat placed on a scene.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct BeatPlacement {
+    pub scene: String,
+    pub confidence: Confidence,
+}
+
+/// Fields an arc (the main story, or one subplot) adds.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Arc {
+    pub status: ArcStatus,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub threads: Vec<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub decisions: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub premise: Option<Premise>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub dramatic_question: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub thematic_question: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub framework: Option<Framework>,
+    /// Tier 1: one entry per landmark; `null` means not found yet.
+    #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
+    pub landmarks: IndexMap<String, Option<BeatPlacement>>,
+    /// Tier 2: from the chosen framework.
+    #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
+    pub beats: IndexMap<String, Option<BeatPlacement>>,
+    /// Fog only: who the subplot involves.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub characters: Vec<String>,
+}
+
+/// The fields that depend on a node's type.
+#[derive(Debug, Clone, PartialEq)]
+pub enum NodeBody {
+    Person,
+    Place,
+    Group,
+    Item,
+    Scene(Scene),
+    Decision(Decision),
+    Thread(Thread),
+    Style(Style),
+    Arc(Arc),
+}
+
+impl NodeBody {
+    pub fn node_type(&self) -> NodeType {
+        match self {
+            NodeBody::Person => NodeType::Person,
+            NodeBody::Place => NodeType::Place,
+            NodeBody::Group => NodeType::Group,
+            NodeBody::Item => NodeType::Item,
+            NodeBody::Scene(_) => NodeType::Scene,
+            NodeBody::Decision(_) => NodeType::Decision,
+            NodeBody::Thread(_) => NodeType::Thread,
+            NodeBody::Style(_) => NodeType::Style,
+            NodeBody::Arc(_) => NodeType::Arc,
+        }
+    }
+}
+
+/// One spec node: the common core, the type's own fields, its facts, and the
+/// free prose notes below the front matter (which no checker relies on).
+#[derive(Debug, Clone, PartialEq)]
+pub struct Node {
+    pub id: String,
+    pub name: String,
+    pub aliases: Vec<String>,
+    /// The one-line index summary.
+    pub summary: Option<String>,
+    /// Bumped by the committer whenever a node-level field changes.
+    pub revision: u32,
+    pub body: NodeBody,
+    pub facts: Vec<Fact>,
+    pub notes: String,
+}
+
+impl Node {
+    pub fn node_type(&self) -> NodeType {
+        self.body.node_type()
+    }
+}
