@@ -282,10 +282,29 @@ fn finish(
     }
 }
 
+/// The current revision (or content fingerprint, for `sequence.md` and
+/// `attributes.md`) recorded under `key` in a revision map; `None` when the
+/// node or fact no longer exists.
+pub fn current_value(spec: &Spec, key: &str) -> Option<Value> {
+    match key {
+        SEQUENCE_KEY => Some(sequence_fingerprint(spec).into()),
+        ATTRIBUTES_KEY => Some(attributes_fingerprint(spec).into()),
+        _ => {
+            if let Some(n) = spec.node(key) {
+                return Some(Value::from(n.revision));
+            }
+            spec.nodes
+                .iter()
+                .flat_map(|n| &n.facts)
+                .find(|f| f.id == key)
+                .map(|f| Value::from(f.revision))
+        }
+    }
+}
+
 /// The author's view must still be current: everything it wrote or read
 /// must be at the revision it recorded.
 fn stale(spec: &Spec, proposal: &Proposal) -> Vec<Finding> {
-    let current = ops::revisions(spec);
     let mut out = Vec::new();
     for (id, recorded) in proposal
         .revisions
@@ -293,12 +312,7 @@ fn stale(spec: &Spec, proposal: &Proposal) -> Vec<Finding> {
         .iter()
         .chain(&proposal.revisions.read)
     {
-        let now: Option<Value> = match id.as_str() {
-            SEQUENCE_KEY => Some(sequence_fingerprint(spec).into()),
-            ATTRIBUTES_KEY => Some(attributes_fingerprint(spec).into()),
-            _ => current.get(id).map(|r| Value::from(*r)),
-        };
-        match now {
+        match current_value(spec, id) {
             None => out.push(Finding::hard(
                 "stale",
                 format!("'{id}' no longer exists, so this answer needs another look"),

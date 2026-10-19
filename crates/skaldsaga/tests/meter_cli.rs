@@ -87,11 +87,9 @@ fn version_and_help() {
 #[test]
 fn reserved_and_unknown_commands() {
     let dir = TempDir::new();
-    for cmd in ["commit", "complete"] {
-        let o = run(&[cmd], dir.path(), None);
-        assert_eq!(o.status.code(), Some(69), "{cmd}");
-        assert!(String::from_utf8_lossy(&o.stderr).contains("not built yet"));
-    }
+    let o = run(&["complete"], dir.path(), None);
+    assert_eq!(o.status.code(), Some(69));
+    assert!(String::from_utf8_lossy(&o.stderr).contains("not built yet"));
     assert_eq!(
         run(&["frobnicate"], dir.path(), None).status.code(),
         Some(64)

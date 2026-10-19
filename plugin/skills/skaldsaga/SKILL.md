@@ -5,9 +5,15 @@ description: Skaldsaga story mentor (test build). Use when the person types /ska
 
 # Skaldsaga (test build)
 
-This is an early test build. The story conversation isn't built yet; this skill sets up a story folder and checks that the installed pieces work. Keep every reply short and in plain language, with no file paths or command names unless the person asks.
+This is an early test build. The story conversation isn't built yet; this skill sets up a story folder, checks that the installed pieces work, and can run a short demo of how answers are checked and saved. Keep every reply short and in plain language, with no file paths or command names unless the person asks.
+
+If the person typed `/skaldsaga demo` (or asks for the demo), follow **Demo** below instead of steps 2 to 5.
 
 Below, `skaldsaga` means `sh "${CLAUDE_PLUGIN_ROOT}/scripts/skaldsaga"`, and `METER` means the text `sh "${CLAUDE_PLUGIN_ROOT}/scripts/skaldsaga" meter statusline` (passed as one quoted argument).
+
+## 0. Find the story folder
+
+The story folder is normally the current folder. But if the current folder has no `.harness` folder and holds exactly one visible folder that is a git repository (it contains `.git`), with nothing else visible, the person probably means that folder (in cloud sessions, a repository is cloned one level down). Ask one question: "Should I use the `<name>` folder for your story?" On a yes, add `--project <full path of that folder>` to every `skaldsaga` command below, and run every `git` command inside that folder. On a no, use the current folder.
 
 ## 1. Check the program
 
@@ -72,3 +78,28 @@ In three or four short lines, say:
 - what setup did (folders added, or already in place) and whether the snapshot was saved;
 - the meter state;
 - whether the session-start hook ran: it adds a line to your context starting "This folder is a Skaldsaga project". Say yes or no; don't quote it. (It only runs when a session starts, so right after first-time setup it's normal for it to be missing; it will run next session.)
+
+## Demo
+
+The demo files two sample answers, the way the interviewer will once it exists, and shows how Skaldsaga checks an answer before it changes the story, then saves it. Explain each step in a sentence or two, in plain words; the person is testing, so it's fine to say what each step proves.
+
+1. **Program and folder:** do steps 0 and 1. If there's no `.harness` folder, do steps 2 and 3 first (setup and its snapshot), then come back here.
+2. **File the sample answers:** run `skaldsaga demo`.
+   - `written`: continue.
+   - `spec_not_empty`: the story already has content; say the demo only runs in an empty story folder, so it never mixes sample content into a real story. Stop.
+   - `already_written`: say the demo has already run here. Stop.
+3. **Check the first answer:** run `skaldsaga check --proposal pr-demstart`. Explain: the answer creates a tiny story (Mara, Jonah, the docks, a checkpoint scene and an arrest scene), and the check applied it to a copy of the story first. Say whether it `passed`.
+4. **Save it:** run `skaldsaga commit --proposal pr-demstart`. If the `outcome` is `committed`, save a git snapshot with exactly the paths it lists:
+
+   ```sh
+   git rm --cached --ignore-unmatch -q -- <each path in remove_paths>
+   git add -- <each path in add_paths>
+   git commit -q -m "<message>"
+   ```
+
+   Say the story files now hold the answer and the answer moved to the archive of saved answers.
+5. **Check the second answer:** run `skaldsaga check --proposal pr-demmixup`. It has Mara already knowing about Jonah's arrest at the checkpoint, which happens before the arrest. Expect `failed` with the finding `learns_before_true`; explain it in your own plain words (a character can't know something before it happens).
+6. **Try to save it anyway:** run `skaldsaga commit --proposal pr-demmixup`. Expect `held` with reason `failed`: nothing in the story changed. Then delete that sample answer from the inbox (the file `.harness/inbox/pr-demmixup.json`), so the folder holds no leftovers, and say so.
+7. **Wrap up** in three or four short lines: what was saved, what was refused and why, and that the snapshot is in git. If the folder has a git remote (`git remote` prints something), offer to push the snapshot so it can be seen on GitHub; push only on a yes.
+
+If git is missing or a commit fails, explain in one plain sentence; the story files are saved either way. Don't change git settings without asking.

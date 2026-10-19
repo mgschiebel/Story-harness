@@ -1,0 +1,129 @@
+//! End-to-end tests for `skaldsaga demo` and `skaldsaga commit`, following
+//! the same steps as the skill's demo.
+
+use std::path::{Path, PathBuf};
+use std::process::{Command, Output};
+use std::sync::atomic::{AtomicU64, Ordering};
+
+static COUNTER: AtomicU64 = AtomicU64::new(0);
+
+struct TempDir(PathBuf);
+
+impl TempDir {
+    fn new() -> Self {
+        let n = COUNTER.fetch_add(1, Ordering::Relaxed);
+        let path =
+            std::env::temp_dir().join(format!("skaldsaga-commit-test-{}-{n}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&path);
+        std::fs::create_dir_all(&path).unwrap();
+        TempDir(path)
+    }
+    fn path(&self) -> &Path {
+        &self.0
+    }
+}
+
+impl Drop for TempDir {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_dir_all(&self.0);
+    }
+}
+
+fn skaldsaga(dir: &Path, args: &[&str]) -> Output {
+    Command::new(env!("CARGO_BIN_EXE_skaldsaga"))
+        .env_remove("CLAUDE_PROJECT_DIR")
+        .args(args)
+        .current_dir(dir)
+        .output()
+        .unwrap()
+}
+
+fn json_of(o: &Output) -> serde_json::Value {
+    assert!(
+        o.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&o.stderr)
+    );
+    serde_json::from_slice(&o.stdout).unwrap()
+}
+
+#[test]
+fn the_demo_commits_one_answer_and_refuses_the_other() {
+    let dir = TempDir::new();
+    let p = dir.path();
+    // A subfolder, as when a repository is cloned one level down.
+    let story = p.join("story");
+    std::fs::create_dir_all(&story).unwrap();
+    let project = story.to_string_lossy().to_string();
+    assert!(
+        skaldsaga(p, &["init", "--project", &project])
+            .status
+            .success()
+    );
+
+    let v = json_of(&skaldsaga(p, &["demo", "--project", &project]));
+    assert_eq!(v["outcome"], "written");
+    let again = json_of(&skaldsaga(p, &["demo", "--project", &project]));
+    assert_eq!(again["outcome"], "already_written");
+
+    let v = json_of(&skaldsaga(
+        p,
+        &["check", "--project", &project, "--proposal", "pr-demstart"],
+    ));
+    assert_eq!(v["proposals"][0]["status"], "passed");
+
+    let v = json_of(&skaldsaga(
+        p,
+        &["commit", "--project", &project, "--proposal", "pr-demstart"],
+    ));
+    assert_eq!(v["outcome"], "committed");
+    assert!(
+        v["message"]
+            .as_str()
+            .unwrap()
+            .starts_with("Skaldsaga: Mara is a courier")
+    );
+    let add: Vec<&str> = v["add_paths"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|x| x.as_str().unwrap())
+        .collect();
+    assert!(add.contains(&"spec/scenes/s-demarrst.md"));
+    assert!(add.contains(&".harness/committed/pr-demstart.json"));
+    assert!(add.iter().all(|a| !a.starts_with("spec/_index")));
+    assert_eq!(v["remove_paths"][0], ".harness/inbox/pr-demstart.json");
+    assert!(story.join("spec/people/p-demmara2.md").is_file());
+
+    let v = json_of(&skaldsaga(
+        p,
+        &["commit", "--project", &project, "--proposal", "pr-demmixup"],
+    ));
+    assert_eq!(v["outcome"], "held");
+    assert_eq!(v["reason"], "failed");
+    assert_eq!(v["findings"][0]["code"], "learns_before_true");
+
+    // The demo never runs in a story that already has content.
+    std::fs::remove_file(story.join(".harness/inbox/pr-demmixup.json")).unwrap();
+    std::fs::remove_dir_all(story.join(".harness/committed")).unwrap();
+    let v = json_of(&skaldsaga(p, &["demo", "--project", &project]));
+    assert_eq!(v["outcome"], "spec_not_empty");
+}
+
+#[test]
+fn commit_reports_usage_mistakes_and_missing_proposals() {
+    let dir = TempDir::new();
+    let p = dir.path();
+    assert!(skaldsaga(p, &["init"]).status.success());
+    assert_eq!(skaldsaga(p, &["commit"]).status.code(), Some(64));
+    let o = skaldsaga(
+        p,
+        &["commit", "--proposal", "pr-demstart", "--decision", "maybe"],
+    );
+    assert_eq!(o.status.code(), Some(64));
+    let v = json_of(&skaldsaga(
+        p,
+        &["commit", "--proposal", "pr-nnnnnnnn", "--cleared"],
+    ));
+    assert_eq!(v["outcome"], "not_found");
+}

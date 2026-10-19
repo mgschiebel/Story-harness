@@ -9,9 +9,12 @@
 //! Built so far: the session meter (the pilot), status line wiring, the
 //! session-start hook, the typed spec model with its loader, first-run setup
 //! (`init`), the attribute registry, the generated index (`index`), and the
-//! dependency checker (`check`) with the operation engine it runs on.
+//! dependency checker (`check`) with the operation engine it runs on, the
+//! single committer (`commit`) and the demo answers (`demo`).
 
 pub mod check;
+pub mod commit;
+pub mod demo;
 pub mod fsio;
 pub mod hooks;
 pub mod ids;
