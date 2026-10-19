@@ -75,6 +75,22 @@ jobs:
             | grep -q '"additionalContext"'
           test ! -e "$t/novel/.harness/meter.json"
 
+          # First-run setup: creates the folders and wires the meter, then changes nothing
+          mkdir "$t/fresh"
+          sh "$d/scripts/skaldsaga" init --project "$t/fresh" \
+            --meter-command "sh \"$d/scripts/skaldsaga\" meter statusline" \
+            --user-settings "$t/none.json" | tee "$t/init.json"
+          grep -q '"outcome": "created"' "$t/init.json"
+          grep -q '"outcome": "wired"' "$t/init.json"
+          for f in spec/README.md spec/sequence.md manuscript/README.md reviews/README.md style-guide/README.md .harness/settings.json; do
+            test -f "$t/fresh/$f"
+          done
+          sh "$d/scripts/skaldsaga" init --project "$t/fresh" | grep -q '"outcome": "already_set_up"'
+          # A folder holding the writer's own files is left alone
+          mkdir "$t/drafts" && echo "Chapter one" > "$t/drafts/draft.txt"
+          sh "$d/scripts/skaldsaga" init --project "$t/drafts" | grep -q '"outcome": "existing_files"'
+          test ! -e "$t/drafts/.harness"
+
           # A missing binary must stay silent in the hook and the status line
           rm "$d/scripts/bin/linux-x64/skaldsaga"
           test -z "$(echo '{}' | sh "$d/scripts/skaldsaga" hook session-start)"

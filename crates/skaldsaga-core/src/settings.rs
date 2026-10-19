@@ -91,6 +91,73 @@ pub fn default_meter_section() -> Value {
     meter
 }
 
+/// The whole settings file as first-run setup writes it (HANDOFF, Default
+/// settings, and the models per sub-agent in Architecture). Every value is a
+/// starting point the writer can tune. `format` lets later versions migrate
+/// the file.
+const DEFAULT_SETTINGS: &str = r#"{
+  "format": 1,
+  "meter": {
+    "suggest_wrap_up_percent": 50,
+    "wrap_up_percent": 70
+  },
+  "housekeeper": {
+    "rolling_pass_every_answers": 5,
+    "scoped_pass_reader_cap": 25,
+    "full_pass_every_sessions": 10
+  },
+  "flags_per_pause": 2,
+  "pacing": {
+    "under_share": 0.5,
+    "over_share": 2.0
+  },
+  "models": {
+    "housekeeper": "strong",
+    "completeness_rubric": "strong",
+    "weaver": "strong",
+    "outliner": "strong",
+    "harvester": "mid",
+    "researcher": "mid"
+  }
+}"#;
+
+/// The default settings document.
+pub fn default_settings() -> Value {
+    json::parse(DEFAULT_SETTINGS).expect("default settings are valid JSON")
+}
+
+/// Adds any default settings missing from `doc` (top-level keys, and keys
+/// inside top-level sections), never changing a value that is already there.
+/// Returns true if anything was added.
+pub fn fill_missing(doc: &mut Value) -> bool {
+    if !doc.is_object() {
+        *doc = json::object();
+    }
+    let mut changed = false;
+    let Value::Object(defaults) = default_settings() else {
+        return false;
+    };
+    for (key, default) in defaults {
+        match doc.get_mut(&key) {
+            None => {
+                doc.set(&key, default);
+                changed = true;
+            }
+            Some(existing) => {
+                if let (Value::Object(have), Value::Object(want)) = (existing, default) {
+                    for (k, v) in want {
+                        if !have.contains_key(&k) {
+                            have.insert(k, v);
+                            changed = true;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    changed
+}
+
 /// Records (or clears) the writer's wrapped status line, keeping every other
 /// key in the settings file as it was.
 pub fn store_wrapped_statusline(project: &Project, wrapped: Option<Value>) -> Result<(), FsError> {
@@ -168,6 +235,27 @@ mod tests {
                 .wrapped_statusline
                 .is_some()
         );
+    }
+
+    #[test]
+    fn defaults_match_the_meter_constants() {
+        let s = MeterSettings::from_settings(Some(&default_settings()));
+        assert_eq!(s, MeterSettings::default());
+    }
+
+    #[test]
+    fn filling_missing_settings_keeps_existing_values() {
+        let mut doc = parse(
+            r#"{"meter":{"wrap_up_percent":65,"wrapped_statusline":{"command":"x"}},"mine":true}"#,
+        )
+        .unwrap();
+        assert!(fill_missing(&mut doc));
+        assert_eq!(doc["meter"]["wrap_up_percent"], 65);
+        assert_eq!(doc["meter"]["suggest_wrap_up_percent"], 50);
+        assert_eq!(doc["meter"]["wrapped_statusline"]["command"], "x");
+        assert_eq!(doc["models"]["harvester"], "mid");
+        assert_eq!(doc["mine"], true);
+        assert!(!fill_missing(&mut doc), "a second pass adds nothing");
     }
 
     #[test]

@@ -1,7 +1,8 @@
 //! `skaldsaga`: the command-line front end for Skaldsaga's deterministic scripts.
 //!
-//! One binary with subcommands. The session meter and the session-start hook
-//! are built so far; the other subcommands are reserved and say so.
+//! One binary with subcommands. First-run setup, the session meter and the
+//! session-start hook are built so far; the other subcommands are reserved
+//! and say so.
 
 mod wrapped;
 
@@ -11,6 +12,7 @@ use std::process::ExitCode;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use skaldsaga_core::hooks;
+use skaldsaga_core::init::{self, InitOutcome, InitReport};
 use skaldsaga_core::json::{self, Value, ValueExt as _};
 use skaldsaga_core::meter::{self, StatusInput};
 use skaldsaga_core::project::Project;
@@ -21,6 +23,11 @@ const USAGE: &str = "\
 skaldsaga: deterministic scripts for the Skaldsaga story mentor
 
 Usage:
+  skaldsaga init [--project DIR] [--meter-command CMD] [--user-settings FILE]
+                                     First-run setup for a fresh project: story folders,
+                                     .harness and default settings. Safe to run again.
+                                     With --meter-command, also wires the session meter.
+                                     Prints what it did as JSON
   skaldsaga meter statusline         Status line command: reads Claude Code's JSON on
                                      stdin, records context usage, prints a status line
   skaldsaga meter check [--session ID] [--project DIR]
@@ -34,7 +41,7 @@ Usage:
                                      context for Claude. Elsewhere it prints nothing
   skaldsaga --version                Prints the version
 
-Not built yet: init, check, commit, index, complete
+Not built yet: check, commit, index, complete
 
 DIR defaults to $CLAUDE_PROJECT_DIR, then the current folder.
 ";
@@ -66,10 +73,8 @@ fn main() -> ExitCode {
         ["meter", "reset", rest @ ..] => run(meter_reset(rest)),
         ["meter", "wire", rest @ ..] => run(meter_wire(rest)),
         ["hook", "session-start", ..] => hook_session_start(),
-        [
-            cmd @ ("init" | "check" | "commit" | "index" | "complete"),
-            ..,
-        ] => {
+        ["init", rest @ ..] => run(init_cmd(rest)),
+        [cmd @ ("check" | "commit" | "index" | "complete"), ..] => {
             eprintln!("skaldsaga {cmd}: not built yet");
             ExitCode::from(NOT_BUILT)
         }
@@ -238,7 +243,16 @@ fn meter_wire(rest: &[&str]) -> Result<(), CliError> {
         .map(PathBuf::from)
         .or_else(default_user_settings);
 
-    let outcome = statusline::wire(&project, command, user.as_deref()).map_err(|e| match e {
+    print_json(&wire_meter(&project, command, user.as_deref())?)
+}
+
+/// Wires the meter and describes the outcome as JSON.
+fn wire_meter(
+    project: &Project,
+    command: &str,
+    user: Option<&std::path::Path>,
+) -> Result<Value, CliError> {
+    let outcome = statusline::wire(project, command, user).map_err(|e| match e {
         WireError::NotInitialized => CliError::Failed(e.to_string()),
         WireError::Fs(e) => CliError::Failed(e.to_string()),
     })?;
@@ -255,6 +269,46 @@ fn meter_wire(rest: &[&str]) -> Result<(), CliError> {
             v.set("outcome", "overridden_by_local".into());
             v.set("existing", existing);
         }
+    }
+    Ok(v)
+}
+
+fn strings(items: &[String]) -> Value {
+    Value::Array(items.iter().map(|s| Value::from(s.as_str())).collect())
+}
+
+fn init_cmd(rest: &[&str]) -> Result<(), CliError> {
+    let parsed = flags(rest, &["--project", "--meter-command", "--user-settings"])?;
+    let meter_command = flag(&parsed, "--meter-command");
+    if let Some(cmd) = meter_command
+        && !cmd.contains(statusline::METER_SUBCOMMAND)
+    {
+        return Err(CliError::Usage(format!(
+            "--meter-command must run '{}'",
+            statusline::METER_SUBCOMMAND
+        )));
+    }
+    let project = project_from(&parsed);
+    let report = init::init(&project).map_err(|e| CliError::Failed(e.to_string()))?;
+
+    let mut v = json::object();
+    v.set("outcome", report.outcome.as_str().into());
+    if report.outcome == InitOutcome::ExistingFiles {
+        v.set("existing", strings(&report.existing));
+        v.set("existing_count", Value::from(report.existing_count));
+    } else {
+        v.set("created", strings(&report.created));
+        v.set("commit_paths", strings(&InitReport::commit_paths()));
+        let meter = match meter_command {
+            Some(cmd) => {
+                let user = flag(&parsed, "--user-settings")
+                    .map(PathBuf::from)
+                    .or_else(default_user_settings);
+                wire_meter(&project, cmd, user.as_deref())?
+            }
+            None => Value::Null,
+        };
+        v.set("meter", meter);
     }
     print_json(&v)
 }
