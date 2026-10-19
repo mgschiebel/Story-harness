@@ -105,6 +105,40 @@ fn wires_the_meter_when_asked() {
 }
 
 #[test]
+fn moves_a_shared_meter_entry_from_version_0_3_0() {
+    let dir = TempDir::new();
+    let user = dir.path().join("no-user-settings.json");
+    let meter = [
+        "--meter-command",
+        "sh /plugin/scripts/skaldsaga meter statusline",
+        "--user-settings",
+        user.to_str().unwrap(),
+    ];
+    // Set up and wired as 0.3.1 does, then an old shared entry like 0.3.0's.
+    init(dir.path(), &meter);
+    let shared = dir.path().join(".claude/settings.json");
+    std::fs::write(
+        &shared,
+        r#"{"statusLine":{"type":"command","command":"/root/.claude/plugins/synced/x/skaldsaga/scripts/skaldsaga meter statusline"}}"#,
+    )
+    .unwrap();
+
+    // Running setup again takes it out, even though nothing else changed.
+    let v = json_of(&init(dir.path(), &meter));
+    assert_eq!(v["outcome"], "already_set_up");
+    assert_eq!(v["meter"]["outcome"], "already_wired");
+    assert_eq!(
+        v["meter"]["cleaned"],
+        serde_json::json!([".claude/settings.json"])
+    );
+    assert!(!shared.exists());
+
+    // Nothing left to clean the next time.
+    let v = json_of(&init(dir.path(), &meter));
+    assert_eq!(v["meter"]["cleaned"], serde_json::json!([]));
+}
+
+#[test]
 fn existing_files_are_reported_and_left_alone() {
     let dir = TempDir::new();
     std::fs::write(dir.path().join("my novel.txt"), "Once upon a time").unwrap();

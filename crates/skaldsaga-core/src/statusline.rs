@@ -12,8 +12,9 @@
 //! Claude Code reads settings in this order (highest first): managed, command
 //! line, `.claude/settings.local.json`, `.claude/settings.json`, then
 //! `~/.claude/settings.json`. The writer's own line is looked for in that
-//! order too. The shared `.claude/settings.json` is never edited; a meter
-//! entry left there by an earlier version is simply overridden.
+//! order too. The shared `.claude/settings.json` is edited only to take out
+//! a meter entry that version 0.3.0 put there (`retire_shared`); the
+//! writer's own entries in it are never touched.
 
 use std::path::Path;
 
@@ -144,6 +145,41 @@ pub fn wire(
     local_doc.set("statusLine", ours);
     fsio::write_json(&local_path, &local_doc)?;
     Ok(WireOutcome::Wired { wrapped })
+}
+
+/// What `retire_shared` did to the shared `.claude/settings.json`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Retired {
+    /// The meter entry was taken out; the writer's other settings stay.
+    Edited,
+    /// The meter entry was all the file held, so the file was removed.
+    Removed,
+}
+
+/// Takes out a meter status line that Skaldsaga 0.3.0 wrote into the shared
+/// `.claude/settings.json` (HANDOFF, Current stage, decision 1: the meter
+/// belongs in the personal file). That entry holds a path tied to one
+/// computer and runs for anyone who clones the story. Only a status line
+/// that runs the meter is removed; the writer's own status line and any
+/// other settings stay as they are. Returns `None` when there was nothing
+/// to take out.
+pub fn retire_shared(project: &Project) -> Result<Option<Retired>, FsError> {
+    let path = project.claude_settings_path();
+    let Some(mut doc) = fsio::read_json_object(&path)? else {
+        return Ok(None);
+    };
+    if !statusline_in(Some(&doc)).is_some_and(|s| is_meter_command(&s)) {
+        return Ok(None);
+    }
+    if let Some(map) = doc.as_object_mut() {
+        map.shift_remove("statusLine");
+        if map.is_empty() {
+            fsio::remove_optional(&path)?;
+            return Ok(Some(Retired::Removed));
+        }
+    }
+    fsio::write_json(&path, &doc)?;
+    Ok(Some(Retired::Edited))
 }
 
 /// Keeps an existing meter status line pointing at the current launcher.
@@ -333,6 +369,48 @@ mod tests {
         assert_eq!(
             std::fs::read_to_string(project.claude_settings_path()).unwrap(),
             old
+        );
+    }
+
+    #[test]
+    fn retire_removes_an_old_shared_meter_entry() {
+        let (_d, project) = setup();
+        // Nothing there: nothing to do.
+        assert_eq!(retire_shared(&project).unwrap(), None);
+
+        // Only the meter entry: the file goes.
+        write(
+            &project.claude_settings_path(),
+            r#"{"statusLine":{"type":"command","command":"sh /old/skaldsaga meter statusline"}}"#,
+        );
+        assert_eq!(retire_shared(&project).unwrap(), Some(Retired::Removed));
+        assert!(!project.claude_settings_path().exists());
+
+        // Other settings stay, in order.
+        write(
+            &project.claude_settings_path(),
+            r#"{"model":"opus","statusLine":{"type":"command","command":"x meter statusline"},"env":{"A":"1"}}"#,
+        );
+        assert_eq!(retire_shared(&project).unwrap(), Some(Retired::Edited));
+        let doc = fsio::read_json_object(&project.claude_settings_path())
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            doc.to_compact_string(),
+            r#"{"model":"opus","env":{"A":"1"}}"#
+        );
+        assert_eq!(retire_shared(&project).unwrap(), None);
+    }
+
+    #[test]
+    fn retire_leaves_the_writers_own_status_line() {
+        let (_d, project) = setup();
+        let mine = r#"{"statusLine":{"type":"command","command":"my-line"}}"#;
+        write(&project.claude_settings_path(), mine);
+        assert_eq!(retire_shared(&project).unwrap(), None);
+        assert_eq!(
+            std::fs::read_to_string(project.claude_settings_path()).unwrap(),
+            mine
         );
     }
 

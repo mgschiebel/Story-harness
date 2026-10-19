@@ -46,7 +46,7 @@ Usage:
   skaldsaga hook session-start       SessionStart hook: reads Claude Code's JSON on stdin;
                                      in a Skaldsaga project, prepares the session and adds
                                      context for Claude. Elsewhere it prints nothing. With
-                                     SKALDSAGA_HOOK_DEBUG=1, says why on stderr
+                                     SKALDSAGA_HOOK_DEBUG=1, says why (stderr and context)
   skaldsaga check [--project DIR] [--proposal ID]...
                                      Checks pending proposals in .harness/inbox (all, or the
                                      ones named) against the spec and writes each verdict into
@@ -277,6 +277,10 @@ fn wire_meter(
     command: &str,
     user: Option<&std::path::Path>,
 ) -> Result<Value, CliError> {
+    // An entry an earlier version left in the shared settings goes first,
+    // even when the personal file is already wired.
+    let retired =
+        statusline::retire_shared(project).map_err(|e| CliError::Failed(e.to_string()))?;
     let outcome = statusline::wire(project, command, user).map_err(|e| match e {
         WireError::NotInitialized => CliError::Failed(e.to_string()),
         WireError::Fs(e) => CliError::Failed(e.to_string()),
@@ -291,6 +295,12 @@ fn wire_meter(
             v.set("wrapped", wrapped.unwrap_or(Value::Null));
         }
     }
+    // Files the skill should add to git if git already tracks them (an edit or
+    // a removal of the shared settings file).
+    let cleaned: Vec<String> = retired
+        .map(|_| vec![".claude/settings.json".to_string()])
+        .unwrap_or_default();
+    v.set("cleaned", strings(&cleaned));
     Ok(v)
 }
 
@@ -541,8 +551,9 @@ fn locate_cmd(rest: &[&str]) -> Result<(), CliError> {
 
 /// The SessionStart hook. Like the status line, it must never get in the
 /// writer's way: it always exits successfully, and prints nothing outside a
-/// Skaldsaga project. With `SKALDSAGA_HOOK_DEBUG=1` it also says on stderr
-/// what it found or why it stayed silent.
+/// Skaldsaga project. With `SKALDSAGA_HOOK_DEBUG=1` it also says what it
+/// found or why it stayed silent, both on stderr and in Claude's context
+/// (stderr isn't shown to Claude at session start).
 fn hook_session_start() -> ExitCode {
     let mut raw = String::new();
     let _ = io::stdin().lock().take(MAX_STDIN).read_to_string(&mut raw);
@@ -566,10 +577,11 @@ fn hook_session_start() -> ExitCode {
     let plugin_root = std::env::var("CLAUDE_PLUGIN_ROOT").ok();
 
     let result = hooks::session_start(&start, &source, plugin_root.as_deref());
-    if std::env::var_os("SKALDSAGA_HOOK_DEBUG").is_some_and(|v| v == "1") {
+    let debug = std::env::var_os("SKALDSAGA_HOOK_DEBUG").is_some_and(|v| v == "1");
+    if debug {
         eprintln!("skaldsaga hook: {}", result.reason);
     }
-    let Some(context) = result.context else {
+    let Some(context) = result.context_for(debug) else {
         return ExitCode::SUCCESS;
     };
     let mut specific = json::object();

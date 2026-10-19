@@ -1,36 +1,18 @@
 #!/bin/sh
 # Environment setup script for the author's Claude Code Project (phone testing).
 # Paste into Project settings > Environment > Setup script. It runs before each
-# cloud session starts, so the SessionStart hook finds a Skaldsaga project.
+# cloud session starts.
 #
-# Each cloud session starts on a fresh machine: nothing from an earlier session
-# survives, so this has to recreate the test project every time.
+# It no longer makes a Skaldsaga project. Earlier versions created
+# /home/claude/.harness so the session-start hook had something to find, but
+# that left a stray, empty project behind: claude.ai/code on the web starts the
+# session inside the attached repository (for example /home/user/<repo>), and
+# the mobile app starts it in /home/claude with the repository one level down.
+# The hook handles both layouts on its own, and `/skaldsaga` sets up and wires
+# the meter in the repository itself (0.3.2 re-test notes, docs/tests/).
 set -eu
 
-PROJECT=/home/claude
-
-# 1. Make the folder a Skaldsaga test project (what the hook looks for).
-mkdir -p "$PROJECT/.harness"
-
-# 2. Wire the session meter into the project's personal status line
-#    (.claude/settings.local.json, which stays out of git).
-#    The plugin may not be synced yet when this runs, so the command finds the
-#    launcher at run time. The session-start hook then rewrites it to the exact
-#    plugin path (it updates any status line containing "meter statusline").
-mkdir -p "$PROJECT/.claude"
-SETTINGS="$PROJECT/.claude/settings.local.json"
-if [ ! -s "$SETTINGS" ]; then
-  cat > "$SETTINGS" <<'EOF'
-{
-  "statusLine": {
-    "type": "command",
-    "command": "for p in /root/.claude/plugins/*/*/skaldsaga/scripts/skaldsaga /root/.claude/plugins/cache/*/skaldsaga/*/scripts/skaldsaga; do [ -f \"$p\" ] && exec sh \"$p\" meter statusline; done; echo"
-  }
-}
-EOF
-fi
-
-# 3. Let cargo reach crates.io (see CLAUDE.md), so build sessions skip that step.
+# Let cargo reach crates.io (see CLAUDE.md), so build sessions skip that step.
 mkdir -p /root/.local/bin
 cat > /root/.local/bin/cargo <<'EOF'
 #!/bin/sh

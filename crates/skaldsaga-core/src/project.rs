@@ -50,8 +50,9 @@ impl Project {
         self.harness_dir().join("meter.json")
     }
 
-    /// Claude Code's shared project settings. Skaldsaga never edits this file;
-    /// it only reads it to find a status line the writer shares with others.
+    /// Claude Code's shared project settings. Skaldsaga reads it to find a
+    /// status line the writer shares with others, and edits it only to take
+    /// out a meter entry an earlier version left there.
     pub fn claude_settings_path(&self) -> PathBuf {
         self.root.join(".claude").join("settings.json")
     }
@@ -81,8 +82,9 @@ pub enum Location {
     Below { path: PathBuf, name: String },
     /// Several child folders are projects; the lookup never guesses.
     Several(Vec<String>),
-    /// No project yet, but the starting folder holds nothing visible except
-    /// one git repository: probably the folder to set up.
+    /// No project yet, but the only visible folder in the starting folder is
+    /// a git repository (loose files beside it don't count): probably the
+    /// folder to set up.
     Candidate { path: PathBuf, name: String },
     /// No project here or one level down.
     Nothing,
@@ -134,13 +136,14 @@ pub fn locate(start: &Path) -> Location {
         [] => {}
         many => return Location::Several(many.iter().map(|s| s.to_string()).collect()),
     }
-    match entries.as_slice() {
-        [only] if only.is_dir && start.join(&only.name).join(".git").exists() => {
-            Location::Candidate {
-                path: start.join(&only.name),
-                name: only.name.clone(),
-            }
-        }
+    // Loose files (notes, an uploaded report) don't stop the guess; another
+    // visible folder does, since it may hold the writer's work.
+    let folders: Vec<_> = entries.iter().filter(|e| e.is_dir).collect();
+    match folders.as_slice() {
+        [only] if start.join(&only.name).join(".git").exists() => Location::Candidate {
+            path: start.join(&only.name),
+            name: only.name.clone(),
+        },
         _ => Location::Nothing,
     }
 }
@@ -213,8 +216,11 @@ mod tests {
                 name: "repo".into()
             }
         );
-        // Anything else visible beside it: no guess.
+        // Loose files beside it don't count.
         std::fs::write(dir.path().join("readme.md"), "").unwrap();
+        assert!(matches!(locate(dir.path()), Location::Candidate { .. }));
+        // Another visible folder does: no guess.
+        mkdir(&dir.path().join("notes"));
         assert_eq!(locate(dir.path()), Location::Nothing);
     }
 
