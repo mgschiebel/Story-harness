@@ -53,9 +53,10 @@ my-novel/
     threads/      t-0001.md ...
     arcs/         a-0001.md ... (main story, active and fog subplots)
     sequence.md   scene IDs in reading order (the story itself)
+    attributes.md the story's own attribute keys (the starter list is built in)
     editions/     groupings over the sequence: chapters, acts, serial updates (Proposed)
     style.md      viewpoint and style node
-    _index/       backlinks, attributes, grid, scenes, status (generated)
+    _index/       backlinks, attributes, grid, scenes, status (generated; ignored by git)
   manuscript/     prose drafts and what-if variants
   reviews/        later phases
   style-guide/    later phases

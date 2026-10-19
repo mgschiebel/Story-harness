@@ -2,8 +2,9 @@
 //!
 //! Layout (HANDOFF, Spec and storage): one folder per node type (`people/`,
 //! `places/`, `scenes/` …), one file per node named after its ID, plus
-//! `sequence.md` (scene IDs in reading order) and the generated `_index/`
-//! folder, which loading ignores.
+//! `sequence.md` (scene IDs in reading order), `attributes.md` (the story's
+//! own attribute keys) and the generated `_index/` folder, which loading
+//! ignores.
 //!
 //! Loading never stops at the first problem. It collects every problem it
 //! finds, so a check can report them all at once in plain language.
@@ -15,6 +16,7 @@ use crate::fsio::{self, FsError};
 use crate::ids::{self, IdKind};
 use crate::model::{Node, NodeType};
 use crate::node_file;
+use crate::registry::{self, ATTRIBUTES_FILE, AttributeDef};
 
 /// File name of the reading order.
 pub const SEQUENCE_FILE: &str = "sequence.md";
@@ -28,6 +30,9 @@ pub struct Spec {
     pub nodes: Vec<Node>,
     /// Scene IDs in reading order.
     pub sequence: Vec<String>,
+    /// The story's own attribute keys, from `attributes.md` (the starter
+    /// vocabulary is built in; see [`crate::registry`]).
+    pub attributes: Vec<AttributeDef>,
 }
 
 impl Spec {
@@ -80,7 +85,9 @@ pub fn load(spec_dir: &Path) -> Result<Loaded, FsError> {
     let mut nodes = Vec::new();
     for entry in fsio::list_dir(spec_dir)? {
         let path = spec_dir.join(&entry.name);
-        if skipped(&entry.name) || (!entry.is_dir && entry.name == SEQUENCE_FILE) {
+        if skipped(&entry.name)
+            || (!entry.is_dir && (entry.name == SEQUENCE_FILE || entry.name == ATTRIBUTES_FILE))
+        {
             continue;
         }
         let Some(node_type) = entry
@@ -140,9 +147,22 @@ pub fn load(spec_dir: &Path) -> Result<Loaded, FsError> {
         problem(&seq_path, message);
     }
 
+    let attr_path = spec_dir.join(ATTRIBUTES_FILE);
+    let attributes = match fsio::read_optional(&attr_path)? {
+        Some(text) => {
+            let (defs, attr_problems) = registry::parse_attributes_file(&text);
+            for message in attr_problems {
+                problem(&attr_path, message);
+            }
+            defs
+        }
+        None => Vec::new(),
+    };
+
     loaded.spec = Spec {
         nodes: unique,
         sequence,
+        attributes,
     };
     Ok(loaded)
 }

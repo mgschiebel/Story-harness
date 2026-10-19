@@ -1,8 +1,8 @@
 //! `skaldsaga`: the command-line front end for Skaldsaga's deterministic scripts.
 //!
-//! One binary with subcommands. First-run setup, the session meter and the
-//! session-start hook are built so far; the other subcommands are reserved
-//! and say so.
+//! One binary with subcommands. First-run setup, the session meter, the
+//! session-start hook and the index rebuild are built so far; the other
+//! subcommands are reserved and say so.
 
 mod wrapped;
 
@@ -12,6 +12,7 @@ use std::process::ExitCode;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use skaldsaga_core::hooks;
+use skaldsaga_core::index;
 use skaldsaga_core::init::{self, InitOutcome, InitReport};
 use skaldsaga_core::json::{self, Value, ValueExt as _};
 use skaldsaga_core::meter::{self, StatusInput};
@@ -39,9 +40,11 @@ Usage:
   skaldsaga hook session-start       SessionStart hook: reads Claude Code's JSON on stdin;
                                      in a Skaldsaga project, prepares the session and adds
                                      context for Claude. Elsewhere it prints nothing
+  skaldsaga index [--project DIR]    Rebuilds the generated index in spec/_index (backlinks,
+                                     attributes, grid, scenes, status). Prints a summary as JSON
   skaldsaga --version                Prints the version
 
-Not built yet: check, commit, index, complete
+Not built yet: check, commit, complete
 
 DIR defaults to $CLAUDE_PROJECT_DIR, then the current folder.
 ";
@@ -74,7 +77,8 @@ fn main() -> ExitCode {
         ["meter", "wire", rest @ ..] => run(meter_wire(rest)),
         ["hook", "session-start", ..] => hook_session_start(),
         ["init", rest @ ..] => run(init_cmd(rest)),
-        [cmd @ ("check" | "commit" | "index" | "complete"), ..] => {
+        ["index", rest @ ..] => run(index_cmd(rest)),
+        [cmd @ ("check" | "commit" | "complete"), ..] => {
             eprintln!("skaldsaga {cmd}: not built yet");
             ExitCode::from(NOT_BUILT)
         }
@@ -310,6 +314,27 @@ fn init_cmd(rest: &[&str]) -> Result<(), CliError> {
         };
         v.set("meter", meter);
     }
+    print_json(&v)
+}
+
+/// Rebuilds `spec/_index/`. Refuses outside a Skaldsaga project, so it never
+/// writes into a folder the writer hasn't set up.
+fn index_cmd(rest: &[&str]) -> Result<(), CliError> {
+    let parsed = flags(rest, &["--project"])?;
+    let project = project_from(&parsed);
+    if !project.is_initialized() {
+        return Err(CliError::Failed(
+            "this folder isn't set up for Skaldsaga yet (no .harness folder)".into(),
+        ));
+    }
+    let rebuilt =
+        index::rebuild(&project.spec_dir()).map_err(|e| CliError::Failed(e.to_string()))?;
+    let mut v = json::object();
+    v.set("outcome", "rebuilt".into());
+    v.set("files", strings(&rebuilt.files));
+    v.set("nodes", Value::from(rebuilt.nodes));
+    v.set("problems", Value::from(rebuilt.problems));
+    v.set("broken_references", Value::from(rebuilt.broken_references));
     print_json(&v)
 }
 

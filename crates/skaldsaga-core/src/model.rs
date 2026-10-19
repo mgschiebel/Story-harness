@@ -519,6 +519,24 @@ pub struct Framework {
     pub confidence: Confidence,
 }
 
+/// The tier 1 landmark keys on an arc, in story order (HANDOFF, Coverage grid
+/// and movements; the key names were chosen in PR 6).
+pub const LANDMARKS: [&str; 9] = [
+    "normal_world",
+    "inciting_incident",
+    "mc_commits",
+    "rising_stakes",
+    "midpoint",
+    "things_fall_apart",
+    "low_point",
+    "climax",
+    "new_normal",
+];
+
+/// The landmarks that end the first three movements: Setup ends at the scene
+/// where the MC commits, Complications at the midpoint, Crisis at the low point.
+pub const MOVEMENT_BOUNDARIES: [&str; 3] = ["mc_commits", "midpoint", "low_point"];
+
 /// A landmark or framework beat placed on a scene.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
