@@ -1,13 +1,38 @@
 /target
 /dist
 
-# Personal or secret files, never shared
+# Personal or secret files, never shared (security requirement SR-01)
+# Claude Code personal settings and notes
 .claude/settings.local.json
 .claude/*.local.*
 CLAUDE.local.md
+# Environment files and keys
 .env
 .env.*
 *.pem
 *.key
+*.p12
+*.pfx
+*.keystore
+*.jks
+id_rsa*
+id_ecdsa*
+id_ed25519*
+# Tool credentials (crates.io publish token, npm, netrc, cloud logins)
+.cargo/credentials
+.cargo/credentials.toml
+.npmrc
+.netrc
+.git-credentials
+credentials.json
+*credentials*.json
+*.secret
+*.secrets
+secrets.*
+# Scratch output from secret scanners and editors
+gitleaks-report*.json
+*.swp
+
+# System clutter
 .DS_Store
 Thumbs.db
