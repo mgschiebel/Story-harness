@@ -1,0 +1,38 @@
+name: Privacy
+
+# Keeps Claude session links out of new commits and pull request descriptions
+# (security requirement SR-03). Separate from CI so that editing a pull request
+# description re-runs only this check.
+
+on:
+  push:
+    branches-ignore: [main, dist]
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+
+permissions:
+  contents: read
+
+jobs:
+  session-links:
+    name: Privacy checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          fetch-depth: 0
+
+      - name: No Claude session links
+        env:
+          # Passed through the environment, never inlined into the script.
+          PR_BODY: ${{ github.event.pull_request.body }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -eu
+          if [ -n "$BASE_SHA" ]; then
+            sh ci/check-session-links.sh "$BASE_SHA" "$HEAD_SHA"
+          else
+            # A branch push: check what the branch adds on top of main.
+            sh ci/check-session-links.sh origin/main HEAD
+          fi

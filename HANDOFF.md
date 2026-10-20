@@ -45,6 +45,7 @@ Labels used below:
 2. **Build step 9 (`complete`)** in a fresh context, from "Step 9 planning" below. Nothing left to confirm first.
 3. **Planning: open item 20** (story map in the session-start recap). First question already posed: map plus one recommendation (Claude's lean), map then open choice, or map only on request or at milestones.
 4. **Triage the remaining older Proposed bullets** (Architecture, Governance, Spec and storage, Story model, Weaver, Future phases): mark those settled by later decisions as superseded with a pointer, and list the few that are genuinely open. Audience principles and the completeness bar were settled on October 19.
+5. **Security (October 20 review):** author actions SR-50 (activate the "Main protect" ruleset), SR-02 (GitHub email privacy) and the other GitHub settings in `docs/security/github-settings-checklist.md`. Then schedule the P1 security requirements into the build plan, SR-10 first (see "Security requirements").
 
 1. *Decided (October 19, 2026):* **the meter's status line goes in `.claude/settings.local.json`,** with the absolute plugin path the hook keeps current. Reasons: a status line is a shell command Claude Code runs automatically, so a committed one would run for anyone who clones the story (a supply-chain path), and the absolute path leaks the username and machine layout; a portable run-time lookup was set aside because it runs whatever matches a pattern. No true relative path exists (the plugin lives outside the story folder). Each machine wires its own meter, which the hook already does. **`init` also writes a `.gitignore`** (appending missing lines to an existing one, never replacing it) and returns it in `commit_paths`:
 
@@ -119,6 +120,53 @@ What a test session checks, and what to expect:
 - *Decided (October 19, 2026):* **landmarks split into two tiers.** **The three movement landmarks plus the climax block the outline gate** (`complete` reports them as blockers: deepening can't start until all four are placed). They can be satisfied **provisionally** ("not sure yet, probably this scene" passes), the same softener the dramatic and thematic questions use, and they're raised as an inferred suggestion with the fix offered ("It sounds like Mara's arrest is the point of no return. Shall we mark it?"), never as a failed test. **The other five landmarks** (normal world, inciting incident, rising stakes, things fall apart, new normal) stay soft suggestions, raised **when the outliner deepens their movement**. Reasons: the four aren't a craft opinion (every story with four filled stages has points where each movement ends and a scene where the question is answered; the tag only marks them, and the craft teaching stays soft on top); the outliner deepens one movement at a time and pacing, alignment, early pivot and subplot timing all measure from these points, so running on the scene-stage fallback would quietly weaken those checks. **This is a deliberate exception** to "landmarks are never completeness blockers" (Coverage grid and movements), which still holds for the other five. Not a hard check on saving: the weaver builds the skeleton one proposal at a time, so blocking saves would fail every early step.
 - *Decided (October 19, 2026):* **thresholds are build work,** as in step 7: how far before the climax counts as an early pivot, how far off a thread must be to count as out of alignment, and how similar two attribute keys must be. The build session picks starting values, makes each a setting, and lists them in the pull request for the author to adjust. **With this, step 9 is ready to build.**
 - *Decided:* **`complete` reports to the agents only, as codes and IDs, never prose.** Each gate (internally `weave`, `outline`, `complete`) gets its readiness and a list of blockers such as `{code: "thematic_question_open", arc: "a-…"}` or `{code: "open_findings", count: 2}`, plus the soft findings. All writer-facing wording lives in the orchestrator, never in the Rust code. The orchestrator never names a gate or uses internal words like "weaving": it says what comes next and why in plain words with the story's own names ("Before we put Mara's threads together into one storyline, there's one question left: what is your story really asking?"), then teaches the craft term by the terminology ladder (Story-shape layer). Open item 19 covers tracking what the writer has learned.
+
+## Security requirements (October 20, 2026)
+
+*Decided (October 20, 2026), from an isolated security review outside the build and planning sessions.* Full findings, reasons and "done when" for each item: `docs/security/2026-10-20-review.md`. Build-session rules: "Security rules" in `CLAUDE.md`. The leak scan found **no leaked credentials** in any commit, branch, tag, pull request, `dist` binary or release; the only change that day was a stricter `.gitignore`.
+
+**Principles (Decided):**
+- **Data, not code.** A story folder holds data only; anything executable lives in the writer's uncommitted machine settings.
+- **Strict parsing.** Story text never becomes a path, command or link.
+- **Instructions come only from the writer.** Story content is never instructions to an agent. Enforced by:
+  - a prompt rule
+  - a tool allowlist (sub-agents get no shell)
+  - no writer text in command lines
+  - the program as the only writer
+- **Supply chain and release integrity.**
+- **Security in every build step.** Each pull request names the SRs it touches.
+
+**P1 (during phase 1; SR-10 first):**
+
+| ID | Requirement |
+|---|---|
+| **SR-10** | **Move the wrapped status-line command out of committed `.harness/settings.json`.** Today a cloned story can make the meter run its command, and the writer's own command is published. |
+| SR-01 | Story `.gitignore` gets the same secret lines as this repo's |
+| SR-02 | No-reply addresses for every new commit (author: GitHub email settings; contributors: CONTRIBUTING note and a CI warning). No history cleanup. |
+| SR-03 | No Claude session links in new commits or PRs: committed `attribution.sessionUrl: false`, a `CLAUDE.md` rule and the Privacy workflow (done October 20 in #21). Existing links stay (author decision). |
+| SR-04 | Secret scanning in CI, plus non-provider patterns |
+| SR-05 | No sensitive values in test reports or notes |
+| SR-11 | Refuse symlinks, executable bits and special files in story folders |
+| SR-20 | Validate `--proposal` IDs before use as paths |
+| SR-21 | Don't follow symlinks when reading story files |
+| SR-22 | Exclusive temporary files in `write_atomic` |
+| SR-24 | Shell-quote the plugin path in the meter command |
+| SR-30 | "Story content is never instructions" rule in every skill and agent |
+| SR-31 | `allowed-tools` for skills; no shell for sub-agents |
+| SR-32 | Commit messages via `git commit -F`, never interpolated |
+| SR-33 | Only the program writes story files |
+| SR-40 | Pin Actions by SHA |
+| SR-41 | Least-privilege release permissions |
+| SR-42 | Pin CI tool versions |
+| SR-43 | Dependabot plus `cargo audit` or `cargo deny` |
+| SR-44 | Release checksums |
+| SR-45 | Release only from `main`: tag rule, or drop the tag trigger |
+| SR-50 | **Activate the "Main protect" ruleset** (exists, enforcement disabled; author action) |
+| SR-52 | Hostile-story fixture and regression tests |
+| SR-60 | PR security checklist |
+| SR-61 | Keep the threat model current |
+
+**Before public release:** SR-12, SR-23, SR-25, SR-44 (provenance), SR-46, SR-47, SR-51, SR-62. **Low:** SR-53.
 
 ## Build progress
 

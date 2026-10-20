@@ -40,7 +40,7 @@ jobs:
         # Findings are turned into annotations so they show on the pull request.
         run: |
           set -o pipefail
-          shellcheck -f gcc plugin/scripts/skaldsaga ci/assemble-dist.sh \
+          shellcheck -f gcc plugin/scripts/skaldsaga ci/assemble-dist.sh ci/check-session-links.sh \
             | sed -E 's/^([^:]+):([0-9]+):([0-9]+): (.*)$/::error file=\1,line=\2,col=\3::\4/'
 
       - name: Assemble the plugin
